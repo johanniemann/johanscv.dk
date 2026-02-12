@@ -4,8 +4,15 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/WEBSITE/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>johanscv</title>
-    <script type="module" crossorigin src="/WEBSITE/assets/index-DFJcNRtb.js"></script>
+    <script>
+      ;(() => {
+        const theme = localStorage.getItem('johanscv.theme') || 'dark'
+        document.documentElement.dataset.theme = theme
+        if (theme === 'dark') document.documentElement.classList.add('dark')
+      })()
+    </script>
+    <title>johanscv.dk</title>
+    <script type="module" crossorigin src="/WEBSITE/assets/index-xKo71fD8.js"></script>
     <link rel="stylesheet" crossorigin href="/WEBSITE/assets/index-BJuNLO7O.css">
   </head>
   <body>
