@@ -1,0 +1,60 @@
+{
+  "en": {
+    "nav": {
+      "home": "Home",
+      "projects": "Projects",
+      "files": "Files",
+      "quiz": "Quiz"
+    },
+    "hero": {
+      "name": "Johan Mannhus Bjerg",
+      "title": "IT Architecture student shaping precise, human-centered systems."
+    },
+    "ask": {
+      "title": "Ask Johan",
+      "placeholder": "Ask about skills, projects, or architecture...",
+      "button": "Answer"
+    },
+    "projects": {
+      "title": "Projects",
+      "intro": "Focused work in architecture, frontend systems, and product execution."
+    },
+    "files": {
+      "title": "Files",
+      "intro": "Selected documents and references."
+    },
+    "quiz": {
+      "title": "Architecture Quiz",
+      "intro": "Quick challenge to unlock enhanced visual mode."
+    }
+  },
+  "dk": {
+    "nav": {
+      "home": "Hjem",
+      "projects": "Projekter",
+      "files": "Filer",
+      "quiz": "Quiz"
+    },
+    "hero": {
+      "name": "Johan Mannhus Bjerg",
+      "title": "IT-arkitekturstuderende med fokus pa praecise, menneskelige systemer."
+    },
+    "ask": {
+      "title": "Sporg Johan",
+      "placeholder": "Sporg om kompetencer, projekter eller arkitektur...",
+      "button": "Svar"
+    },
+    "projects": {
+      "title": "Projekter",
+      "intro": "Fokuseret arbejde inden for arkitektur, frontend-systemer og produktudforelse."
+    },
+    "files": {
+      "title": "Filer",
+      "intro": "Udvalgte dokumenter og referencer."
+    },
+    "quiz": {
+      "title": "Arkitektur Quiz",
+      "intro": "Kort udfordring der laaser op for forbedret visuel tilstand."
+    }
+  }
+}

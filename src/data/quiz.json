@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "question": "What is the main purpose of a layered architecture?",
+    "options": [
+      "To separate concerns and reduce coupling",
+      "To make all code run faster",
+      "To avoid documentation"
+    ],
+    "answer": 0
+  },
+  {
+    "id": 2,
+    "question": "Which metric is most useful for frontend performance perception?",
+    "options": [
+      "Time to first commit",
+      "Largest Contentful Paint",
+      "Lines of CSS"
+    ],
+    "answer": 1
+  },
+  {
+    "id": 3,
+    "question": "Why use a state store in a small SPA?",
+    "options": [
+      "To centralize cross-page UI state",
+      "To avoid any event listeners",
+      "To remove routing"
+    ],
+    "answer": 0
+  }
+]

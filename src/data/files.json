@@ -1,0 +1,20 @@
+[
+  {
+    "id": "cv",
+    "title": "CV",
+    "description": "Updated profile and experience summary.",
+    "url": "/files/johan-cv.pdf"
+  },
+  {
+    "id": "portfolio",
+    "title": "Portfolio",
+    "description": "Project snapshots and architecture notes.",
+    "url": "/files/johan-portfolio.pdf"
+  },
+  {
+    "id": "architecture-notes",
+    "title": "Architecture Notes",
+    "description": "Patterns, tradeoffs, and implementation thinking.",
+    "url": "/files/architecture-notes.pdf"
+  }
+]
