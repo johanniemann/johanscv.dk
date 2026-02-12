@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>johanscv</title>
+    <script>
+      (function () {
+        var pathname = window.location.pathname
+        var search = window.location.search
+        var hash = window.location.hash
+        var segments = pathname.split('/').filter(Boolean)
+
+        if (segments.length === 0) {
+          window.location.replace('/')
+          return
+        }
+
+        var base = '/' + segments[0] + '/'
+        var route = '/' + segments.slice(1).join('/')
+        var query = route
+
+        if (search && search.length > 1) {
+          query += '&q=' + encodeURIComponent(search.slice(1))
+        }
+
+        window.location.replace(base + '?p=' + encodeURIComponent(query) + hash)
+      })()
+    </script>
+  </head>
+  <body></body>
+</html>
