@@ -3,18 +3,18 @@
     "id": "cv",
     "title": "CV",
     "description": "Updated profile and experience summary.",
-    "url": "/files/johan-cv.pdf"
+    "url": "/files/johan-niemann-husbjerg-cv.pdf"
   },
   {
     "id": "portfolio",
     "title": "Portfolio",
     "description": "Project snapshots and architecture notes.",
-    "url": "/files/johan-portfolio.pdf"
+    "url": "/files/johan-portfolio.txt"
   },
   {
     "id": "architecture-notes",
     "title": "Architecture Notes",
     "description": "Patterns, tradeoffs, and implementation thinking.",
-    "url": "/files/architecture-notes.pdf"
+    "url": "/files/architecture-notes.txt"
   }
 ]

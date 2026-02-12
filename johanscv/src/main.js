@@ -2,9 +2,11 @@ import './styles/globals.css'
 import './styles/animations.css'
 import translations from './data/translations.json'
 import { Navbar } from './components/Navbar.js'
+import { Footer } from './components/Footer.js'
+import { WelcomeGate, bindWelcomeGate } from './components/WelcomeGate.js'
 import { bindThemeToggle } from './components/ThemeToggle.js'
 import { bindLanguageToggle } from './components/LanguageToggle.js'
-import { getState, setState, subscribe } from './state.js'
+import { getState, setState } from './state.js'
 import { initRouter } from './router.js'
 
 restoreRedirectedPath()
@@ -12,24 +14,33 @@ restoreRedirectedPath()
 const app = document.querySelector('#app')
 
 app.innerHTML = `
-  <div class="site-shell">
+  <div id="welcome-root"></div>
+  <div class="site-shell" id="site-shell">
     <div id="nav-root"></div>
     <div id="page-root"></div>
+    <div id="footer-root"></div>
   </div>
 `
 
+const WELCOME_KEY = 'johanscv.welcomeSeen'
+const WELCOME_EXIT_MS = 500
+const welcomeRoot = document.querySelector('#welcome-root')
 const navRoot = document.querySelector('#nav-root')
 const pageRoot = document.querySelector('#page-root')
+const footerRoot = document.querySelector('#footer-root')
 let navHidden = false
+let navScrollInitialized = false
 
-initRouter({
+renderNav()
+renderFooter()
+renderWelcomeGate()
+updateActiveNav(getState().route)
+
+const router = initRouter({
   mountEl: pageRoot,
   renderFrame: (renderRoute) => {
     renderRoute()
     initNavbarScrollBehavior()
-    subscribe(() => {
-      renderNav()
-    })
   },
   pageContext: () => {
     const state = getState()
@@ -37,12 +48,13 @@ initRouter({
 
     return {
       t,
+      language: state.language,
       onQuizComplete: () => setState({ quizUnlocked: true })
     }
   },
   onRouteChange: (route) => {
     setState({ route })
-    renderNav()
+    updateActiveNav(route)
     initRevealObserver()
   }
 })
@@ -53,6 +65,16 @@ function renderNav() {
 
   navRoot.innerHTML = Navbar({
     route: state.route,
+    t
+  })
+
+  syncNavbarVisibility()
+}
+
+function renderFooter() {
+  const state = getState()
+  const t = translations[state.language] || translations.en
+  footerRoot.innerHTML = Footer({
     t,
     theme: state.theme,
     language: state.language
@@ -61,15 +83,17 @@ function renderNav() {
   bindThemeToggle(() => {
     const next = getState().theme === 'dark' ? 'light' : 'dark'
     setState({ theme: next })
+    renderFooter()
   })
 
   bindLanguageToggle(() => {
     const next = getState().language === 'en' ? 'dk' : 'en'
     setState({ language: next })
-    window.dispatchEvent(new PopStateEvent('popstate'))
+    renderNav()
+    updateActiveNav(getState().route)
+    renderFooter()
+    router.refresh()
   })
-
-  syncNavbarVisibility()
 }
 
 function initRevealObserver() {
@@ -109,6 +133,9 @@ function restoreRedirectedPath() {
 }
 
 function initNavbarScrollBehavior() {
+  if (navScrollInitialized) return
+  navScrollInitialized = true
+
   let lastY = window.scrollY
   let ticking = false
 
@@ -139,4 +166,37 @@ function syncNavbarVisibility() {
   const navbar = document.querySelector('#navbar')
   if (!navbar) return
   navbar.classList.toggle('nav-hidden', navHidden)
+}
+
+function updateActiveNav(route) {
+  const links = document.querySelectorAll('.nav-link')
+  links.forEach((link) => {
+    const href = link.getAttribute('href')
+    link.classList.toggle('active', href === route)
+  })
+}
+
+function renderWelcomeGate() {
+  if (localStorage.getItem(WELCOME_KEY) === 'true') return
+
+  const state = getState()
+  const t = translations[state.language] || translations.en
+
+  welcomeRoot.innerHTML = WelcomeGate({ t })
+  document.body.classList.add('welcome-active')
+
+  const screen = welcomeRoot.querySelector('.welcome-screen')
+  window.requestAnimationFrame(() => {
+    screen?.classList.add('is-visible')
+  })
+
+  bindWelcomeGate(() => {
+    localStorage.setItem(WELCOME_KEY, 'true')
+    screen?.classList.remove('is-visible')
+    screen?.classList.add('is-exiting')
+    document.body.classList.remove('welcome-active')
+    window.setTimeout(() => {
+      welcomeRoot.innerHTML = ''
+    }, WELCOME_EXIT_MS)
+  })
 }

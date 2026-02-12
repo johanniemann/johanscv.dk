@@ -4,7 +4,14 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>johanscv</title>
+    <script>
+      ;(() => {
+        const theme = localStorage.getItem('johanscv.theme') || 'dark'
+        document.documentElement.dataset.theme = theme
+        if (theme === 'dark') document.documentElement.classList.add('dark')
+      })()
+    </script>
+    <title>johanscv.dk</title>
   </head>
   <body>
     <div id="app"></div>

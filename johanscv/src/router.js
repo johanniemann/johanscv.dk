@@ -7,12 +7,15 @@ import { PageTransition } from './components/PageTransition.js'
 const routes = {
   '/': Home,
   '/projects': Projects,
-  '/files': Files,
+  '/resume': Files,
   '/quiz': QuizPage
 }
 
 const BASE = import.meta.env.BASE_URL
 const MAJOR_DURATION_MS = 500
+const routeRedirects = {
+  '/files': '/resume'
+}
 
 export function withBase(path) {
   const clean = path.startsWith('/') ? path.slice(1) : path
@@ -31,14 +34,19 @@ export function initRouter({ mountEl, renderFrame, pageContext, onRouteChange })
   let transitionLock = false
 
   const renderCurrent = () => {
-    const path = appPathFromLocation()
+    const rawPath = appPathFromLocation()
+    const path = routeRedirects[rawPath] || rawPath
     const page = routes[path] || routes['/']
-    onRouteChange(path)
+
+    if (rawPath !== path) {
+      history.replaceState({}, '', withBase(path))
+    }
 
     mountEl.innerHTML = PageTransition(page.render(pageContext(path)))
     if (page.mount) {
       page.mount(pageContext(path))
     }
+    onRouteChange(path)
 
     requestAnimationFrame(() => {
       const transitionNode = mountEl.querySelector('.page-transition-enter')
@@ -75,11 +83,16 @@ export function initRouter({ mountEl, renderFrame, pageContext, onRouteChange })
     if (!href || !href.startsWith('/')) return
 
     event.preventDefault()
+    if (href === appPathFromLocation()) return
     navigate(href, transitionToCurrent)
   })
 
   window.addEventListener('popstate', transitionToCurrent)
   renderFrame(renderCurrent)
+
+  return {
+    refresh: transitionToCurrent
+  }
 }
 
 export function navigate(path, callback) {

@@ -3,12 +3,20 @@
     "nav": {
       "home": "Home",
       "projects": "Projects",
-      "files": "Files",
+      "files": "Resume",
       "quiz": "Quiz"
     },
     "hero": {
-      "name": "Johan Mannhus Bjerg",
+      "name": "Johan Niemann Husbjerg",
       "title": "IT Architecture student shaping precise, human-centered systems."
+    },
+    "welcome": {
+      "title": "Welcome",
+      "intro": "This site is a focused overview of my architecture profile, practical experience, and current projects.",
+      "point1": "Explore projects and implementation work.",
+      "point2": "Review my full Resume / CV structure.",
+      "point3": "Use Ask Johan for quick context.",
+      "continue": "Continue"
     },
     "ask": {
       "title": "Ask Johan",
@@ -17,44 +25,88 @@
     },
     "projects": {
       "title": "Projects",
-      "intro": "Focused work in architecture, frontend systems, and product execution."
+      "intro": "Focused work in architecture, frontend systems, and product execution.",
+      "previewTitle": "Selected Work",
+      "previewIntro": "A snapshot of practical architecture and frontend execution.",
+      "cta": "View all projects"
     },
     "files": {
-      "title": "Files",
-      "intro": "Selected documents and references."
+      "title": "Resume / CV",
+      "intro": "Education, experience, voluntary work, and qualifications."
+    },
+    "resume": {
+      "previewTitle": "Resume Snapshot",
+      "previewIntro": "A structured view of my education, practical experience, and key competencies.",
+      "cta": "Open Resume / CV",
+      "education": "Education",
+      "experience": "Work Experience",
+      "voluntary": "Voluntary Work",
+      "qualifications": "Qualifications",
+      "itSkills": "Core IT Skills",
+      "personalQualities": "Personal Qualities"
     },
     "quiz": {
       "title": "Architecture Quiz",
       "intro": "Quick challenge to unlock enhanced visual mode."
+    },
+    "footer": {
+      "builtWith": "Built with Vite, Tailwind, and Vanilla JavaScript.",
+      "rights": "All rights reserved."
     }
   },
   "dk": {
     "nav": {
       "home": "Hjem",
       "projects": "Projekter",
-      "files": "Filer",
+      "files": "CV",
       "quiz": "Quiz"
     },
     "hero": {
-      "name": "Johan Mannhus Bjerg",
-      "title": "IT-arkitekturstuderende med fokus pa praecise, menneskelige systemer."
+      "name": "Johan Niemann Husbjerg",
+      "title": "IT-arkitekturstuderende med fokus på præcise, menneskelige systemer."
+    },
+    "welcome": {
+      "title": "Velkommen",
+      "intro": "Denne side giver et fokuseret overblik over min arkitekturprofil, praktiske erfaring og nuværende projekter.",
+      "point1": "Se projekter og konkret implementeringsarbejde.",
+      "point2": "Gennemgå mit fulde Resume / CV.",
+      "point3": "Brug Ask Johan for hurtig kontekst.",
+      "continue": "Fortsat"
     },
     "ask": {
-      "title": "Sporg Johan",
-      "placeholder": "Sporg om kompetencer, projekter eller arkitektur...",
+      "title": "Spørg Johan",
+      "placeholder": "Spørg om kompetencer, projekter eller arkitektur...",
       "button": "Svar"
     },
     "projects": {
       "title": "Projekter",
-      "intro": "Fokuseret arbejde inden for arkitektur, frontend-systemer og produktudforelse."
+      "intro": "Fokuseret arbejde inden for arkitektur, frontend-systemer og produktudførelse.",
+      "previewTitle": "Udvalgt Arbejde",
+      "previewIntro": "Et udsnit af praktisk arkitektur og frontend-udførelse.",
+      "cta": "Se alle projekter"
     },
     "files": {
-      "title": "Filer",
-      "intro": "Udvalgte dokumenter og referencer."
+      "title": "Resume / CV",
+      "intro": "Uddannelse, arbejdserfaring, frivilligt arbejde og kvalifikationer."
+    },
+    "resume": {
+      "previewTitle": "CV overblik",
+      "previewIntro": "Et struktureret overblik over uddannelse, praktisk erfaring og væsentlige kompetencer.",
+      "cta": "Åbn Resume / CV",
+      "education": "Uddannelse",
+      "experience": "Arbejdserfaring",
+      "voluntary": "Frivilligt arbejde",
+      "qualifications": "Kvalifikationer",
+      "itSkills": "Væsentlige IT-kundskaber",
+      "personalQualities": "Personlige kvaliteter"
     },
     "quiz": {
       "title": "Arkitektur Quiz",
-      "intro": "Kort udfordring der laaser op for forbedret visuel tilstand."
+      "intro": "Kort udfordring der låser op for forbedret visuel tilstand."
+    },
+    "footer": {
+      "builtWith": "Bygget med Vite, Tailwind og Vanilla JavaScript.",
+      "rights": "Alle rettigheder forbeholdes."
     }
   }
 }

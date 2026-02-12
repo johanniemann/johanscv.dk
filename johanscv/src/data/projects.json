@@ -1,0 +1,38 @@
+[
+  {
+    "id": "spa-architecture",
+    "title": {
+      "en": "SPA Architecture Foundation",
+      "dk": "SPA Arkitekturgrundlag"
+    },
+    "summary": {
+      "en": "Designed a lightweight Vanilla JS SPA with explicit routing, transition orchestration, and durable state boundaries.",
+      "dk": "Designede en letvægts Vanilla JS SPA med tydelig routing, overgangsorkestrering og robuste state-graenser."
+    },
+    "tags": ["Vite", "Vanilla JS", "Routing"]
+  },
+  {
+    "id": "design-system",
+    "title": {
+      "en": "Interaction-Led Design System",
+      "dk": "Interaktionsdrevet Designsystem"
+    },
+    "summary": {
+      "en": "Built a restrained visual language with theme tokens, glass surfaces, motion hierarchy, and responsive rhythm.",
+      "dk": "Byggede et afdaempet visuelt sprog med tematiske tokens, glasflader, motion-hierarki og responsiv rytme."
+    },
+    "tags": ["Tailwind", "Theming", "UX Motion"]
+  },
+  {
+    "id": "deployment-flow",
+    "title": {
+      "en": "GitHub Pages Deployment Flow",
+      "dk": "GitHub Pages Deploy-flow"
+    },
+    "summary": {
+      "en": "Configured stable project-page deployment with base-path-safe assets and SPA fallback for deep links.",
+      "dk": "Konfigurerede stabil project-pages deployment med base-path-sikre assets og SPA fallback til deep links."
+    },
+    "tags": ["GitHub Pages", "CI-ready", "Reliability"]
+  }
+]

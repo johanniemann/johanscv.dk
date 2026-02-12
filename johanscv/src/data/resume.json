@@ -1,0 +1,158 @@
+{
+  "dk": {
+    "education": [
+      {
+        "level": "Videregående uddannelse",
+        "institution": "Københavns Erhvervsakademi",
+        "focus": "Professionsbachelor, IT-arkitektur",
+        "period": "August 2024 - Januar 2028"
+      },
+      {
+        "level": "Gymnasial uddannelse (STX)",
+        "institution": "Nærum Gymnasium",
+        "focus": "Samfundsfag/Engelsk A niveau",
+        "period": "August 2019 - Juni 2022"
+      },
+      {
+        "level": "Folkeskole",
+        "institution": "Engelsborgskolen, Kongens Lyngby",
+        "focus": "Grundskoleforløb",
+        "period": "August 2008 - Juni 2018"
+      }
+    ],
+    "experience": [
+      {
+        "role": "Product Data & Systems Assistant hos Norlys",
+        "description": "Arbejdet med digitale e-commerce-løsninger med ansvar for oprettelse, strukturering og vedligeholdelse af produktdata på tværs af databaser, PIM- og CMS-systemer. Fokus på datakvalitet, korrekthed, konsistens samt samarbejde med forretning, leverandører og tekniske teams. Løbende optimering af produkt- og kategorisider med SEO-fokus.",
+        "type": "Studentermedhjælper",
+        "period": "Februar 2026 - d.d."
+      },
+      {
+        "role": "Indkøbs- og salgskonsulent hos Nofipa ApS",
+        "description": "Arbejdet med finansielle transaktioner og rådgivning inden for asset-backed lending, herunder værdifastsættelse af aktiver. Udført AML- og KYC-kontroller, due diligence og risikovurderinger samt rådgivning til privat- og erhvervskunder med fokus på compliance og kvalitet. Udarbejdet 1.000+ kontrakter og bidraget til digitalisering af manuelle processer.",
+        "type": "Studentermedhjælper",
+        "period": "Januar 2025 - d.d."
+      },
+      {
+        "role": "Lektiehjælper til folkeskoleelev i matematik og dansk",
+        "description": "Erfaring med undervisning, formidling og planlægning af faglige forløb.",
+        "type": "Deltid",
+        "period": "December 2021 - d.d."
+      },
+      {
+        "role": "Pædagogmedhjælper i Børnehuset Klokkeblomsten",
+        "description": "Erfaring med børns udvikling, læring og behov i en struktureret hverdagsramme.",
+        "type": "Fuldtid",
+        "period": "August 2022 - Oktober 2023"
+      }
+    ],
+    "voluntary": [
+      {
+        "role": "Studentermiljørepræsentant (SMR) for IT-arkitekturuddannelsen på EK",
+        "description": "Repræsenterer de studerendes interesser i forhold til trivsel og studiemiljø. Indsamler input fra medstuderende og deltager i dialog med undervisere og ledelse om forbedringer af studiehverdagen.",
+        "period": "September 2024 - d.d."
+      }
+    ],
+    "qualifications": {
+      "it": [
+        "Microsoft Office pakken",
+        "CMS- og PIM-systemer",
+        "Adobe pakken",
+        "Git og GitHub",
+        "SQL og NoSQL",
+        "Datamodellering og datahåndtering (JSON, CSV, XML m.fl.)",
+        "Visualisering af dashboards (Tableau, Excel m.fl.)",
+        "UI/UX-design i Compose og Figma",
+        "Stærkt kendskab til JavaScript, Python, Kotlin m.fl.",
+        "Stærkt kendskab til API-drevet softwarearkitektur",
+        "Iterativ udvikling, prototyper og brugertests",
+        "Business Modeling Frameworks (BPMN, RCA, SWOT, BMC, AS-IS, TO-BE m.fl.)"
+      ],
+      "personal": [
+        "Ansvarsbevidst - overholder deadlines og følger opgaver til dørs",
+        "Lærenem - sætter mig hurtigt ind i nye systemer og arbejdsgange",
+        "Struktureret - arbejder metodisk og bevarer overblik",
+        "Samarbejdsorienteret - trives i teams og kommunikerer klart",
+        "Selvstændig - tager initiativ og kan arbejde uden tæt styring"
+      ]
+    }
+  },
+  "en": {
+    "education": [
+      {
+        "level": "Higher Education",
+        "institution": "Copenhagen School of Design and Technology",
+        "focus": "Professional Bachelor's Degree, IT Architecture",
+        "period": "August 2024 - January 2028"
+      },
+      {
+        "level": "Upper Secondary Education (STX)",
+        "institution": "Nærum Gymnasium",
+        "focus": "Social Sciences / English, A-level",
+        "period": "August 2019 - June 2022"
+      },
+      {
+        "level": "Primary and Lower Secondary School",
+        "institution": "Engelsborgskolen, Kongens Lyngby",
+        "focus": "General school program",
+        "period": "August 2008 - June 2018"
+      }
+    ],
+    "experience": [
+      {
+        "role": "Product Data & Systems Assistant at Norlys",
+        "description": "Worked on digital e-commerce solutions with responsibility for creating, structuring, and maintaining product data across databases, PIM and CMS systems. Focused on data quality, consistency, and coordination with business, suppliers, and technical teams. Continuously optimized product and category pages with SEO focus.",
+        "type": "Student Assistant",
+        "period": "February 2026 - Present"
+      },
+      {
+        "role": "Purchasing and Sales Consultant at Nofipa ApS",
+        "description": "Worked with financial transactions and advisory within asset-backed lending, including valuation-based lending. Performed AML/KYC controls, due diligence, and risk assessments, and advised private and business customers with focus on compliance and quality. Prepared 1,000+ contracts and supported digitalization of manual workflows.",
+        "type": "Student Assistant",
+        "period": "January 2025 - Present"
+      },
+      {
+        "role": "Private Tutor in Mathematics and Danish",
+        "description": "Experience in teaching, communication, and planning subject-focused sessions.",
+        "type": "Part-time",
+        "period": "December 2021 - Present"
+      },
+      {
+        "role": "Pedagogical Assistant at Børnehuset Klokkeblomsten",
+        "description": "Experience with child development, learning needs, and structured care environments.",
+        "type": "Full-time",
+        "period": "August 2022 - October 2023"
+      }
+    ],
+    "voluntary": [
+      {
+        "role": "Student Environment Representative (SMR) for IT Architecture at EK",
+        "description": "Represent students in matters related to well-being and study environment. Collect input from students and participate in dialogue with lecturers and management to improve the study experience.",
+        "period": "September 2024 - Present"
+      }
+    ],
+    "qualifications": {
+      "it": [
+        "Microsoft Office suite",
+        "CMS and PIM systems",
+        "Adobe suite",
+        "Git and GitHub",
+        "SQL and NoSQL",
+        "Data modeling and handling (JSON, CSV, XML, etc.)",
+        "Dashboard visualization (Tableau, Excel, etc.)",
+        "UI/UX design in Compose and Figma",
+        "Strong command of JavaScript, Python, Kotlin, and more",
+        "Strong command of API-driven software architecture",
+        "Iterative development, prototypes, and user testing",
+        "Business modeling frameworks (BPMN, RCA, SWOT, BMC, AS-IS, TO-BE, etc.)"
+      ],
+      "personal": [
+        "Responsible - meet deadlines and carry tasks through",
+        "Fast learner - quickly adapt to new systems and workflows",
+        "Structured - work methodically and maintain overview",
+        "Collaborative - thrive in teams and communicate clearly",
+        "Independent - take initiative and work without close supervision"
+      ]
+    }
+  }
+}

@@ -1,0 +1,2 @@
+Architecture Notes placeholder
+Replace this file with your final architecture notes PDF.
