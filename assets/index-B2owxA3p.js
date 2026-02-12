@@ -23,16 +23,16 @@
         ${_(o)}
       </div>
     </header>
-  `}function h(e,t,o){return`<a class="${o===e?"nav-link active":"nav-link"}" href="${e}" data-link>${t}</a>`}const d={theme:"johanscv.theme",language:"johanscv.language",quizUnlocked:"johanscv.quizUnlocked"},q=new Set;let u={theme:localStorage.getItem(d.theme)||"dark",language:localStorage.getItem(d.language)||"en",quizUnlocked:localStorage.getItem(d.quizUnlocked)==="true",route:"/"};E(u);function v(){return u}function y(e){u={...u,...e},D(),E(u),Q()}function W(e){return q.add(e),()=>q.delete(e)}function Q(){q.forEach(e=>e(u))}function D(){localStorage.setItem(d.theme,u.theme),localStorage.setItem(d.language,u.language),localStorage.setItem(d.quizUnlocked,String(u.quizUnlocked))}function E(e){document.documentElement.dataset.theme=e.theme,document.documentElement.classList.toggle("dark",e.theme==="dark"),document.body.classList.toggle("quiz-unlocked",e.quizUnlocked)}function H({t:e}){return`
+  `}function h(e,t,o){return`<a class="${o===e?"nav-link active":"nav-link"}" href="${e}" data-link>${t}</a>`}const d={theme:"johanscv.theme",language:"johanscv.language",quizUnlocked:"johanscv.quizUnlocked"},q=new Set;let u={theme:localStorage.getItem(d.theme)||"dark",language:localStorage.getItem(d.language)||"en",quizUnlocked:localStorage.getItem(d.quizUnlocked)==="true",route:"/"};P(u);function v(){return u}function y(e){u={...u,...e},H(),P(u),D()}function Q(e){return q.add(e),()=>q.delete(e)}function D(){q.forEach(e=>e(u))}function H(){localStorage.setItem(d.theme,u.theme),localStorage.setItem(d.language,u.language),localStorage.setItem(d.quizUnlocked,String(u.quizUnlocked))}function P(e){document.documentElement.dataset.theme=e.theme,document.documentElement.classList.toggle("dark",e.theme==="dark"),document.body.classList.toggle("quiz-unlocked",e.quizUnlocked)}function W({t:e}){return`
     <section class="hero section-reveal" id="hero">
       <div class="avatar-wrap">
         <div class="avatar-ring"></div>
-        <img class="avatar" src="/WEBSITE/images/johan-placeholder.svg" alt="Portrait of Johan" />
+        <img class="avatar" src="/images/johan-placeholder.svg" alt="Portrait of Johan" />
       </div>
       <h1 class="hero-name">${e.hero.name}</h1>
       <p class="hero-title">${e.hero.title}</p>
     </section>
-  `}const B="I focus on architecture thinking, frontend systems, and product-minded delivery.",J="Recent work centers on SPA structure, interaction quality, and maintainable design systems.",Y="I prioritize separation of concerns, explicit state, and measurable performance.",m={skills:B,projects:J,architecture:Y,default:"Great question. In this phase, I can answer on skills, projects, and architecture approach."};function K({t:e}){return`
+  `}const J="I focus on architecture thinking, frontend systems, and product-minded delivery.",B="Recent work centers on SPA structure, interaction quality, and maintainable design systems.",Y="I prioritize separation of concerns, explicit state, and measurable performance.",m={skills:J,projects:B,architecture:Y,default:"Great question. In this phase, I can answer on skills, projects, and architecture approach."};function K({t:e}){return`
     <section class="ask-card section-reveal" id="ask-johan">
       <h2 class="section-title">${e.ask.title}</h2>
       <div class="ask-input-wrap">
@@ -47,7 +47,7 @@
       <p class="file-description">${e.description}</p>
       <a class="file-download" href="${t}" download aria-label="Download ${e.title}">↧</a>
     </article>
-  `}function te(e){return e.startsWith("/")?`/WEBSITE/${e.slice(1)}`:e}let f=null,p=!1,k=null;function P(){return`
+  `}function te(e){return e.startsWith("/")?`/${e.slice(1)}`:e}let f=null,p=!1,k=null;function E(){return`
     <section class="files-strip section-reveal" id="file-scroller-wrap">
       <div id="file-scroller" class="file-scroller">
         ${Z.map(e=>ee(e)).join("")}
@@ -55,9 +55,9 @@
     </section>
   `}function A(){const e=document.querySelector("#file-scroller");if(!e)return;ne(),j(),p=!0;let t=performance.now();const o=a=>{if(!p)return;const s=a-t;t=a,e.scrollLeft+=s*.02,e.scrollLeft+e.clientWidth>=e.scrollWidth-1&&(e.scrollLeft=0),f=window.requestAnimationFrame(o)},r=()=>{w(),p=!1,j()},n=()=>{w(),!p&&(p=!0,t=performance.now(),f=window.requestAnimationFrame(o))},i=()=>{r(),k=window.setTimeout(n,1200)};e.addEventListener("mouseenter",r),e.addEventListener("mouseleave",n),e.addEventListener("focusin",r),e.addEventListener("focusout",n),e.addEventListener("pointerdown",i),e.addEventListener("touchstart",i,{passive:!0}),e.addEventListener("wheel",i,{passive:!0}),f=window.requestAnimationFrame(o)}function j(){f&&(window.cancelAnimationFrame(f),f=null)}function w(){k&&(window.clearTimeout(k),k=null)}function ne(){w()}function oe({t:e}){return`
     <main class="page-stack">
-      ${H({t:e})}
+      ${W({t:e})}
       ${K({t:e})}
-      ${P()}
+      ${E()}
     </main>
   `}function re(){V(),A()}const ie=Object.freeze(Object.defineProperty({__proto__:null,mount:re,render:oe},Symbol.toStringTag,{value:"Module"}));function z({title:e,body:t,id:o}){return`
     <section id="${o}" class="content-section section-reveal">
@@ -71,25 +71,25 @@
   `}const ae=Object.freeze(Object.defineProperty({__proto__:null,render:se},Symbol.toStringTag,{value:"Module"}));function ce({t:e}){return`
     <main class="page-stack">
       ${z({id:"files",title:e.files.title,body:e.files.intro})}
-      ${P()}
+      ${E()}
     </main>
   `}function le(){A()}const ue=Object.freeze(Object.defineProperty({__proto__:null,mount:le,render:ce},Symbol.toStringTag,{value:"Module"})),g=[{id:1,question:"What is the main purpose of a layered architecture?",options:["To separate concerns and reduce coupling","To make all code run faster","To avoid documentation"],answer:0},{id:2,question:"Which metric is most useful for frontend performance perception?",options:["Time to first commit","Largest Contentful Paint","Lines of CSS"],answer:1},{id:3,question:"Why use a state store in a small SPA?",options:["To centralize cross-page UI state","To avoid any event listeners","To remove routing"],answer:0}];function de(){const e=g[0];return`
     <section class="quiz-card section-reveal">
       <div class="quiz-progress"><span id="quiz-progress">1</span>/${g.length}</div>
       <h2 class="quiz-question" id="quiz-question">${e.question}</h2>
       <div class="quiz-options" id="quiz-options">
-        ${e.options.map((t,o)=>I(t,o)).join("")}
+        ${e.options.map((t,o)=>x(t,o)).join("")}
       </div>
       <p class="quiz-feedback" id="quiz-feedback"></p>
     </section>
-  `}function fe(e){let t=0;const o=document.querySelector("#quiz-question"),r=document.querySelector("#quiz-options"),n=document.querySelector("#quiz-progress"),i=document.querySelector("#quiz-feedback");if(!o||!r||!n||!i)return;function a(){const s=g[t];o.textContent=s.question,r.innerHTML=s.options.map((c,l)=>I(c,l)).join(""),n.textContent=String(t+1)}r.addEventListener("click",s=>{const c=s.target.closest("button[data-option]");if(!c)return;const l=g[t],C=Number(c.dataset.option)===l.answer;i.textContent=C?"Correct":"Not quite",window.setTimeout(()=>{if(t+=1,t>=g.length){i.textContent="Quiz completed. Enhanced mode unlocked.",e(),r.innerHTML="";return}i.textContent="",a()},350)}),a()}function I(e,t){return`<button class="quiz-option" type="button" data-option="${t}">${e}</button>`}function pe({t:e}){return`
+  `}function fe(e){let t=0;const o=document.querySelector("#quiz-question"),r=document.querySelector("#quiz-options"),n=document.querySelector("#quiz-progress"),i=document.querySelector("#quiz-feedback");if(!o||!r||!n||!i)return;function a(){const s=g[t];o.textContent=s.question,r.innerHTML=s.options.map((c,l)=>x(c,l)).join(""),n.textContent=String(t+1)}r.addEventListener("click",s=>{const c=s.target.closest("button[data-option]");if(!c)return;const l=g[t],C=Number(c.dataset.option)===l.answer;i.textContent=C?"Correct":"Not quite",window.setTimeout(()=>{if(t+=1,t>=g.length){i.textContent="Quiz completed. Enhanced mode unlocked.",e(),r.innerHTML="";return}i.textContent="",a()},350)}),a()}function x(e,t){return`<button class="quiz-option" type="button" data-option="${t}">${e}</button>`}function pe({t:e}){return`
     <main class="page-stack">
       ${z({id:"quiz-intro",title:e.quiz.title,body:e.quiz.intro})}
       ${de()}
     </main>
-  `}function me({onQuizComplete:e}){fe(e)}const ge=Object.freeze(Object.defineProperty({__proto__:null,mount:me,render:pe},Symbol.toStringTag,{value:"Module"}));function he(e){return`<div class="page-transition-enter">${e}</div>`}const L={"/":ie,"/projects":ae,"/files":ue,"/quiz":ge},S="/WEBSITE/",ve=500;function ke(e){const t=e.startsWith("/")?e.slice(1):e;return`${S}${t}`}function be(e=window.location.pathname){if(!e.startsWith(S))return"/";const t=e.slice(S.length-1)||"/";return t.length>1&&t.endsWith("/")?t.slice(0,-1):t}function ye({mountEl:e,renderFrame:t,pageContext:o,onRouteChange:r}){let n=!1;const i=()=>{const s=be(),c=L[s]||L["/"];r(s),e.innerHTML=he(c.render(o(s))),c.mount&&c.mount(o(s)),requestAnimationFrame(()=>{const l=e.querySelector(".page-transition-enter");l&&l.classList.add("is-visible")})},a=()=>{if(n)return;n=!0;const s=e.querySelector(".page-transition-enter");if(!s){i(),n=!1;return}s.classList.remove("is-visible"),s.classList.add("is-exiting"),window.setTimeout(()=>{i(),n=!1},ve)};document.addEventListener("click",s=>{const c=s.target.closest("[data-link]");if(!c)return;const l=c.getAttribute("href");!l||!l.startsWith("/")||(s.preventDefault(),qe(l,a))}),window.addEventListener("popstate",a),t(i)}function qe(e,t){history.pushState({},"",ke(e)),t()}je();const we=document.querySelector("#app");we.innerHTML=`
+  `}function me({onQuizComplete:e}){fe(e)}const ge=Object.freeze(Object.defineProperty({__proto__:null,mount:me,render:pe},Symbol.toStringTag,{value:"Module"}));function he(e){return`<div class="page-transition-enter">${e}</div>`}const L={"/":ie,"/projects":ae,"/files":ue,"/quiz":ge},S="/",ve=500;function ke(e){const t=e.startsWith("/")?e.slice(1):e;return`${S}${t}`}function be(e=window.location.pathname){if(!e.startsWith(S))return"/";const t=e.slice(S.length-1)||"/";return t.length>1&&t.endsWith("/")?t.slice(0,-1):t}function ye({mountEl:e,renderFrame:t,pageContext:o,onRouteChange:r}){let n=!1;const i=()=>{const s=be(),c=L[s]||L["/"];r(s),e.innerHTML=he(c.render(o(s))),c.mount&&c.mount(o(s)),requestAnimationFrame(()=>{const l=e.querySelector(".page-transition-enter");l&&l.classList.add("is-visible")})},a=()=>{if(n)return;n=!0;const s=e.querySelector(".page-transition-enter");if(!s){i(),n=!1;return}s.classList.remove("is-visible"),s.classList.add("is-exiting"),window.setTimeout(()=>{i(),n=!1},ve)};document.addEventListener("click",s=>{const c=s.target.closest("[data-link]");if(!c)return;const l=c.getAttribute("href");!l||!l.startsWith("/")||(s.preventDefault(),qe(l,a))}),window.addEventListener("popstate",a),t(i)}function qe(e,t){history.pushState({},"",ke(e)),t()}je();const we=document.querySelector("#app");we.innerHTML=`
   <div class="site-shell">
     <div id="nav-root"></div>
     <div id="page-root"></div>
   </div>
-`;const Se=document.querySelector("#nav-root"),$e=document.querySelector("#page-root");let $=!1;ye({mountEl:$e,renderFrame:e=>{e(),Le(),W(()=>{T()})},pageContext:()=>{const e=v();return{t:b[e.language]||b.en,onQuizComplete:()=>y({quizUnlocked:!0})}},onRouteChange:e=>{y({route:e}),T(),ze()}});function T(){const e=v(),t=b[e.language]||b.en;Se.innerHTML=N({route:e.route,t,theme:e.theme,language:e.language}),M(()=>{const o=v().theme==="dark"?"light":"dark";y({theme:o})}),U(()=>{const o=v().language==="en"?"dk":"en";y({language:o}),window.dispatchEvent(new PopStateEvent("popstate"))}),x()}function ze(){const e=document.querySelectorAll(".section-reveal"),t=new IntersectionObserver(o=>{o.forEach(r=>{r.isIntersecting&&(r.target.classList.add("is-visible"),t.unobserve(r.target))})},{threshold:.2});e.forEach((o,r)=>{o.style.transitionDelay=`${Math.min(r*70,240)}ms`,t.observe(o)})}function je(){const e=new URL(window.location.href),t=e.searchParams.get("p");if(!t)return;const o=decodeURIComponent(t),[r,n]=o.split("&q="),i=n?`?${decodeURIComponent(n)}`:"",a=`${r}${i}${e.hash}`;window.history.replaceState(null,"",a)}function Le(){let e=window.scrollY,t=!1;const o=()=>{t||(t=!0,window.requestAnimationFrame(()=>{const r=window.scrollY,n=r-e;r<36||n<-8?$=!1:n>8&&($=!0),e=r,x(),t=!1}))};window.addEventListener("scroll",o,{passive:!0})}function x(){const e=document.querySelector("#navbar");e&&e.classList.toggle("nav-hidden",$)}
+`;const Se=document.querySelector("#nav-root"),$e=document.querySelector("#page-root");let $=!1;ye({mountEl:$e,renderFrame:e=>{e(),Le(),Q(()=>{T()})},pageContext:()=>{const e=v();return{t:b[e.language]||b.en,onQuizComplete:()=>y({quizUnlocked:!0})}},onRouteChange:e=>{y({route:e}),T(),ze()}});function T(){const e=v(),t=b[e.language]||b.en;Se.innerHTML=N({route:e.route,t,theme:e.theme,language:e.language}),M(()=>{const o=v().theme==="dark"?"light":"dark";y({theme:o})}),U(()=>{const o=v().language==="en"?"dk":"en";y({language:o}),window.dispatchEvent(new PopStateEvent("popstate"))}),I()}function ze(){const e=document.querySelectorAll(".section-reveal"),t=new IntersectionObserver(o=>{o.forEach(r=>{r.isIntersecting&&(r.target.classList.add("is-visible"),t.unobserve(r.target))})},{threshold:.2});e.forEach((o,r)=>{o.style.transitionDelay=`${Math.min(r*70,240)}ms`,t.observe(o)})}function je(){const e=new URL(window.location.href),t=e.searchParams.get("p");if(!t)return;const o=decodeURIComponent(t),[r,n]=o.split("&q="),i=n?`?${decodeURIComponent(n)}`:"",a=`${r}${i}${e.hash}`;window.history.replaceState(null,"",a)}function Le(){let e=window.scrollY,t=!1;const o=()=>{t||(t=!0,window.requestAnimationFrame(()=>{const r=window.scrollY,n=r-e;r<36||n<-8?$=!1:n>8&&($=!0),e=r,I(),t=!1}))};window.addEventListener("scroll",o,{passive:!0})}function I(){const e=document.querySelector("#navbar");e&&e.classList.toggle("nav-hidden",$)}
