@@ -3,15 +3,17 @@ import { LanguageToggle } from './LanguageToggle.js'
 
 export function Footer({ t, theme, language }) {
   const year = new Date().getFullYear()
+  const navLinks = [
+    { href: '/', label: t.nav.home },
+    { href: '/projects', label: t.nav.projects },
+    { href: '/resume', label: t.nav.files }
+  ]
 
   return `
     <footer class="site-footer" aria-label="Footer">
       <div class="footer-top">
         <nav class="footer-links" aria-label="Footer navigation">
-          <a href="/" data-link>${t.nav.home}</a>
-          <a href="/projects" data-link>${t.nav.projects}</a>
-          <a href="/resume" data-link>${t.nav.files}</a>
-          <a href="/quiz" data-link>${t.nav.quiz}</a>
+          ${navLinks.map((link) => `<a href="${link.href}" data-link>${link.label}</a>`).join('')}
         </nav>
         <div class="footer-controls">
           ${LanguageToggle(language)}

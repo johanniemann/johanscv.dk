@@ -2,12 +2,26 @@ import resumeData from '../data/resume.json'
 
 export function render({ t, language }) {
   const data = resumeData[language] || resumeData.dk
+  const resumePdfUrl = `${import.meta.env.BASE_URL}files/johan-niemann-husbjerg-cv.pdf`
 
   return `
     <main class="page-stack">
       <section class="content-section section-reveal" id="resume-intro">
-        <h2 class="section-title">${t.files.title}</h2>
-        <p class="section-body">${t.files.intro}</p>
+        <div class="resume-intro-head">
+          <div>
+            <h2 class="section-title">${t.files.title}</h2>
+            <p class="section-body">${t.files.intro}</p>
+          </div>
+          <a class="file-action resume-download-action" href="${resumePdfUrl}" download aria-label="${t.resume.downloadPdf}">
+            <span class="file-action-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M11.25 3.75a.75.75 0 0 1 1.5 0v9.69l2.47-2.47a.75.75 0 1 1 1.06 1.06l-3.75 3.75a.75.75 0 0 1-1.06 0l-3.75-3.75a.75.75 0 1 1 1.06-1.06l2.47 2.47V3.75Z"/>
+                <path d="M4.5 17.25a.75.75 0 0 1 .75-.75h13.5a.75.75 0 0 1 0 1.5H5.25a.75.75 0 0 1-.75-.75Z"/>
+              </svg>
+            </span>
+            <span class="file-action-text">${t.resume.downloadPdf}</span>
+          </a>
+        </div>
       </section>
 
       <section class="resume-section section-reveal" id="resume-education">

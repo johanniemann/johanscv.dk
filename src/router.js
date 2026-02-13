@@ -1,14 +1,12 @@
 import * as Home from './pages/Home.js'
 import * as Projects from './pages/Projects.js'
 import * as Files from './pages/Files.js'
-import * as QuizPage from './pages/QuizPage.js'
 import { PageTransition } from './components/PageTransition.js'
 
 const routes = {
   '/': Home,
   '/projects': Projects,
-  '/files': Files,
-  '/quiz': QuizPage
+  '/files': Files
 }
 
 const BASE = import.meta.env.BASE_URL

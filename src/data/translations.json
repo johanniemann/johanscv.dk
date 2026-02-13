@@ -3,8 +3,7 @@
     "nav": {
       "home": "Home",
       "projects": "Projects",
-      "files": "Files",
-      "quiz": "Quiz"
+      "files": "Files"
     },
     "hero": {
       "name": "Johan Mannhus Bjerg",
@@ -22,18 +21,13 @@
     "files": {
       "title": "Files",
       "intro": "Selected documents and references."
-    },
-    "quiz": {
-      "title": "Architecture Quiz",
-      "intro": "Quick challenge to unlock enhanced visual mode."
     }
   },
   "dk": {
     "nav": {
       "home": "Hjem",
       "projects": "Projekter",
-      "files": "Filer",
-      "quiz": "Quiz"
+      "files": "Filer"
     },
     "hero": {
       "name": "Johan Mannhus Bjerg",
@@ -51,10 +45,6 @@
     "files": {
       "title": "Filer",
       "intro": "Udvalgte dokumenter og referencer."
-    },
-    "quiz": {
-      "title": "Arkitektur Quiz",
-      "intro": "Kort udfordring der laaser op for forbedret visuel tilstand."
     }
   }
 }

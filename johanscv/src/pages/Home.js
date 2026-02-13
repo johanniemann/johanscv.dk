@@ -23,13 +23,13 @@ export function render({ t, language }) {
       </section>
 
       ${AskJohan({ t })}
-      ${FileScroller()}
+      ${FileScroller({ t, language })}
     </main>
   `
 }
 
-export function mount() {
-  bindAskJohan()
+export function mount({ language }) {
+  bindAskJohan(language)
   bindFileScroller()
 }
 

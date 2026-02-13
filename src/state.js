@@ -1,7 +1,6 @@
 const STORAGE_KEYS = {
   theme: 'johanscv.theme',
-  language: 'johanscv.language',
-  quizUnlocked: 'johanscv.quizUnlocked'
+  language: 'johanscv.language'
 }
 
 const listeners = new Set()
@@ -9,7 +8,6 @@ const listeners = new Set()
 let state = {
   theme: localStorage.getItem(STORAGE_KEYS.theme) || 'dark',
   language: localStorage.getItem(STORAGE_KEYS.language) || 'en',
-  quizUnlocked: localStorage.getItem(STORAGE_KEYS.quizUnlocked) === 'true',
   route: '/'
 }
 
@@ -38,11 +36,9 @@ function notify() {
 function persistState() {
   localStorage.setItem(STORAGE_KEYS.theme, state.theme)
   localStorage.setItem(STORAGE_KEYS.language, state.language)
-  localStorage.setItem(STORAGE_KEYS.quizUnlocked, String(state.quizUnlocked))
 }
 
 function applyDomState(current) {
   document.documentElement.dataset.theme = current.theme
   document.documentElement.classList.toggle('dark', current.theme === 'dark')
-  document.body.classList.toggle('quiz-unlocked', current.quizUnlocked)
 }

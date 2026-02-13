@@ -1,20 +1,74 @@
 [
   {
     "id": "cv",
-    "title": "CV",
-    "description": "Updated profile and experience summary.",
-    "url": "/files/johan-niemann-husbjerg-cv.pdf"
+    "title": {
+      "en": "CV",
+      "dk": "CV"
+    },
+    "description": {
+      "en": "Updated profile and experience summary.",
+      "dk": "Opdateret profil og erfaringsoversigt."
+    },
+    "url": "/files/johan-niemann-husbjerg-cv.pdf",
+    "actionLabel": {
+      "en": "Download CV",
+      "dk": "Download CV"
+    },
+    "actionType": "download",
+    "icon": "download"
   },
   {
-    "id": "portfolio",
-    "title": "Portfolio",
-    "description": "Project snapshots and architecture notes.",
-    "url": "/files/johan-portfolio.txt"
+    "id": "linkedin",
+    "title": {
+      "en": "LinkedIn",
+      "dk": "LinkedIn"
+    },
+    "description": {
+      "en": "Professional profile, education, and work history.",
+      "dk": "Professionel profil, uddannelse og arbejdserfaring."
+    },
+    "url": "https://www.linkedin.com/in/johan-niemann-h-038906312/",
+    "actionLabel": {
+      "en": "Go to LinkedIn",
+      "dk": "Gå til LinkedIn"
+    },
+    "actionType": "external",
+    "icon": "linkedin"
   },
   {
-    "id": "architecture-notes",
-    "title": "Architecture Notes",
-    "description": "Patterns, tradeoffs, and implementation thinking.",
-    "url": "/files/architecture-notes.txt"
+    "id": "github",
+    "title": {
+      "en": "GitHub",
+      "dk": "GitHub"
+    },
+    "description": {
+      "en": "Code repositories, projects, and technical work.",
+      "dk": "Kode-repositorier, projekter og teknisk arbejde."
+    },
+    "url": "https://github.com/johanniemann",
+    "actionLabel": {
+      "en": "Go to GitHub",
+      "dk": "Gå til GitHub"
+    },
+    "actionType": "external",
+    "icon": "github"
+  },
+  {
+    "id": "location",
+    "title": {
+      "en": "Location",
+      "dk": "Lokation"
+    },
+    "description": {
+      "en": "Where I live in Copenhagen.",
+      "dk": "Hvor jeg bor i København."
+    },
+    "url": "https://www.google.com/maps/place/Enghavevej+63,+1674+K%C3%B8benhavn/@55.665423,12.5330593,15z/data=!3m1!4b1!4m6!3m5!1s0x4652539dab759293:0xf1e50266a0d1baf1!8m2!3d55.6654113!4d12.5433376!16s%2Fg%2F11nnv8kwnj?entry=ttu&g_ep=EgoyMDI2MDIxMS4wIKXMDSoASAFQAw%3D%3D",
+    "actionLabel": {
+      "en": "Open in Maps",
+      "dk": "Åbn i Maps"
+    },
+    "actionType": "external",
+    "icon": "location"
   }
 ]

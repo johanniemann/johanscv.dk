@@ -1,19 +1,19 @@
 import * as Home from './pages/Home.js'
 import * as Projects from './pages/Projects.js'
 import * as Files from './pages/Files.js'
-import * as QuizPage from './pages/QuizPage.js'
+import * as Contact from './pages/Contact.js'
 import { PageTransition } from './components/PageTransition.js'
 
-const routes = {
+const ROUTES = {
   '/': Home,
   '/projects': Projects,
   '/resume': Files,
-  '/quiz': QuizPage
+  '/contact': Contact
 }
 
 const BASE = import.meta.env.BASE_URL
 const MAJOR_DURATION_MS = 500
-const routeRedirects = {
+const ROUTE_REDIRECTS = {
   '/files': '/resume'
 }
 
@@ -35,16 +35,17 @@ export function initRouter({ mountEl, renderFrame, pageContext, onRouteChange })
 
   const renderCurrent = () => {
     const rawPath = appPathFromLocation()
-    const path = routeRedirects[rawPath] || rawPath
-    const page = routes[path] || routes['/']
+    const path = ROUTE_REDIRECTS[rawPath] || rawPath
+    const page = ROUTES[path] || ROUTES['/']
+    const context = pageContext(path)
 
     if (rawPath !== path) {
       history.replaceState({}, '', withBase(path))
     }
 
-    mountEl.innerHTML = PageTransition(page.render(pageContext(path)))
+    mountEl.innerHTML = PageTransition(page.render(context))
     if (page.mount) {
-      page.mount(pageContext(path))
+      page.mount(context)
     }
     onRouteChange(path)
 

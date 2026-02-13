@@ -9,7 +9,6 @@ export function Navbar({ route, t, theme, language }) {
         ${navLink('/', t.nav.home, route)}
         ${navLink('/projects', t.nav.projects, route)}
         ${navLink('/files', t.nav.files, route)}
-        ${navLink('/quiz', t.nav.quiz, route)}
       </nav>
       <div class="nav-controls">
         ${LanguageToggle(language)}

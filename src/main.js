@@ -34,8 +34,7 @@ initRouter({
     const t = translations[state.language] || translations.en
 
     return {
-      t,
-      onQuizComplete: () => setState({ quizUnlocked: true })
+      t
     }
   },
   onRouteChange: (route) => {

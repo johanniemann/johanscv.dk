@@ -22,8 +22,10 @@ app.innerHTML = `
   </div>
 `
 
-const WELCOME_KEY = 'johanscv.welcomeSeen'
+const ACCESS_CODE_KEY = 'johanscv.askJohanAccessCode'
+const SITE_ACCESS_KEY = 'johanscv.siteAccessGranted'
 const WELCOME_EXIT_MS = 500
+const REVEAL_THRESHOLD = 0.2
 const welcomeRoot = document.querySelector('#welcome-root')
 const navRoot = document.querySelector('#nav-root')
 const pageRoot = document.querySelector('#page-root')
@@ -44,12 +46,11 @@ const router = initRouter({
   },
   pageContext: () => {
     const state = getState()
-    const t = translations[state.language] || translations.en
+    const t = getTranslations(state.language)
 
     return {
       t,
-      language: state.language,
-      onQuizComplete: () => setState({ quizUnlocked: true })
+      language: state.language
     }
   },
   onRouteChange: (route) => {
@@ -61,7 +62,7 @@ const router = initRouter({
 
 function renderNav() {
   const state = getState()
-  const t = translations[state.language] || translations.en
+  const t = getTranslations(state.language)
 
   navRoot.innerHTML = Navbar({
     route: state.route,
@@ -73,7 +74,7 @@ function renderNav() {
 
 function renderFooter() {
   const state = getState()
-  const t = translations[state.language] || translations.en
+  const t = getTranslations(state.language)
   footerRoot.innerHTML = Footer({
     t,
     theme: state.theme,
@@ -81,14 +82,12 @@ function renderFooter() {
   })
 
   bindThemeToggle(() => {
-    const next = getState().theme === 'dark' ? 'light' : 'dark'
-    setState({ theme: next })
+    toggleTheme()
     renderFooter()
   })
 
   bindLanguageToggle(() => {
-    const next = getState().language === 'en' ? 'dk' : 'en'
-    setState({ language: next })
+    toggleLanguage()
     renderNav()
     updateActiveNav(getState().route)
     renderFooter()
@@ -107,7 +106,7 @@ function initRevealObserver() {
         }
       })
     },
-    { threshold: 0.2 }
+    { threshold: REVEAL_THRESHOLD }
   )
 
   elements.forEach((element, index) => {
@@ -177,10 +176,19 @@ function updateActiveNav(route) {
 }
 
 function renderWelcomeGate() {
-  if (localStorage.getItem(WELCOME_KEY) === 'true') return
-
   const state = getState()
-  const t = translations[state.language] || translations.en
+  const t = getTranslations(state.language)
+  const savedAccessCode = localStorage.getItem(ACCESS_CODE_KEY)?.trim() || ''
+  const expectedAccessCode = (import.meta.env.VITE_SITE_ACCESS_CODE || '').trim()
+
+  const isAccessCodeValid = (accessCode) => {
+    if (!accessCode) return false
+    if (!expectedAccessCode) return true
+    return accessCode === expectedAccessCode
+  }
+
+  const hasSiteAccess = localStorage.getItem(SITE_ACCESS_KEY) === 'true'
+  if (hasSiteAccess && isAccessCodeValid(savedAccessCode)) return
 
   welcomeRoot.innerHTML = WelcomeGate({ t })
   document.body.classList.add('welcome-active')
@@ -190,13 +198,33 @@ function renderWelcomeGate() {
     screen?.classList.add('is-visible')
   })
 
-  bindWelcomeGate(() => {
-    localStorage.setItem(WELCOME_KEY, 'true')
+  bindWelcomeGate((accessCode) => {
+    if (!isAccessCodeValid(accessCode)) {
+      return { ok: false, message: t.welcome.passwordError }
+    }
+
+    localStorage.setItem(ACCESS_CODE_KEY, accessCode)
+    localStorage.setItem(SITE_ACCESS_KEY, 'true')
     screen?.classList.remove('is-visible')
     screen?.classList.add('is-exiting')
     document.body.classList.remove('welcome-active')
     window.setTimeout(() => {
       welcomeRoot.innerHTML = ''
     }, WELCOME_EXIT_MS)
+    return { ok: true }
   })
+}
+
+function getTranslations(language) {
+  return translations[language] || translations.en
+}
+
+function toggleTheme() {
+  const currentTheme = getState().theme
+  setState({ theme: currentTheme === 'dark' ? 'light' : 'dark' })
+}
+
+function toggleLanguage() {
+  const currentLanguage = getState().language
+  setState({ language: currentLanguage === 'en' ? 'dk' : 'en' })
 }

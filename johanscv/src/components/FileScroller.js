@@ -4,15 +4,22 @@ import { FileCard } from './FileCard.js'
 let rafId = null
 let running = false
 let resumeTimer = null
+let detachListeners = null
 const SPEED_PX_PER_MS = 0.018
+const RESUME_DELAY_MS = {
+  interaction: 1200,
+  drag: 900,
+  wheel: 1100
+}
 
-export function FileScroller() {
-  const cards = files.map((file) => FileCard(file)).join('')
-  const clones = files.map((file) => FileCard(file, true)).join('')
+export function FileScroller({ t, language }) {
+  const cards = files.map((file) => FileCard(file, language)).join('')
+  const clones = files.map((file) => FileCard(file, language, true)).join('')
 
   return `
     <section class="files-strip section-reveal" id="file-scroller-wrap">
-      <div id="file-scroller-viewport" class="file-scroller-viewport" tabindex="0" aria-label="Downloadable files">
+      <h2 class="section-title">${t.fileScroller.title}</h2>
+      <div id="file-scroller-viewport" class="file-scroller-viewport" tabindex="0" aria-label="${t.fileScroller.ariaLabel}">
         <div id="file-scroller-track" class="file-scroller-track">
           ${cards}
           ${clones}
@@ -75,15 +82,10 @@ export function bindFileScroller() {
     rafId = window.requestAnimationFrame(step)
   }
 
-  const pauseThenResume = () => {
-    pause()
-    resumeTimer = window.setTimeout(resume, 1200)
-  }
-
   const onPointerDown = (event) => {
     if (event.target.closest('a, button, input, textarea, select')) {
       pause()
-      resumeTimer = window.setTimeout(resume, 1200)
+      resumeTimer = window.setTimeout(resume, RESUME_DELAY_MS.interaction)
       return
     }
 
@@ -118,14 +120,14 @@ export function bindFileScroller() {
     if (viewport.hasPointerCapture(event.pointerId)) {
       viewport.releasePointerCapture(event.pointerId)
     }
-    resumeTimer = window.setTimeout(resume, moved ? 900 : 1200)
+    resumeTimer = window.setTimeout(resume, moved ? RESUME_DELAY_MS.drag : RESUME_DELAY_MS.interaction)
   }
 
   const onWheel = (event) => {
     pause()
     offset = normalizeOffset(offset + event.deltaY * 0.8 + event.deltaX)
     applyOffset()
-    resumeTimer = window.setTimeout(resume, 1100)
+    resumeTimer = window.setTimeout(resume, RESUME_DELAY_MS.wheel)
   }
 
   viewport.addEventListener('mouseenter', pause)
@@ -137,6 +139,18 @@ export function bindFileScroller() {
   viewport.addEventListener('pointerup', onPointerUp)
   viewport.addEventListener('pointercancel', onPointerUp)
   viewport.addEventListener('wheel', onWheel, { passive: true })
+
+  detachListeners = () => {
+    viewport.removeEventListener('mouseenter', pause)
+    viewport.removeEventListener('mouseleave', resume)
+    viewport.removeEventListener('focusin', pause)
+    viewport.removeEventListener('focusout', resume)
+    viewport.removeEventListener('pointerdown', onPointerDown)
+    viewport.removeEventListener('pointermove', onPointerMove)
+    viewport.removeEventListener('pointerup', onPointerUp)
+    viewport.removeEventListener('pointercancel', onPointerUp)
+    viewport.removeEventListener('wheel', onWheel)
+  }
 
   // Ensure dimensions are up to date before starting animation.
   window.requestAnimationFrame(() => {
@@ -163,5 +177,11 @@ function clearResume() {
 }
 
 function cleanup() {
+  running = false
+  if (detachListeners) {
+    detachListeners()
+    detachListeners = null
+  }
+  stopAutoScroll()
   clearResume()
 }

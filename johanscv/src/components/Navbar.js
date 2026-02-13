@@ -1,19 +1,26 @@
 export function Navbar({ route, t }) {
+  const links = [
+    { path: '/', label: t.nav.home },
+    { path: '/projects', label: t.nav.projects },
+    { path: '/resume', label: t.nav.files }
+  ]
+
   return `
     <header id="navbar" class="site-nav">
       <a class="brand" href="/" data-link>johanscv.dk</a>
       <nav class="nav-links" aria-label="Primary">
-        ${navLink('/', t.nav.home, route)}
-        ${navLink('/projects', t.nav.projects, route)}
-        ${navLink('/resume', t.nav.files, route)}
-        ${navLink('/quiz', t.nav.quiz, route)}
+        ${links.map((link) => navLink(link.path, link.label, route)).join('')}
       </nav>
+      <div class="nav-right">
+        ${navLink('/contact', t.nav.contact, route, 'nav-contact-link')}
+      </div>
     </header>
   `
 }
 
-function navLink(path, label, currentRoute) {
+function navLink(path, label, currentRoute, extraClass = '') {
   const key = path === '/' ? 'home' : path.slice(1)
-  const active = currentRoute === path ? `nav-link nav-link-${key} active` : `nav-link nav-link-${key}`
+  const baseClass = `nav-link nav-link-${key} ${extraClass}`.trim()
+  const active = currentRoute === path ? `${baseClass} active` : baseClass
   return `<a class="${active}" href="${path}" data-link>${label}</a>`
 }

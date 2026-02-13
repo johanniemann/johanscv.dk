@@ -7,7 +7,7 @@
     },
     "summary": {
       "en": "Designed a lightweight Vanilla JS SPA with explicit routing, transition orchestration, and durable state boundaries.",
-      "dk": "Designede en letvægts Vanilla JS SPA med tydelig routing, overgangsorkestrering og robuste state-graenser."
+      "dk": "Designede en letvægts Vanilla JS SPA med tydelig routing, overgangsorkestrering og robuste state-grænser."
     },
     "tags": ["Vite", "Vanilla JS", "Routing"]
   },
@@ -19,7 +19,7 @@
     },
     "summary": {
       "en": "Built a restrained visual language with theme tokens, glass surfaces, motion hierarchy, and responsive rhythm.",
-      "dk": "Byggede et afdaempet visuelt sprog med tematiske tokens, glasflader, motion-hierarki og responsiv rytme."
+      "dk": "Byggede et afdæmpet visuelt sprog med tematiske tokens, glasflader, motion-hierarki og responsiv rytme."
     },
     "tags": ["Tailwind", "Theming", "UX Motion"]
   },
