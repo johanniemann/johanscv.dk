@@ -21,6 +21,17 @@ const apiKey = process.env.OPENAI_API_KEY
 const allowedProductionOrigins = new Set(['https://johanniemann.github.io'])
 const isLocalOrigin = (origin) => /^https?:\/\/(127\.0\.0\.1|localhost):\d+$/.test(origin)
 const client = apiKey ? new OpenAI({ apiKey }) : null
+const assistantInstructions = [
+  "You are Johan's website assistant.",
+  'Be concise, accurate, and professional.',
+  'Keep answers practical and easy to read.',
+  'Use only facts from the context below when answering profile questions.',
+  "If the answer exists in the context, answer directly and do not claim it's missing.",
+  "If the answer is not in the context, say that clearly and suggest what Johan can answer instead.",
+  '',
+  'Context:',
+  johanContext
+].join('\n')
 
 app.disable('x-powered-by')
 app.use(express.json({ limit: '8kb' }))
@@ -80,16 +91,8 @@ app.post('/api/ask-johan', async (req, res) => {
   try {
     const response = await client.responses.create({
       model,
-      input: [
-        {
-          role: 'system',
-          content: `You are Johan's website assistant.\nBe concise, accurate, and professional.\nKeep answers practical and easy to read.\n\nContext:\n${johanContext}`
-        },
-        {
-          role: 'user',
-          content: question
-        }
-      ]
+      instructions: assistantInstructions,
+      input: question
     })
 
     const answer = (response.output_text || '').trim()

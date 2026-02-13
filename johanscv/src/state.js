@@ -3,8 +3,6 @@ const STORAGE_KEYS = {
   language: 'johanscv.language'
 }
 
-const listeners = new Set()
-
 let state = {
   theme: localStorage.getItem(STORAGE_KEYS.theme) || 'dark',
   language: localStorage.getItem(STORAGE_KEYS.language) || 'en',
@@ -30,17 +28,6 @@ export function setState(partial) {
   if (hasDomChange(previous, state)) {
     applyDomState(state)
   }
-
-  notify()
-}
-
-export function subscribe(listener) {
-  listeners.add(listener)
-  return () => listeners.delete(listener)
-}
-
-function notify() {
-  listeners.forEach((listener) => listener(state))
 }
 
 function persistState() {

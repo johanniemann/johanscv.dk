@@ -286,7 +286,7 @@ body.welcome-active #site-shell {
 }
 
 .nav-link-home,
-.nav-link-home {
+.nav-link-contact {
   min-width: 4.2rem;
 }
 
@@ -301,12 +301,6 @@ body.welcome-active #site-shell {
 
 .nav-contact-link {
   min-width: 6rem;
-}
-
-.nav-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 .toggle-pill,
@@ -1159,6 +1153,10 @@ body.welcome-active #site-shell {
 
   .nav-link-home {
     min-width: 3.8rem;
+  }
+
+  .nav-link-contact {
+    min-width: 5.2rem;
   }
 
   .nav-link-files,

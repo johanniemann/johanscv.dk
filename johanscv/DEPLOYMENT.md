@@ -3,13 +3,13 @@
 ## GitHub Pages (active)
 
 Site URL:
-- `https://johanniemann.github.io/WEBSITE/`
+- `https://johanniemann.github.io/johanscv.dk/`
 
 Deploy command:
 - `npm run deploy`
 
 Build behavior:
-- Vite base is fixed to `/WEBSITE/` in `vite.config.js`.
+- Vite base is fixed to `/johanscv.dk/` in `vite.config.js`.
 - `public/404.html` handles SPA refresh/deep-link fallback for GitHub Pages.
 
 ## Publish Steps
@@ -23,7 +23,7 @@ Build behavior:
    - Branch: `gh-pages`
    - Folder: `/ (root)`
 4. Open:
-   - `https://johanniemann.github.io/WEBSITE/`
+   - `https://johanniemann.github.io/johanscv.dk/`
 
 ## Ask Johan Mode
 

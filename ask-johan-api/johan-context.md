@@ -16,7 +16,7 @@ No exaggeration or inflated claims.
 **Email:** johan.niemann.husbjerg@gmail.com  
 
 **Current Education:**  
-Professionsbachelor in IT Architecture  
+Professionsbachelor in IT Architecture (4. Semester)  
 Københavns Erhvervsakademi (KEA)  
 2024–2028  
 

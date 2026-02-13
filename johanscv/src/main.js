@@ -32,33 +32,45 @@ const pageRoot = document.querySelector('#page-root')
 const footerRoot = document.querySelector('#footer-root')
 let navHidden = false
 let navScrollInitialized = false
+let siteBootstrapped = false
+let router = null
 
-renderNav()
-renderFooter()
-renderWelcomeGate()
-updateActiveNav(getState().route)
+if (hasValidSiteAccess()) {
+  bootstrapSite()
+} else {
+  renderWelcomeGate()
+}
 
-const router = initRouter({
-  mountEl: pageRoot,
-  renderFrame: (renderRoute) => {
-    renderRoute()
-    initNavbarScrollBehavior()
-  },
-  pageContext: () => {
-    const state = getState()
-    const t = getTranslations(state.language)
+function bootstrapSite() {
+  if (siteBootstrapped) return
+  siteBootstrapped = true
 
-    return {
-      t,
-      language: state.language
+  router = initRouter({
+    mountEl: pageRoot,
+    renderFrame: (renderRoute) => {
+      renderRoute()
+      initNavbarScrollBehavior()
+    },
+    pageContext: () => {
+      const state = getState()
+      const t = getTranslations(state.language)
+
+      return {
+        t,
+        language: state.language
+      }
+    },
+    onRouteChange: (route) => {
+      setState({ route })
+      updateActiveNav(route)
+      initRevealObserver()
     }
-  },
-  onRouteChange: (route) => {
-    setState({ route })
-    updateActiveNav(route)
-    initRevealObserver()
-  }
-})
+  })
+
+  renderNav()
+  renderFooter()
+  updateActiveNav(getState().route)
+}
 
 function renderNav() {
   const state = getState()
@@ -91,7 +103,7 @@ function renderFooter() {
     renderNav()
     updateActiveNav(getState().route)
     renderFooter()
-    router.refresh()
+    router?.refresh()
   })
 }
 
@@ -178,18 +190,6 @@ function updateActiveNav(route) {
 function renderWelcomeGate() {
   const state = getState()
   const t = getTranslations(state.language)
-  const savedAccessCode = localStorage.getItem(ACCESS_CODE_KEY)?.trim() || ''
-  const expectedAccessCode = (import.meta.env.VITE_SITE_ACCESS_CODE || '').trim()
-
-  const isAccessCodeValid = (accessCode) => {
-    if (!accessCode) return false
-    if (!expectedAccessCode) return true
-    return accessCode === expectedAccessCode
-  }
-
-  const hasSiteAccess = localStorage.getItem(SITE_ACCESS_KEY) === 'true'
-  if (hasSiteAccess && isAccessCodeValid(savedAccessCode)) return
-
   welcomeRoot.innerHTML = WelcomeGate({ t })
   document.body.classList.add('welcome-active')
 
@@ -207,12 +207,26 @@ function renderWelcomeGate() {
     localStorage.setItem(SITE_ACCESS_KEY, 'true')
     screen?.classList.remove('is-visible')
     screen?.classList.add('is-exiting')
-    document.body.classList.remove('welcome-active')
+    bootstrapSite()
     window.setTimeout(() => {
       welcomeRoot.innerHTML = ''
+      document.body.classList.remove('welcome-active')
     }, WELCOME_EXIT_MS)
     return { ok: true }
   })
+}
+
+function isAccessCodeValid(accessCode) {
+  const expectedAccessCode = (import.meta.env.VITE_SITE_ACCESS_CODE || '').trim()
+  if (!accessCode) return false
+  if (!expectedAccessCode) return true
+  return accessCode === expectedAccessCode
+}
+
+function hasValidSiteAccess() {
+  const hasSiteAccess = localStorage.getItem(SITE_ACCESS_KEY) === 'true'
+  const savedAccessCode = localStorage.getItem(ACCESS_CODE_KEY)?.trim() || ''
+  return hasSiteAccess && isAccessCodeValid(savedAccessCode)
 }
 
 function getTranslations(language) {

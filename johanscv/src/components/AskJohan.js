@@ -12,27 +12,29 @@ const ANSWER_TRANSITION_MS = 520
 
 const SAMPLE_QUESTIONS = {
   en: [
+    'What is your favorite dish?',
+    'When is your birthday?',
+    'Where do you live in Copenhagen?',
     'What kind of IT architecture do you want to work with?',
     'What is your strongest technical skill right now?',
     'How do you approach system design decisions?',
     'What have you learned from your current student job?',
     'Which projects best represent your profile?',
     'How do you balance UX quality and performance?',
-    'What tools do you use for architecture work?',
     'How do you work with data quality in practice?',
-    'What are your goals for the next two years?',
     'How can we collaborate on a relevant opportunity?'
   ],
   dk: [
+    'Hvad er din yndlingsret?',
+    'Hvornår har du fødselsdag?',
+    'Hvor bor du i København?',
     'Hvilken type IT-arkitektur vil du arbejde med?',
     'Hvad er din stærkeste tekniske kompetence lige nu?',
     'Hvordan træffer du arkitektur- og designbeslutninger?',
     'Hvad har du lært i dit nuværende studiejob?',
     'Hvilke projekter repræsenterer dig bedst?',
     'Hvordan balancerer du UX-kvalitet og performance?',
-    'Hvilke værktøjer bruger du i arkitekturarbejde?',
     'Hvordan arbejder du med datakvalitet i praksis?',
-    'Hvad er dine mål de næste to år?',
     'Hvordan kan vi samarbejde om en relevant mulighed?'
   ]
 }
@@ -199,7 +201,7 @@ function formatApiError(error) {
 
 function bindPlaceholderTypewriter(input, language) {
   stopPlaceholderTypewriter()
-  const prompts = SAMPLE_QUESTIONS[language] || SAMPLE_QUESTIONS.en
+  const prompts = shufflePrompts(SAMPLE_QUESTIONS[language] || SAMPLE_QUESTIONS.en)
   const runId = ++placeholderRunId
 
   let promptIndex = 0
@@ -241,6 +243,15 @@ function bindPlaceholderTypewriter(input, language) {
   tick()
 }
 
+function shufflePrompts(prompts) {
+  const items = [...prompts]
+  for (let i = items.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[items[i], items[j]] = [items[j], items[i]]
+  }
+  return items
+}
+
 function stopPlaceholderTypewriter() {
   if (placeholderTimer) {
     window.clearTimeout(placeholderTimer)
@@ -253,7 +264,6 @@ async function revealAnswer(answerEl, text) {
   const nextText = String(text || '')
   const currentHeight = answerEl.offsetHeight
   answerEl.style.height = `${currentHeight}px`
-  answerEl.classList.add('is-animating')
 
   answerEl.textContent = nextText
   answerEl.classList.toggle('has-content', Boolean(nextText.trim()))
@@ -265,7 +275,6 @@ async function revealAnswer(answerEl, text) {
 
   await waitForHeightTransition(answerEl)
 
-  answerEl.classList.remove('is-animating')
   answerEl.style.height = nextText.trim() ? 'auto' : '0px'
 }
 
