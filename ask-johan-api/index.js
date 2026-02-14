@@ -18,8 +18,7 @@ const parsedRateLimitMax = Number(process.env.ASK_JOHAN_RATE_LIMIT_MAX || 30)
 const rateLimitMax = Number.isFinite(parsedRateLimitMax) && parsedRateLimitMax > 0 ? parsedRateLimitMax : 30
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-const contextPath = path.join(__dirname, 'johan-context.md')
-const johanContext = fs.existsSync(contextPath) ? fs.readFileSync(contextPath, 'utf8') : ''
+const johanContext = loadJohanContext()
 const accessCode = process.env.ASK_JOHAN_ACCESS_CODE || ''
 const allowedOrigins = parseAllowedOrigins(process.env.ALLOWED_ORIGINS || 'https://johanniemann.github.io')
 const apiKey = process.env.OPENAI_API_KEY
@@ -42,3 +41,37 @@ app.listen(port, () => {
   console.log(`Ask Johan timeout: ${requestTimeoutMs}ms`)
   console.log(`Ask Johan rate limit: ${rateLimitMax} requests / ${rateLimitWindowMs}ms`)
 })
+
+function loadJohanContext() {
+  const envB64 = process.env.JOHAN_CONTEXT_B64?.trim() || ''
+  if (envB64) {
+    try {
+      return Buffer.from(envB64, 'base64').toString('utf8')
+    } catch (error) {
+      console.error('Failed to decode JOHAN_CONTEXT_B64:', error)
+    }
+  }
+
+  const envText = process.env.JOHAN_CONTEXT?.trim() || ''
+  if (envText) return envText
+
+  const envFilePath = process.env.JOHAN_CONTEXT_FILE?.trim() || ''
+  if (envFilePath) {
+    const absolutePath = path.isAbsolute(envFilePath) ? envFilePath : path.resolve(__dirname, envFilePath)
+    if (fs.existsSync(absolutePath)) {
+      return fs.readFileSync(absolutePath, 'utf8')
+    }
+  }
+
+  const privateContextPath = path.join(__dirname, 'johan-context.private.md')
+  if (fs.existsSync(privateContextPath)) {
+    return fs.readFileSync(privateContextPath, 'utf8')
+  }
+
+  const defaultContextPath = path.join(__dirname, 'johan-context.md')
+  if (fs.existsSync(defaultContextPath)) {
+    return fs.readFileSync(defaultContextPath, 'utf8')
+  }
+
+  return ''
+}

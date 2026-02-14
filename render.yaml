@@ -27,3 +27,5 @@ services:
         sync: false
       - key: ASK_JOHAN_ACCESS_CODE
         sync: false
+      - key: JOHAN_CONTEXT_B64
+        sync: false
