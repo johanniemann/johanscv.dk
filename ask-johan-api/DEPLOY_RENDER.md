@@ -23,6 +23,11 @@ This deploys `ask-johan-api` as a free Render Web Service using the repo's `rend
 3. In the new service, set secret env vars:
    - `OPENAI_API_KEY` = your OpenAI key
    - `ASK_JOHAN_ACCESS_CODE` = your private access code
+   - Optional safety vars:
+     - `ALLOWED_ORIGINS` (comma-separated)
+     - `ASK_JOHAN_TIMEOUT_MS` (default `15000`)
+     - `ASK_JOHAN_RATE_LIMIT_WINDOW_MS` (default `60000`)
+     - `ASK_JOHAN_RATE_LIMIT_MAX` (default `30`)
 
 4. Click deploy.
 
@@ -52,3 +57,11 @@ npm run deploy
 - Free instances may spin down after inactivity.
 - First request after idle can be slow (cold start).
 - For true always-on behavior, use a paid always-on plan.
+
+## Built-in API safety now enabled
+
+- Security headers via `helmet`
+- IP-based rate limiting on `POST /api/ask-johan`
+- Configurable CORS allowlist
+- Request timeout protection for model calls
+- Automated API tests via GitHub Actions

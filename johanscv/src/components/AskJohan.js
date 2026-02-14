@@ -116,7 +116,8 @@ async function getAnswer(query) {
     try {
       return await getApiAnswer(query)
     } catch (error) {
-      return formatApiError(error)
+      console.warn('Ask Johan API failed, falling back to mock answer:', error)
+      return getMockAnswer(query)
     }
   }
 
@@ -165,13 +166,19 @@ async function getApiAnswer(question) {
 }
 
 function postQuestion(question, accessCode) {
+  const controller = new AbortController()
+  const timeoutId = window.setTimeout(() => controller.abort(), 12000)
+
   return fetch(`${API_BASE}/api/ask-johan`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'x-access-code': accessCode
     },
-    body: JSON.stringify({ question })
+    body: JSON.stringify({ question }),
+    signal: controller.signal
+  }).finally(() => {
+    window.clearTimeout(timeoutId)
   })
 }
 
@@ -195,6 +202,9 @@ async function getApiErrorMessage(response) {
 }
 
 function formatApiError(error) {
+  if (error?.name === 'AbortError') {
+    return 'Ask Johan API error: request timed out.'
+  }
   const message = error instanceof Error ? error.message : String(error)
   return `Ask Johan API error: ${message}`
 }

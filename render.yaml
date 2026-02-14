@@ -15,6 +15,14 @@ services:
         value: gpt-4.1-mini
       - key: MAX_QUESTION_CHARS
         value: "800"
+      - key: ALLOWED_ORIGINS
+        value: https://johanniemann.github.io
+      - key: ASK_JOHAN_TIMEOUT_MS
+        value: "15000"
+      - key: ASK_JOHAN_RATE_LIMIT_WINDOW_MS
+        value: "60000"
+      - key: ASK_JOHAN_RATE_LIMIT_MAX
+        value: "30"
       - key: OPENAI_API_KEY
         sync: false
       - key: ASK_JOHAN_ACCESS_CODE
