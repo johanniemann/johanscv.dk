@@ -73,7 +73,7 @@ The API loads context in this priority order:
 
 1. `JOHAN_CONTEXT_B64` (preferred, Render secret env var)
 2. `JOHAN_CONTEXT` (plain text env var)
-3. `JOHAN_CONTEXT_FILE` (absolute file path on server/local machine)
+3. `JOHAN_CONTEXT_FILE` (absolute or repo-relative file path)
 4. `johan-context.private.md` (local file, ignored by git)
 5. `johan-context.md` (tracked default file)
 
@@ -81,4 +81,14 @@ Generate `JOHAN_CONTEXT_B64` locally:
 
 ```bash
 base64 -i /path/to/your/private-context.md | tr -d '\n'
+```
+
+Local dev alternative:
+
+1. Copy `johan-context.private.example.md` to `johan-context.private.md`
+2. Fill it with private context
+3. Set `.env`:
+
+```bash
+JOHAN_CONTEXT_FILE=./johan-context.private.md
 ```

@@ -33,7 +33,9 @@ cp .env.local.example .env.local
 npm run dev
 ```
 
-5. Open the shown local URL in your browser.
+5. Open:
+   - `http://localhost:5173/johanscv.dk/` (default base path)
+   - or, if started with `CUSTOM_DOMAIN=true npm run dev`, open `http://localhost:5173/`
 
 ### 2) Backend setup (Ask Johan API)
 
@@ -51,6 +53,10 @@ Fill `.env`:
 - `PORT` (default `8787`)
 - `ASK_JOHAN_ACCESS_CODE`
 - `MAX_QUESTION_CHARS` (default `800`)
+- Optional private context source:
+  - `JOHAN_CONTEXT_B64` (recommended for hosted deploys)
+  - `JOHAN_CONTEXT`
+  - `JOHAN_CONTEXT_FILE`
 
 Start API:
 
@@ -82,3 +88,9 @@ npm run deploy
 ```
 
 This deploys the built `dist/` folder to the `gh-pages` branch.
+
+For custom apex domain builds (`/` base), run:
+
+```bash
+CUSTOM_DOMAIN=true npm run deploy
+```
