@@ -7,11 +7,10 @@ export function Navbar({ route, t }) {
 
   return `
     <header id="navbar" class="site-nav">
-      <a class="brand" href="/" data-link>johanscv.dk</a>
-      <nav class="nav-links" aria-label="Primary">
-        ${links.map((link) => navLink(link.path, link.label, route)).join('')}
-      </nav>
       <div class="nav-right">
+        <nav class="nav-links" aria-label="Primary">
+          ${links.map((link) => navLink(link.path, link.label, route)).join('')}
+        </nav>
         ${navLink('/contact', t.nav.contact, route, 'nav-contact-link')}
       </div>
     </header>

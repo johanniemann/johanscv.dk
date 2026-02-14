@@ -6,6 +6,7 @@ import { Footer } from './components/Footer.js'
 import { WelcomeGate, bindWelcomeGate } from './components/WelcomeGate.js'
 import { bindThemeToggle } from './components/ThemeToggle.js'
 import { bindLanguageToggle } from './components/LanguageToggle.js'
+import { warmUpAskJohanApi } from './components/AskJohan.js'
 import { getState, setState } from './state.js'
 import { initRouter } from './router.js'
 
@@ -47,6 +48,7 @@ if (hasValidSiteAccess()) {
 function bootstrapSite() {
   if (siteBootstrapped) return
   siteBootstrapped = true
+  void warmUpAskJohanApi()
 
   router = initRouter({
     mountEl: pageRoot,

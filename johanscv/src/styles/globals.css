@@ -295,7 +295,7 @@ body.welcome-active #site-shell {
   top: 0.75rem;
   z-index: 20;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 1fr;
   align-items: center;
   gap: 1rem;
   padding: 0.8rem 1rem;
@@ -312,20 +312,19 @@ body.welcome-active #site-shell {
   transform: translateY(calc(-100% - 1.1rem));
 }
 
-.brand {
-  color: var(--text-primary);
-  font-weight: 600;
-  text-decoration: none;
-}
-
 .nav-links {
   display: flex;
   gap: 0.4rem;
-  justify-self: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
 }
 
 .nav-right {
-  justify-self: end;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  width: 100%;
 }
 
 .nav-link {
@@ -1071,7 +1070,8 @@ body.welcome-active #site-shell {
     box-shadow var(--duration-base) var(--ease-standard);
 }
 
-.ask-button-icon {
+.ask-button-visual {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1079,19 +1079,72 @@ body.welcome-active #site-shell {
   height: 1.05rem;
 }
 
+.ask-button-icon {
+  position: absolute;
+  inset: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    opacity var(--duration-base) var(--ease-standard),
+    transform var(--duration-base) var(--ease-standard);
+}
+
 .ask-button-icon svg {
   width: 100%;
   height: 100%;
+}
+
+.ask-button-icon-arrow {
   transform: scale(1.45);
+  opacity: 1;
+}
+
+.ask-button-icon-spinner {
+  opacity: 0;
+  transform: scale(0.72) rotate(-20deg);
+}
+
+.ask-button.is-loading .ask-button-icon-arrow {
+  opacity: 0;
+  transform: scale(0.78) rotate(20deg);
+}
+
+.ask-button.is-loading .ask-button-icon-spinner {
+  opacity: 1;
+  transform: scale(1.24) rotate(0deg);
+}
+
+.ask-button-icon-arrow svg {
   transform-origin: center;
 }
 
-.ask-button-icon path {
+.ask-button-icon-arrow path {
   fill: none;
   stroke: currentColor;
   stroke-width: 2.1;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+.ask-button-icon-spinner svg {
+  animation: askButtonSpin 0.9s linear infinite;
+}
+
+.ask-button-icon-spinner circle {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.ask-button-icon-spinner .spinner-track {
+  stroke: rgba(255, 255, 255, 0.42);
+  stroke-width: 2.1;
+}
+
+.ask-button-icon-spinner .spinner-head {
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-dasharray: 16 50;
 }
 
 :root[data-theme='dark'] .ask-button {
@@ -1111,7 +1164,7 @@ body.welcome-active #site-shell {
 
 .ask-button:disabled {
   opacity: 0.7;
-  cursor: wait;
+  cursor: default;
 }
 
 .ask-answer {
@@ -1286,15 +1339,13 @@ body.welcome-active #site-shell {
 
 @media (max-width: 860px) {
   .site-nav {
-    grid-template-columns: 1fr;
     align-items: stretch;
     border-radius: 1.2rem;
   }
 
-  .brand,
   .nav-links,
   .nav-right {
-    justify-self: start;
+    justify-self: stretch;
   }
 
   .nav-links {
@@ -1303,6 +1354,7 @@ body.welcome-active #site-shell {
     max-width: 100%;
     row-gap: 0.35rem;
     column-gap: 0.35rem;
+    flex: 1;
   }
 
   .nav-link-home {
@@ -1429,10 +1481,6 @@ body.welcome-active #site-shell {
     column-gap: 0.28rem;
   }
 
-  .brand {
-    font-size: 0.93rem;
-  }
-
   .nav-link {
     min-height: 2.2rem;
     padding: 0.42rem 0.7rem;
@@ -1501,7 +1549,7 @@ body.welcome-active #site-shell {
     padding: 0.26rem 0.72rem;
   }
 
-  .ask-button-icon svg {
+  .ask-button-icon-arrow {
     transform: scale(1.33);
   }
 
@@ -1587,7 +1635,7 @@ body.welcome-active #site-shell {
     min-width: 2.5rem;
   }
 
-  .ask-button-icon svg {
+  .ask-button-icon-arrow {
     transform: scale(1.26);
   }
 }
@@ -1610,5 +1658,14 @@ body.welcome-active #site-shell {
   }
   100% {
     background-position: 0% 50%;
+  }
+}
+
+@keyframes askButtonSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }

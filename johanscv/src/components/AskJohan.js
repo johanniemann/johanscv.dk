@@ -4,6 +4,11 @@ const API_MODE = import.meta.env.VITE_ASK_JOHAN_MODE === 'api'
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
 const ACCESS_CODE_KEY = 'johanscv.askJohanAccessCode'
 const ACCESS_CODE_REQUIRED_MESSAGE = 'Access code is required to use Ask Johan.'
+const API_TEMPORARY_UNAVAILABLE_MESSAGE =
+  'Ask Johan is waking up on Render free hosting. Please try again in 10-20 seconds.'
+const API_REQUEST_TIMEOUT_MS = 25000
+const API_MAX_ATTEMPTS = 2
+const API_RETRY_DELAY_MS = 2200
 const PLACEHOLDER_SPEED_MS = 42
 const ERASE_SPEED_MS = 24
 const HOLD_MS = 1200
@@ -41,6 +46,7 @@ const SAMPLE_QUESTIONS = {
 
 let placeholderTimer = null
 let placeholderRunId = 0
+let apiWarmupStarted = false
 
 export function AskJohan({ t }) {
   const [askLabel, johanLabel] = splitAskTitle(t.ask.title)
@@ -58,11 +64,19 @@ export function AskJohan({ t }) {
       <div class="ask-input-wrap">
         <input id="ask-input" class="ask-input" type="text" placeholder="${t.ask.placeholder}" />
         <button id="ask-submit" class="ask-button" type="button" aria-label="${t.ask.button}">
-          <span class="ask-button-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" focusable="false">
-              <path d="M12 19V7.2" />
-              <path d="M7.5 11.7 12 7.2l4.5 4.5" />
-            </svg>
+          <span class="ask-button-visual" aria-hidden="true">
+            <span class="ask-button-icon ask-button-icon-arrow">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M12 19V7.2" />
+                <path d="M7.5 11.7 12 7.2l4.5 4.5" />
+              </svg>
+            </span>
+            <span class="ask-button-icon ask-button-icon-spinner">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <circle class="spinner-track" cx="12" cy="12" r="8.2" />
+                <circle class="spinner-head" cx="12" cy="12" r="8.2" />
+              </svg>
+            </span>
           </span>
         </button>
       </div>
@@ -94,12 +108,14 @@ export function bindAskJohan(language = 'en') {
   const respond = async () => {
     const query = input.value.trim().toLowerCase()
     button.disabled = true
+    button.classList.add('is-loading')
 
     try {
       const nextAnswer = await getAnswer(query)
       await revealAnswer(answer, nextAnswer)
     } finally {
       button.disabled = false
+      button.classList.remove('is-loading')
     }
   }
 
@@ -116,8 +132,8 @@ async function getAnswer(query) {
     try {
       return await getApiAnswer(query)
     } catch (error) {
-      console.warn('Ask Johan API failed, falling back to mock answer:', error)
-      return getMockAnswer(query)
+      console.warn(formatApiError(error))
+      return API_TEMPORARY_UNAVAILABLE_MESSAGE
     }
   }
 
@@ -145,29 +161,49 @@ async function getApiAnswer(question) {
   const accessCode = getAccessCode()
   if (!accessCode) return ACCESS_CODE_REQUIRED_MESSAGE
 
-  const response = await postQuestion(question, accessCode)
+  let lastError = null
 
-  if (response.status === 401) {
-    localStorage.removeItem(ACCESS_CODE_KEY)
-    return ACCESS_CODE_REQUIRED_MESSAGE
+  for (let attempt = 1; attempt <= API_MAX_ATTEMPTS; attempt += 1) {
+    try {
+      const response = await postQuestion(question, accessCode)
+
+      if (response.status === 401) {
+        localStorage.removeItem(ACCESS_CODE_KEY)
+        return ACCESS_CODE_REQUIRED_MESSAGE
+      }
+
+      if (!response.ok) {
+        const message = await getApiErrorMessage(response)
+        if (shouldRetry(response.status, attempt)) {
+          await wait(API_RETRY_DELAY_MS)
+          continue
+        }
+        throw new Error(message)
+      }
+
+      const payload = await response.json()
+      const answer = parseAnswer(payload)
+      if (!answer) {
+        throw new Error('API returned an empty answer.')
+      }
+
+      return answer
+    } catch (error) {
+      lastError = error
+      if (attempt < API_MAX_ATTEMPTS && isRetryableError(error)) {
+        await wait(API_RETRY_DELAY_MS)
+        continue
+      }
+      throw error
+    }
   }
 
-  if (!response.ok) {
-    throw new Error(await getApiErrorMessage(response))
-  }
-
-  const payload = await response.json()
-  const answer = parseAnswer(payload)
-  if (!answer) {
-    throw new Error('API returned an empty answer.')
-  }
-
-  return answer
+  throw lastError || new Error('API request failed.')
 }
 
 function postQuestion(question, accessCode) {
   const controller = new AbortController()
-  const timeoutId = window.setTimeout(() => controller.abort(), 12000)
+  const timeoutId = window.setTimeout(() => controller.abort(), API_REQUEST_TIMEOUT_MS)
 
   return fetch(`${API_BASE}/api/ask-johan`, {
     method: 'POST',
@@ -207,6 +243,36 @@ function formatApiError(error) {
   }
   const message = error instanceof Error ? error.message : String(error)
   return `Ask Johan API error: ${message}`
+}
+
+function shouldRetry(status, attempt) {
+  if (attempt >= API_MAX_ATTEMPTS) return false
+  return status === 408 || status === 429 || status >= 500
+}
+
+function isRetryableError(error) {
+  if (!error) return false
+  if (error.name === 'AbortError') return true
+  const message = String(error.message || '')
+  return message.includes('Failed to fetch') || message.includes('NetworkError')
+}
+
+export function warmUpAskJohanApi() {
+  if (!API_MODE || !API_BASE || apiWarmupStarted) return Promise.resolve()
+  if (!getAccessCode()) return Promise.resolve()
+  apiWarmupStarted = true
+
+  const controller = new AbortController()
+  const timeoutId = window.setTimeout(() => controller.abort(), 10000)
+
+  return fetch(`${API_BASE}/health`, {
+    method: 'GET',
+    signal: controller.signal
+  })
+    .catch(() => null)
+    .finally(() => {
+      window.clearTimeout(timeoutId)
+    })
 }
 
 function bindPlaceholderTypewriter(input, language) {
@@ -303,5 +369,11 @@ function waitForHeightTransition(element) {
 
     element.addEventListener('transitionend', onEnd)
     window.setTimeout(finish, ANSWER_TRANSITION_MS + 80)
+  })
+}
+
+function wait(ms) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms)
   })
 }
