@@ -14,6 +14,7 @@ export function Footer({ t, theme, language }) {
       <div class="footer-top">
         <nav class="footer-links" aria-label="Footer navigation">
           ${navLinks.map((link) => `<a href="${link.href}" data-link>${link.label}</a>`).join('')}
+          <a class="footer-playground-link" href="/playground" data-link>${t.footer.playground}</a>
         </nav>
         <div class="footer-controls">
           ${LanguageToggle(language)}

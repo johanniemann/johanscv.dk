@@ -20,6 +20,7 @@ app.innerHTML = `
     <div id="page-root"></div>
     <div id="footer-root"></div>
   </div>
+  <div id="scroll-hint-root"></div>
 `
 
 const ACCESS_CODE_KEY = 'johanscv.askJohanAccessCode'
@@ -30,10 +31,12 @@ const welcomeRoot = document.querySelector('#welcome-root')
 const navRoot = document.querySelector('#nav-root')
 const pageRoot = document.querySelector('#page-root')
 const footerRoot = document.querySelector('#footer-root')
+const scrollHintRoot = document.querySelector('#scroll-hint-root')
 let navHidden = false
 let navScrollInitialized = false
 let siteBootstrapped = false
 let router = null
+let scrollHintBound = false
 
 if (hasValidSiteAccess()) {
   bootstrapSite()
@@ -64,12 +67,16 @@ function bootstrapSite() {
       setState({ route })
       updateActiveNav(route)
       initRevealObserver()
+      updateScrollHintVisibility()
     }
   })
 
   renderNav()
   renderFooter()
+  renderScrollHint()
+  bindScrollHint()
   updateActiveNav(getState().route)
+  updateScrollHintVisibility()
 }
 
 function renderNav() {
@@ -103,6 +110,8 @@ function renderFooter() {
     renderNav()
     updateActiveNav(getState().route)
     renderFooter()
+    renderScrollHint()
+    updateScrollHintVisibility()
     router?.refresh()
   })
 }
@@ -241,4 +250,53 @@ function toggleTheme() {
 function toggleLanguage() {
   const currentLanguage = getState().language
   setState({ language: currentLanguage === 'en' ? 'dk' : 'en' })
+}
+
+function renderScrollHint() {
+  const state = getState()
+  const t = getTranslations(state.language)
+  const hiddenClass = shouldHideScrollHint() ? ' is-hidden' : ''
+
+  scrollHintRoot.innerHTML = `
+    <button id="scroll-hint" class="scroll-hint${hiddenClass}" type="button" aria-label="${t.scrollHint.label}">
+      <span class="scroll-hint-text">${t.scrollHint.label}</span>
+      <span class="scroll-hint-arrow" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M12 6v12" />
+          <path d="m7.5 13.5 4.5 4.5 4.5-4.5" />
+        </svg>
+      </span>
+    </button>
+  `
+}
+
+function bindScrollHint() {
+  if (scrollHintBound) return
+  scrollHintBound = true
+
+  scrollHintRoot.addEventListener('click', (event) => {
+    const button = event.target.closest('#scroll-hint')
+    if (!button) return
+    window.scrollBy({
+      top: Math.max(window.innerHeight * 0.92, 240),
+      behavior: 'smooth'
+    })
+  })
+
+  window.addEventListener('scroll', updateScrollHintVisibility, { passive: true })
+  window.addEventListener('resize', updateScrollHintVisibility)
+}
+
+function updateScrollHintVisibility() {
+  const button = document.querySelector('#scroll-hint')
+  if (!button) return
+  button.classList.toggle('is-hidden', shouldHideScrollHint())
+}
+
+function shouldHideScrollHint() {
+  const doc = document.documentElement
+  const maxScroll = Math.max(0, doc.scrollHeight - window.innerHeight)
+  const canScroll = maxScroll > 24
+  const nearBottom = window.scrollY >= maxScroll - 28
+  return !siteBootstrapped || !canScroll || nearBottom
 }

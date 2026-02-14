@@ -60,6 +60,14 @@ app.get('/health', (_req, res) => {
   res.json({ ok: true })
 })
 
+app.get('/', (_req, res) => {
+  res.json({
+    ok: true,
+    service: 'ask-johan-api',
+    endpoints: ['/health', '/api/ask-johan']
+  })
+})
+
 app.post('/api/ask-johan', async (req, res) => {
   if (accessCode) {
     const providedCode = req.header('x-access-code')?.trim() || ''

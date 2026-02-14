@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: ask-johan-api
+    runtime: node
+    plan: free
+    rootDir: ask-johan-api
+    buildCommand: npm ci
+    startCommand: npm run start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: OPENAI_MODEL
+        value: gpt-4.1-mini
+      - key: MAX_QUESTION_CHARS
+        value: "800"
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ASK_JOHAN_ACCESS_CODE
+        sync: false

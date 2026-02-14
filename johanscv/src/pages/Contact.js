@@ -86,7 +86,8 @@ function contactButton({ type, icon, text, attrs }) {
 function emailIcon() {
   return `
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path d="M3 6.75A1.75 1.75 0 0 1 4.75 5h14.5A1.75 1.75 0 0 1 21 6.75v10.5A1.75 1.75 0 0 1 19.25 19H4.75A1.75 1.75 0 0 1 3 17.25V6.75Zm1.8.23 7.2 5.4 7.2-5.4a.25.25 0 0 0-.2-.48H5a.25.25 0 0 0-.2.48Z"/>
+      <path d="M4.75 5.5h14.5A1.25 1.25 0 0 1 20.5 6.75v10.5a1.25 1.25 0 0 1-1.25 1.25H4.75a1.25 1.25 0 0 1-1.25-1.25V6.75A1.25 1.25 0 0 1 4.75 5.5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="m4.5 7 7.5 5.8L19.5 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   `
 }
@@ -94,7 +95,7 @@ function emailIcon() {
 function phoneIcon() {
   return `
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path d="M6.62 2.9a1.5 1.5 0 0 1 1.6.32l2.12 2.12a1.5 1.5 0 0 1 .33 1.62l-.86 1.72a1 1 0 0 0 .2 1.15l3.88 3.88a1 1 0 0 0 1.15.2l1.72-.86a1.5 1.5 0 0 1 1.62.33l2.12 2.12a1.5 1.5 0 0 1 .32 1.6l-.55 1.38a2.5 2.5 0 0 1-2.33 1.56c-2.13 0-5.22-1.1-8.35-4.24-3.14-3.13-4.24-6.22-4.24-8.35 0-.99.6-1.9 1.56-2.33l1.38-.55Z"/>
+      <path d="M6.9 3.8h2.8c.4 0 .8.27.9.67l.78 3.15a1 1 0 0 1-.28.96L9.78 10.9a13.2 13.2 0 0 0 3.31 3.31l2.32-1.32a1 1 0 0 1 .96-.28l3.15.78c.4.1.67.49.67.9v2.8a1.9 1.9 0 0 1-2.06 1.9c-2.7-.2-5.3-1.42-7.79-3.66-2.24-2.03-3.7-4.28-4.36-6.76-.29-1.1-.45-2.2-.49-3.3A1.9 1.9 0 0 1 6.9 3.8Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   `
 }

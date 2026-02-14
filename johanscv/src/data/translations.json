@@ -64,9 +64,19 @@
       "connectLinkedin": "Connect on LinkedIn",
       "copied": "Copied"
     },
+    "playground": {
+      "title": "Experimental Playground",
+      "intro": "This is a sandbox page for testing ideas, UI experiments, and prototypes.",
+      "moreToComeTitle": "More To Come",
+      "moreToComeBody": "More experiments and interactive prototypes will be added here soon."
+    },
+    "scrollHint": {
+      "label": "Scroll for more"
+    },
     "footer": {
       "builtWith": "Built with Vite, Tailwind, and Vanilla JavaScript.",
-      "rights": "All rights reserved."
+      "rights": "All rights reserved.",
+      "playground": "Experimental Playground"
     }
   },
   "dk": {
@@ -134,9 +144,19 @@
       "connectLinkedin": "Forbind på LinkedIn",
       "copied": "Kopieret"
     },
+    "playground": {
+      "title": "Eksperimentelt Playground",
+      "intro": "Dette er en sandbox-side til at teste ideer, UI-eksperimenter og prototyper.",
+      "moreToComeTitle": "Mere På Vej",
+      "moreToComeBody": "Flere eksperimenter og interaktive prototyper bliver tilføjet her snart."
+    },
+    "scrollHint": {
+      "label": "Scroll for mere"
+    },
     "footer": {
       "builtWith": "Bygget med Vite, Tailwind og Vanilla JavaScript.",
-      "rights": "Alle rettigheder forbeholdes."
+      "rights": "Alle rettigheder forbeholdes.",
+      "playground": "Eksperimentelt Playground"
     }
   }
 }
