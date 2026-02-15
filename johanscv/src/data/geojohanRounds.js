@@ -1,21 +1,27 @@
 const DEFAULT_ROUNDS = [
   {
     roundId: 'address',
-    title: 'Round 1: Address',
-    streetViewLocation: { lat: 55.6915, lng: 12.5611 },
-    answerLocation: { lat: 55.6915, lng: 12.5611 }
+    title: 'Where in Copenhagen do I live?',
+    streetViewPanoId: '',
+    streetViewPov: { heading: 34, pitch: 5 },
+    streetViewLocation: { lat: 55.6761, lng: 12.5683 },
+    answerLocation: { lat: 55.6761, lng: 12.5683 }
   },
   {
     roundId: 'work',
-    title: 'Round 2: Work',
-    streetViewLocation: { lat: 55.6764, lng: 12.5681 },
-    answerLocation: { lat: 55.6764, lng: 12.5681 }
+    title: 'Where in Copenhagen do I work?',
+    streetViewPanoId: '',
+    streetViewPov: { heading: 34, pitch: 5 },
+    streetViewLocation: { lat: 55.6908, lng: 12.5443 },
+    answerLocation: { lat: 55.6908, lng: 12.5443 }
   },
   {
     roundId: 'school',
-    title: 'Round 3: School',
-    streetViewLocation: { lat: 55.7059, lng: 12.5345 },
-    answerLocation: { lat: 55.7059, lng: 12.5345 }
+    title: 'Where in Copenhagen do I study?',
+    streetViewPanoId: '',
+    streetViewPov: { heading: 34, pitch: 5 },
+    streetViewLocation: { lat: 55.7024, lng: 12.5628 },
+    answerLocation: { lat: 55.7024, lng: 12.5628 }
   }
 ]
 
@@ -29,7 +35,12 @@ export function getGeoJohanConfig() {
     const envPrefix = `VITE_GEOJOHAN_ROUND${roundNumber}`
 
     const title = readText(`${envPrefix}_TITLE`, round.title)
+    const streetViewPanoId = readText(`${envPrefix}_PANO_ID`, round.streetViewPanoId || '')
     const streetViewLocation = readLatLng(`${envPrefix}_PANO`, round.streetViewLocation)
+    const streetViewPov = {
+      heading: readNumber(`${envPrefix}_POV_HEADING`, round.streetViewPov?.heading ?? 34),
+      pitch: readNumber(`${envPrefix}_POV_PITCH`, round.streetViewPov?.pitch ?? 5)
+    }
     const answerLocation = readLatLng(`${envPrefix}_ANSWER`, round.answerLocation)
     const hasCustomCoordinates =
       hasNumber(`${envPrefix}_PANO_LAT`) &&
@@ -44,7 +55,9 @@ export function getGeoJohanConfig() {
     return {
       ...round,
       title,
+      streetViewPanoId,
       streetViewLocation,
+      streetViewPov,
       answerLocation,
       hasCustomCoordinates
     }

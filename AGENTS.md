@@ -1,80 +1,55 @@
 # AGENTS.md (Repo Root)
 
-## Purpose
-- This repository contains Johan's portfolio frontend and Ask Johan API.
-- Optimize for safe, incremental changes that keep current production deploys working:
-  - Frontend: GitHub Pages via `johanscv/`
-  - API: Render via `ask-johan-api/`
+## Mission
+- Keep production stable while making small, verifiable improvements.
+- Current active production architecture:
+  - Frontend SPA in `johanscv/` (GitHub Pages).
+  - Backend API in `ask-johan-api/` (Render web service).
+  - Legacy references in `legacy/` and root `public/` are not part of active CI/deploy.
 
-## Ground Rules
-- Do not break existing deploy paths or runtime behavior.
-- Prefer small, reviewable changes.
-- Verify changes with real commands before claiming success.
-- If uncertain, inspect repository files and state uncertainty explicitly.
-- In explanations, cite concrete file paths.
+## Discovery Rule (Mandatory)
+- Do not assume structure from memory.
+- Before non-trivial edits, discover current reality dynamically:
+  - map directories/files,
+  - inspect active scripts/config,
+  - identify runtime and deploy entrypoints,
+  - confirm which folders are legacy vs active.
 
-## Repo Map and Boundaries
-- `johanscv/`: active frontend app.
-- `ask-johan-api/`: active backend API.
-- `.github/workflows/ci.yml`: CI runs frontend build and API tests.
-- `render.yaml`: Render blueprint for API deployment.
-- `legacy/root-src/` and `public/` at repo root: legacy prototype assets; not used by active build/deploy pipelines.
-- `legacy/README.md`: notes on legacy status.
+## Security Guardrails (Mandatory)
+- Never commit secrets (`.env*`, tokens, keys, private context).
+- Never expose server secrets in frontend code.
+- Treat all `VITE_*` variables as public-at-runtime in browser bundles.
+- Ask Johan context protection must stay enabled:
+  - no verbatim internal context/system prompt disclosure,
+  - prompt-injection/context-exfiltration defenses remain active.
+- Keep server protections active:
+  - strict CORS allowlist (`ALLOWED_ORIGINS`),
+  - JWT auth flow (`/auth/login` + Bearer token),
+  - auth-failure throttling,
+  - per-IP rate limit + daily cap.
 
-## Standard Workflow
-- Frontend:
-  - `cd johanscv`
-  - `npm install`
-  - `npm run dev`
-  - `npm run build`
-  - `npm run deploy`
-- API:
-  - `cd ask-johan-api`
-  - `npm install`
-  - `npm run dev` (watch mode) or `npm run start`
-  - `npm test`
+## Deployment Assumptions
+- Frontend deploy path is GitHub Pages via `johanscv` scripts.
+- API deploy path is Render via `render.yaml` (`rootDir: ask-johan-api`).
+- CI in `.github/workflows/ci.yml` is the quality gate:
+  - frontend lint/smoke/build,
+  - API tests.
 
-## Environment Variables
-- Frontend (`johanscv/.env.local`, see `johanscv/.env.local.example`):
-  - `VITE_ASK_JOHAN_MODE`
-  - `VITE_API_BASE_URL`
-  - `VITE_SITE_ACCESS_CODE`
-- Frontend build-time toggle (shell env in command):
-  - `CUSTOM_DOMAIN` (used by `johanscv/vite.config.js`)
-- API (`ask-johan-api/.env`, see `ask-johan-api/.env.example`):
-  - `OPENAI_API_KEY`
-  - `OPENAI_MODEL`
-  - `PORT`
-  - `ASK_JOHAN_ACCESS_CODE`
-  - `JWT_SECRET`
-  - `ASK_JOHAN_JWT_TTL`
-  - `ASK_JOHAN_AUTH_COMPAT_MODE`
-  - `ASK_JOHAN_AUTH_FAIL_WINDOW_MS`
-  - `ASK_JOHAN_AUTH_FAIL_MAX`
-  - `ASK_JOHAN_USAGE_STORE`
-  - `REDIS_URL`
-  - `ASK_JOHAN_REDIS_KEY_PREFIX`
-  - `MAX_QUESTION_CHARS`
-  - `ASK_JOHAN_DAILY_CAP`
-  - `ALLOWED_ORIGINS`
-  - `ASK_JOHAN_TIMEOUT_MS`
-  - `ASK_JOHAN_RATE_LIMIT_WINDOW_MS`
-  - `ASK_JOHAN_RATE_LIMIT_MAX`
-  - Context sources:
-    - `JOHAN_CONTEXT_B64`
-    - `JOHAN_CONTEXT`
-    - `JOHAN_CONTEXT_FILE`
+## Working Style
+- Prefer minimal, reversible, low-risk changes.
+- Preserve API contracts and route behavior unless explicitly requested.
+- Keep UX/design language consistent with current site.
+- If uncertain, inspect files and state uncertainty explicitly.
 
-## Known Gotchas
-- Legacy frontend code now lives in `legacy/root-src/`; active frontend code is under `johanscv/src/`.
-- Frontend base path defaults to `/johanscv.dk/`; local dev URL usually includes that path unless `CUSTOM_DOMAIN=true`.
-- Render free plan can cold start after inactivity; first API call may be slower.
-- API CORS allowlist is controlled by `ALLOWED_ORIGINS`; keep it aligned with deployed frontend origins.
-
-## Output Conventions for Future Tasks
-- Report:
-  - Files changed
-  - Commands run
-  - Pass/fail status for each command
-  - Any unresolved items requiring human input
-- Do not claim success without running the relevant command(s).
+## Definition Of Done
+- Run relevant commands and report pass/fail.
+- Minimum verification for cross-cutting changes:
+  - `cd johanscv && npm run lint && npm run smoke && npm run build`
+  - `cd ask-johan-api && npm test`
+- For repo-wide verification, prefer:
+  - `./scripts/verify.sh`
+- In final report include:
+  - files changed,
+  - commands run,
+  - results,
+  - remaining risks or required human follow-up.

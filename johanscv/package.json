@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "bash ./scripts/dev-fixed.sh",
     "lint": "eslint src --max-warnings=0",
     "smoke": "node ./scripts/smoke-check.mjs",
     "build": "vite build",

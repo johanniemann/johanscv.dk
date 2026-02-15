@@ -1,60 +1,55 @@
 # AGENTS.md (Frontend: johanscv)
 
-## Purpose
-- This folder is the active portfolio frontend (Vite + Vanilla JS + Tailwind).
-- Prioritize preserving route behavior, language/theme UX, and deploy compatibility with GitHub Pages.
+## Mission
+- Maintain the active frontend SPA (Vite + Vanilla JS + Tailwind) without breaking routes, UX, or GitHub Pages deploy behavior.
 
-## Ground Rules
-- Do not modify backend behavior from this folder.
-- Keep changes minimal and verify with `npm run build`.
-- If behavior is unclear, inspect source files before concluding.
-- Cite exact file paths in summaries.
+## Discovery Rule (Mandatory)
+- Do not rely on stale file assumptions.
+- Before major edits, dynamically verify:
+  - scripts/tooling,
+  - router paths,
+  - page/component boundaries,
+  - env usage,
+  - deployment base path behavior.
 
-## Truth Sources / Boundaries
-- Scripts and package tooling: `johanscv/package.json`
-- Base path behavior: `johanscv/vite.config.js`
-- App bootstrap: `johanscv/src/main.js`
-- Routing: `johanscv/src/router.js`
-- Data and translations: `johanscv/src/data/*`
-- Deployment docs: `johanscv/DEPLOYMENT.md`
-- Legacy prototype source lives in `legacy/root-src/` and is not this app's source tree.
+## Active Frontend Facts
+- Entry/bootstrap is in `src/main.js`.
+- SPA routing is handled client-side (`src/router.js`), including `/playground`, `/quiz`, and `/quiz/geojohan`.
+- Styling is custom CSS with Tailwind/PostCSS tooling; avoid introducing new UI frameworks.
+- Theme/language are state-driven via localStorage and UI toggles.
 
-## Standard Workflow
-- Install:
-  - `npm install`
-- Dev:
-  - `npm run dev`
-- Build:
-  - `npm run build`
-- Preview:
-  - `npm run preview`
-- Deploy (GitHub Pages):
-  - `npm run deploy`
-  - Custom-domain base `/`: `CUSTOM_DOMAIN=true npm run deploy`
+## Security & Privacy Guardrails
+- Never commit `.env.local` or secrets.
+- Treat all `VITE_*` vars as public in browser bundles.
+- Do not claim client-side env data is secret.
+- Keep Ask Johan client auth flow compatible with API expectations:
+  - login via `/auth/login`,
+  - bearer token on `/api/ask-johan`.
 
-Run all commands from:
-- `cd /Users/johanniemannhusbjerg/Desktop/WEBSITE/johanscv`
-
-## Environment Variables
-- Local file: `johanscv/.env.local` (template: `johanscv/.env.local.example`)
-- Used vars:
+## Environment Variables (Frontend)
+- Source of truth: `.env.local.example` + runtime code.
+- Core vars:
   - `VITE_ASK_JOHAN_MODE`
   - `VITE_API_BASE_URL`
   - `VITE_SITE_ACCESS_CODE`
+  - `VITE_GOOGLE_MAPS_API_KEY`
+- Optional GeoJohan vars:
+  - `VITE_GEOJOHAN_ROUND{N}_TITLE`
+  - `VITE_GEOJOHAN_ROUND{N}_PANO_LAT`, `_PANO_LNG`, `_PANO_ID`
+  - `VITE_GEOJOHAN_ROUND{N}_POV_HEADING`, `_POV_PITCH`
+  - `VITE_GEOJOHAN_ROUND{N}_ANSWER_LAT`, `_ANSWER_LNG`
+  - `VITE_GEOJOHAN_ROUND{N}_SUMMARY_ADDRESS`
+  - `VITE_GEOJOHAN_ROUND{N}_SUMMARY_CONTEXT_DK`, `_SUMMARY_CONTEXT_EN`
 - Build-time shell var:
-  - `CUSTOM_DOMAIN` (switches Vite `base` between `/johanscv.dk/` and `/`)
+  - `CUSTOM_DOMAIN` (controls Vite base path).
 
-## Known Gotchas
-- Default local URL usually includes base path:
-  - `http://localhost:5173/johanscv.dk/`
-- App uses SPA deep-link fallback in `johanscv/public/404.html`.
-- Ask Johan feature can run in `mock` or `api` mode; confirm env mode before debugging API calls.
-- Access gate is enforced client-side via `VITE_SITE_ACCESS_CODE` in `johanscv/src/main.js`.
-
-## Output Conventions for Frontend Tasks
-- Report changed files with short rationale.
-- Report commands run and pass/fail:
-  - at minimum `npm run build`
-  - include `npm run dev` smoke status when relevant.
-- Include the dev URL shown by Vite if server was started.
-- Do not claim deploy success unless deploy command was actually run.
+## Definition Of Done (Frontend)
+- Run from `johanscv/`:
+  - `npm run lint`
+  - `npm run smoke`
+  - `npm run build`
+- If runtime behavior changed, also run `npm run dev` smoke and report local URL.
+- Final summary must list:
+  - changed files,
+  - commands + pass/fail,
+  - residual risks.

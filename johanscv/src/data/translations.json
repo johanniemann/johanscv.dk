@@ -92,6 +92,11 @@
     "geojohan": {
       "title": "GeoJohan",
       "intro": "Pan around Street View, place your guess on the map, and score points across 3 rounds.",
+      "roundTitles": {
+        "address": "Where in Copenhagen do I live?",
+        "work": "Where in Copenhagen do I work?",
+        "school": "Where in Copenhagen do I study?"
+      },
       "panoramaAria": "Street View panorama",
       "mapAria": "Guess map",
       "loading": "Loading map and Street View...",
@@ -102,16 +107,32 @@
       "streetViewFallback": "Street View is limited here. You can still guess on the map.",
       "mapHint": "Click map to place your guess",
       "guessPlacedHint": "Guess placed. Submit or move your pin.",
+      "guessAction": "Guess",
+      "continueAction": "Continue",
       "guessAndContinue": "Guess and continue",
       "submitGuess": "Submit guess",
       "resetGuess": "Reset guess",
       "nextRound": "Next round",
       "finishRound": "Finish",
-      "summaryTitle": "Results",
+      "summaryTitle": "GeoJohan results",
+      "summaryLocations": {
+        "address": {
+          "address": "",
+          "context": ""
+        },
+        "work": {
+          "address": "",
+          "context": ""
+        },
+        "school": {
+          "address": "",
+          "context": ""
+        }
+      },
       "totalScoreLabel": "Total score",
       "distanceLabel": "Distance",
       "pointsLabel": "Points",
-      "playAgain": "Play again",
+      "playAgain": "Play GeoJohan again",
       "backToQuiz": "Back to quiz",
       "missingKey": "Google Maps API key is missing. GeoJohan is disabled.",
       "missingKeyHint": "Set VITE_GOOGLE_MAPS_API_KEY in .env.local and restart dev server.",
@@ -221,6 +242,11 @@
     "geojohan": {
       "title": "GeoJohan",
       "intro": "Panorer i Street View, placér dit gæt på kortet og få point over 3 runder.",
+      "roundTitles": {
+        "address": "Hvor i København bor jeg?",
+        "work": "Hvor i København arbejder jeg?",
+        "school": "Hvor i København studerer jeg?"
+      },
       "panoramaAria": "Street View panorama",
       "mapAria": "Gættekort",
       "loading": "Indlæser kort og Street View...",
@@ -231,16 +257,32 @@
       "streetViewFallback": "Street View er begrænset her. Du kan stadig gætte på kortet.",
       "mapHint": "Klik på kortet for at placere dit gæt",
       "guessPlacedHint": "Gæt placeret. Indsend eller flyt din pin.",
+      "guessAction": "Gæt",
+      "continueAction": "Fortsæt",
       "guessAndContinue": "Gæt og forsæt",
       "submitGuess": "Indsend gæt",
       "resetGuess": "Nulstil gæt",
       "nextRound": "Næste runde",
       "finishRound": "Afslut",
-      "summaryTitle": "Resultat",
+      "summaryTitle": "GeoJohan resultat",
+      "summaryLocations": {
+        "address": {
+          "address": "",
+          "context": ""
+        },
+        "work": {
+          "address": "",
+          "context": ""
+        },
+        "school": {
+          "address": "",
+          "context": ""
+        }
+      },
       "totalScoreLabel": "Samlet score",
       "distanceLabel": "Afstand",
       "pointsLabel": "Point",
-      "playAgain": "Spil igen",
+      "playAgain": "Spil GeoJohan igen",
       "backToQuiz": "Tilbage til quiz",
       "missingKey": "Google Maps API key mangler. GeoJohan er deaktiveret.",
       "missingKeyHint": "Sæt VITE_GOOGLE_MAPS_API_KEY i .env.local og genstart dev serveren.",

@@ -1,6 +1,7 @@
 import { getGeoJohanConfig, GEOJOHAN_MAPS_API_KEY } from '../data/geojohanRounds.js'
 
 const DEFAULT_CENTER = { lat: 55.6761, lng: 12.5683 }
+const STREET_VIEW_FALLBACK_LOCATION = { lat: 55.6761, lng: 12.5683 }
 const SCORE_CURVE = [
   { km: 0, points: 5000 },
   { km: 1, points: 4700 },
@@ -11,9 +12,18 @@ const SCORE_CURVE = [
   { km: 20000, points: 250 }
 ]
 const STREET_VIEW_RADIUS_METERS = 1500
+const VIEWPORT_SYNC_DELAYS_MS = [120, 420, 780]
+const DEFAULT_POV = { heading: 34, pitch: 5 }
+const SUMMARY_TRANSITION_MS = 320
+const ANSWER_PIN_STYLE_BY_ROUND = {
+  address: { glyph: '🏠' },
+  work: { glyph: '💼' },
+  school: { glyph: '🎓' }
+}
 
 let mapsPromise = null
 let mountCounter = 0
+const STAGE_TRANSITION_MS = 560
 
 export function render({ t }) {
   return `
@@ -26,14 +36,15 @@ export function render({ t }) {
 export function renderGeoJohanSection({ t }) {
   return `
     <section class="content-section section-reveal geojohan-page" id="geojohan-root">
-      <h2 class="section-title">${t.geojohan.title}</h2>
-      <p class="section-body">${t.geojohan.intro}</p>
+      <div class="geojohan-page-header">
+        <h2 class="section-title geojohan-page-title">${t.geojohan.title}</h2>
+        <p class="section-body geojohan-page-intro">${t.geojohan.intro}</p>
+      </div>
 
       <div class="geojohan-shell" id="geojohan-shell">
         <header class="geojohan-header">
-          <p class="geojohan-progress" id="geojohan-progress"></p>
           <h3 class="section-title geojohan-round-title" id="geojohan-round-title"></h3>
-          <p class="geojohan-running-score" id="geojohan-running-score"></p>
+          <p class="geojohan-progress" id="geojohan-progress"></p>
           <p class="geojohan-config-note" id="geojohan-config-note"></p>
         </header>
 
@@ -41,24 +52,28 @@ export function renderGeoJohanSection({ t }) {
           <div class="geojohan-panorama" id="geojohan-panorama" aria-label="${t.geojohan.panoramaAria}"></div>
           <div class="geojohan-map-panel">
             <div class="geojohan-map" id="geojohan-map" aria-label="${t.geojohan.mapAria}"></div>
+            <div class="geojohan-map-actions">
+              <button class="projects-cta geojohan-primary-action is-hidden" id="geojohan-guess" type="button" disabled>
+                ${t.geojohan.guessAction}
+              </button>
+              <button class="projects-cta geojohan-primary-action is-hidden" id="geojohan-continue" type="button" disabled>
+                ${t.geojohan.continueAction}
+              </button>
+            </div>
           </div>
         </div>
 
-        <p class="geojohan-feedback" id="geojohan-feedback">${t.geojohan.loading}</p>
-
-        <div class="geojohan-actions">
-          <button class="projects-cta geojohan-primary-action is-hidden" id="geojohan-action" type="button" disabled>
-            ${t.geojohan.guessAndContinue}
-          </button>
+        <div class="geojohan-status-row">
+          <p class="geojohan-feedback" id="geojohan-feedback">${t.geojohan.loading}</p>
+          <p class="geojohan-running-score" id="geojohan-running-score"></p>
         </div>
 
         <section class="geojohan-summary" id="geojohan-summary" aria-live="polite">
           <h3 class="section-title">${t.geojohan.summaryTitle}</h3>
-          <p class="section-body geojohan-total" id="geojohan-total"></p>
           <div class="geojohan-summary-list" id="geojohan-summary-list"></div>
+          <p class="section-body geojohan-total" id="geojohan-total"></p>
           <div class="geojohan-actions">
             <button class="projects-cta" id="geojohan-replay" type="button">${t.geojohan.playAgain}</button>
-            <a class="projects-cta" href="/quiz" data-link>${t.geojohan.backToQuiz}</a>
           </div>
         </section>
       </div>
@@ -66,7 +81,7 @@ export function renderGeoJohanSection({ t }) {
   `
 }
 
-export function mount({ t }) {
+export function mount({ t, language = 'en' }) {
   const root = document.querySelector('#geojohan-root')
   if (!root) return
 
@@ -89,19 +104,26 @@ export function mount({ t }) {
     guessMarker: null,
     answerMarker: null,
     guessLine: null,
-    mapClickListener: null
+    mapClickListener: null,
+    viewportTimers: [],
+    summaryTransitionTimer: null
   }
 
   const isMounted = () => currentMountId === mountCounter && root.isConnected
 
-  refs.actionBtn.addEventListener('click', () => {
+  refs.guessBtn.addEventListener('click', () => {
     if (!isMounted()) return
-    handlePrimaryAction(state, refs, t)
+    submitGuess(state, refs, t)
+  })
+
+  refs.continueBtn.addEventListener('click', () => {
+    if (!isMounted()) return
+    advanceRound(state, refs, t, language)
   })
 
   refs.replayBtn.addEventListener('click', () => {
     if (!isMounted()) return
-    restartGame(state, refs, t)
+    restartGame(state, refs, t, language)
   })
 
   if (config.usingFallbackCoordinates) {
@@ -110,8 +132,7 @@ export function mount({ t }) {
 
   if (!GEOJOHAN_MAPS_API_KEY) {
     refs.feedback.textContent = t.geojohan.missingKey
-    refs.actionBtn.disabled = true
-    refs.actionBtn.classList.add('is-hidden')
+    setActionMode(refs, 'hidden')
     return
   }
 
@@ -125,36 +146,41 @@ export function mount({ t }) {
     .catch(() => {
       if (!isMounted()) return
       refs.feedback.textContent = t.geojohan.loadError
-      refs.actionBtn.disabled = true
-      refs.actionBtn.classList.add('is-hidden')
+      setActionMode(refs, 'hidden')
     })
 }
 
 function getRefs() {
+  const root = document.querySelector('#geojohan-root')
   const shell = document.querySelector('#geojohan-shell')
   const progress = document.querySelector('#geojohan-progress')
   const roundTitle = document.querySelector('#geojohan-round-title')
   const runningScore = document.querySelector('#geojohan-running-score')
   const configNote = document.querySelector('#geojohan-config-note')
   const panoramaEl = document.querySelector('#geojohan-panorama')
+  const stageEl = document.querySelector('.geojohan-stage')
   const mapEl = document.querySelector('#geojohan-map')
   const feedback = document.querySelector('#geojohan-feedback')
-  const actionBtn = document.querySelector('#geojohan-action')
+  const guessBtn = document.querySelector('#geojohan-guess')
+  const continueBtn = document.querySelector('#geojohan-continue')
   const summary = document.querySelector('#geojohan-summary')
   const total = document.querySelector('#geojohan-total')
   const summaryList = document.querySelector('#geojohan-summary-list')
   const replayBtn = document.querySelector('#geojohan-replay')
 
   if (
+    !root ||
     !shell ||
     !progress ||
     !roundTitle ||
     !runningScore ||
     !configNote ||
     !panoramaEl ||
+    !stageEl ||
     !mapEl ||
     !feedback ||
-    !actionBtn ||
+    !guessBtn ||
+    !continueBtn ||
     !summary ||
     !total ||
     !summaryList ||
@@ -164,15 +190,18 @@ function getRefs() {
   }
 
   return {
+    root,
     shell,
     progress,
     roundTitle,
     runningScore,
     configNote,
     panoramaEl,
+    stageEl,
     mapEl,
     feedback,
-    actionBtn,
+    guessBtn,
+    continueBtn,
     summary,
     total,
     summaryList,
@@ -182,28 +211,36 @@ function getRefs() {
 
 async function beginRound(state, refs, t) {
   const round = state.rounds[state.roundIndex]
+  const wasReviewingResult = refs.shell.classList.contains('is-reviewing-result')
 
+  clearSummaryTransition(state)
+  clearViewportTimers(state)
   state.phase = 'loading'
   state.guessLatLng = null
+  refs.root.classList.remove('is-finishing-results', 'is-results-view')
+  refs.shell.classList.remove('is-finishing-summary')
   refs.shell.classList.remove('is-finished')
+  setReviewingState(refs, false)
   refs.summary.classList.remove('is-visible')
   refs.progress.textContent = `${t.geojohan.progressLabel} ${state.roundIndex + 1}/${state.rounds.length}`
-  refs.roundTitle.textContent = round.title
+  refs.roundTitle.textContent = resolveRoundTitle(round, t)
   refs.runningScore.textContent = `${t.geojohan.currentTotalLabel}: ${state.totalScore}`
   refs.feedback.textContent = t.geojohan.loadingRound
-  refs.actionBtn.disabled = true
-  refs.actionBtn.classList.add('is-hidden')
-  refs.actionBtn.textContent = t.geojohan.guessAndContinue
+  setActionMode(refs, 'hidden')
 
+  await waitForStageReady(refs, wasReviewingResult)
   const panoramaReady = await setupScene(state, refs, round)
 
   state.phase = 'guessing'
   refs.feedback.textContent = panoramaReady ? t.geojohan.roundReady : t.geojohan.streetViewFallback
+  scheduleViewportResize(state, round)
 }
 
 async function setupScene(state, refs, round) {
   const maps = state.maps
   const answerCenter = round.answerLocation || DEFAULT_CENTER
+  const preferredPanoId = String(round.streetViewPanoId || '').trim()
+  const pov = normalizePov(round.streetViewPov)
 
   if (!state.map) {
     state.map = new maps.Map(refs.mapEl, {
@@ -239,31 +276,42 @@ async function setupScene(state, refs, round) {
       state.guessMarker.setMap(state.map)
     }
 
-    refs.actionBtn.disabled = false
-    refs.actionBtn.classList.remove('is-hidden')
+    setActionMode(refs, 'guess')
   })
 
-  const panoramaPosition = await resolveStreetViewPosition(state, round.streetViewLocation)
-  const initialPanoramaPosition = panoramaPosition || round.streetViewLocation
+  const panoramaTarget = preferredPanoId ? null : await resolveStreetViewTarget(state, round.streetViewLocation)
+  const initialPanoramaPosition = panoramaTarget?.position || round.streetViewLocation || STREET_VIEW_FALLBACK_LOCATION
 
-  if (!state.panorama) {
-    state.panorama = new maps.StreetViewPanorama(refs.panoramaEl, {
-      position: initialPanoramaPosition,
-      pov: {
-        heading: 34,
-        pitch: 5
-      },
-      zoom: 1,
-      addressControl: false,
-      fullscreenControl: false,
-      linksControl: true
-    })
-  } else {
-    state.panorama.setPosition(initialPanoramaPosition)
+  if (state.panorama) {
+    state.panorama.setVisible(false)
   }
+  refs.panoramaEl.innerHTML = ''
+  state.panorama = new maps.StreetViewPanorama(refs.panoramaEl, {
+    ...(preferredPanoId ? { pano: preferredPanoId } : {}),
+    position: initialPanoramaPosition,
+    pov,
+    zoom: 1,
+    addressControl: false,
+    fullscreenControl: false,
+    linksControl: true
+  })
 
+  state.panorama.setPov(pov)
+  state.panorama.setVisible(true)
+
+  let fallbackApplied = false
+  state.panorama.addListener('status_changed', () => {
+    if (fallbackApplied || !state.panorama) return
+    const status = state.panorama.getStatus?.()
+    if (status === maps.StreetViewStatus.ZERO_RESULTS || status === maps.StreetViewStatus.UNKNOWN_ERROR) {
+      fallbackApplied = true
+      state.panorama.setPosition(STREET_VIEW_FALLBACK_LOCATION)
+    }
+  })
+
+  queuePanoramaRefresh(state, initialPanoramaPosition, preferredPanoId)
   clearRoundOverlays(state)
-  return Boolean(panoramaPosition)
+  return Boolean(preferredPanoId || panoramaTarget)
 }
 
 function clearRoundOverlays(state) {
@@ -286,20 +334,24 @@ function submitGuess(state, refs, t) {
   state.phase = 'submitted'
   state.totalScore += points
   state.roundResults[state.roundIndex] = {
-    title: round.title,
+    roundId: round.roundId,
+    title: resolveRoundTitle(round, t),
     distanceKm,
     points
   }
 
   refs.feedback.textContent = `${t.geojohan.distanceLabel}: ${formatDistanceKm(distanceKm)} · ${t.geojohan.pointsLabel}: ${points}`
   refs.runningScore.textContent = `${t.geojohan.currentTotalLabel}: ${state.totalScore}`
-  refs.actionBtn.disabled = false
-  refs.actionBtn.classList.remove('is-hidden')
+  setActionMode(refs, 'continue')
+  setReviewingState(refs, true)
 
   const maps = state.maps
+  const answerAppearance = createAnswerMarkerAppearance(maps, round.roundId)
   state.answerMarker = new maps.Marker({
     map: state.map,
-    position: round.answerLocation
+    position: round.answerLocation,
+    title: resolveRoundTitle(round, t),
+    icon: answerAppearance.icon
   })
   state.guessLine = new maps.Polyline({
     map: state.map,
@@ -312,24 +364,15 @@ function submitGuess(state, refs, t) {
   bounds.extend(state.guessLatLng)
   bounds.extend(round.answerLocation)
   state.map.fitBounds(bounds, 60)
+  clearViewportTimers(state)
+  scheduleViewportResize(state, round)
 }
 
-function handlePrimaryAction(state, refs, t) {
-  if (state.phase === 'guessing') {
-    submitGuess(state, refs, t)
-    return
-  }
-
-  if (state.phase === 'submitted') {
-    advanceRound(state, refs, t)
-  }
-}
-
-function advanceRound(state, refs, t) {
+function advanceRound(state, refs, t, language) {
   if (state.phase !== 'submitted') return
 
   if (state.roundIndex >= state.rounds.length - 1) {
-    showSummary(state, refs, t)
+    showSummary(state, refs, t, language)
     return
   }
 
@@ -337,33 +380,167 @@ function advanceRound(state, refs, t) {
   beginRound(state, refs, t)
 }
 
-function showSummary(state, refs, t) {
+function showSummary(state, refs, t, language) {
+  clearSummaryTransition(state)
+  clearViewportTimers(state)
   state.phase = 'finished'
-  refs.actionBtn.disabled = true
-  refs.actionBtn.classList.add('is-hidden')
-  refs.shell.classList.add('is-finished')
-  refs.summary.classList.add('is-visible')
-  refs.total.textContent = `${t.geojohan.totalScoreLabel}: ${state.totalScore}`
+  setActionMode(refs, 'hidden')
+  setReviewingState(refs, false)
+  const maxScore = state.rounds.length * SCORE_CURVE[0].points
+  refs.total.textContent = `${t.geojohan.totalScoreLabel}: ${state.totalScore}/${maxScore}`
   refs.summaryList.innerHTML = state.roundResults
-    .map(
-      (result) => `
+    .map((result) => {
+      const locationInfo = resolveSummaryLocation(result.roundId, language, t)
+      const roundEmoji = resolveRoundEmoji(result.roundId)
+      return `
         <article class="project-card geojohan-summary-item">
-          <h4 class="project-title">${result.title}</h4>
+          <h4 class="project-title">${roundEmoji ? `${roundEmoji} ` : ''}${result.title}</h4>
+          ${locationInfo?.address ? `<p class="project-summary geojohan-summary-address">${locationInfo.address}</p>` : ''}
+          ${locationInfo?.context ? `<p class="project-summary geojohan-summary-context">${locationInfo.context}</p>` : ''}
           <p class="project-summary">${t.geojohan.distanceLabel}: ${formatDistanceKm(result.distanceKm)}</p>
           <p class="project-summary">${t.geojohan.pointsLabel}: ${result.points}</p>
         </article>
       `
-    )
+    })
     .join('')
+
+  refs.root.classList.add('is-finishing-results')
+  refs.shell.classList.add('is-finishing-summary')
+  state.summaryTransitionTimer = window.setTimeout(() => {
+    refs.root.classList.remove('is-finishing-results')
+    refs.root.classList.add('is-results-view')
+    refs.shell.classList.remove('is-finishing-summary')
+    refs.shell.classList.add('is-finished')
+    refs.summary.classList.add('is-visible')
+    state.summaryTransitionTimer = null
+  }, SUMMARY_TRANSITION_MS)
 }
 
 function restartGame(state, refs, t) {
+  clearSummaryTransition(state)
   state.roundIndex = 0
   state.phase = 'loading'
   state.guessLatLng = null
   state.totalScore = 0
   state.roundResults = []
   beginRound(state, refs, t)
+}
+
+function setActionMode(refs, mode) {
+  const showGuess = mode === 'guess'
+  const showContinue = mode === 'continue'
+
+  refs.guessBtn.classList.toggle('is-visible', showGuess)
+  refs.guessBtn.classList.toggle('is-hidden', !showGuess)
+  refs.guessBtn.disabled = !showGuess
+  refs.continueBtn.classList.toggle('is-visible', showContinue)
+  refs.continueBtn.classList.toggle('is-hidden', !showContinue)
+  refs.continueBtn.disabled = !showContinue
+}
+
+function setReviewingState(refs, isReviewing) {
+  refs.shell.classList.toggle('is-reviewing-result', isReviewing)
+}
+
+function resolveRoundTitle(round, t) {
+  const localizedTitle = t?.geojohan?.roundTitles?.[round.roundId]
+  return localizedTitle || round.title
+}
+
+function resolveSummaryLocation(roundId, language, t) {
+  const roundNumber = summaryRoundNumber(roundId)
+  if (!roundNumber) return t?.geojohan?.summaryLocations?.[roundId] || null
+
+  const prefix = `VITE_GEOJOHAN_ROUND${roundNumber}_SUMMARY`
+  const address = readEnvText(`${prefix}_ADDRESS`)
+  const contextKey = language === 'dk' ? `${prefix}_CONTEXT_DK` : `${prefix}_CONTEXT_EN`
+  const context = readEnvText(contextKey)
+  const fallback = t?.geojohan?.summaryLocations?.[roundId] || null
+
+  if (!address && !context) return fallback
+
+  return {
+    address: address || fallback?.address || '',
+    context: context || fallback?.context || ''
+  }
+}
+
+function summaryRoundNumber(roundId) {
+  if (roundId === 'address') return 1
+  if (roundId === 'work') return 2
+  if (roundId === 'school') return 3
+  return null
+}
+
+function resolveRoundEmoji(roundId) {
+  return ANSWER_PIN_STYLE_BY_ROUND[roundId]?.glyph || ''
+}
+
+function readEnvText(key) {
+  return String(import.meta.env[key] || '').trim()
+}
+
+function createAnswerMarkerAppearance(maps, roundId) {
+  const style = ANSWER_PIN_STYLE_BY_ROUND[roundId] || ANSWER_PIN_STYLE_BY_ROUND.address
+  const iconSize = 64
+  const center = iconSize / 2
+  const emojiSize = 42
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${iconSize}" height="${iconSize}" viewBox="0 0 ${iconSize} ${iconSize}">
+      <defs>
+        <filter id="emoji-shadow" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="0" dy="1.5" stdDeviation="1.2" flood-color="rgba(8,12,24,0.45)"/>
+        </filter>
+      </defs>
+      <text
+        x="${center}"
+        y="${center}"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        font-size="${emojiSize}"
+        filter="url(#emoji-shadow)"
+      >${style.glyph}</text>
+    </svg>
+  `
+  const url = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`
+
+  return {
+    icon: {
+      url,
+      scaledSize: new maps.Size(iconSize, iconSize),
+      anchor: new maps.Point(center, center)
+    }
+  }
+}
+
+function clearSummaryTransition(state) {
+  if (!state.summaryTransitionTimer) return
+  window.clearTimeout(state.summaryTransitionTimer)
+  state.summaryTransitionTimer = null
+}
+
+function scheduleViewportResize(state, round) {
+  if (!state.maps) return
+  VIEWPORT_SYNC_DELAYS_MS.forEach((delayMs) => {
+    const timer = window.setTimeout(() => {
+      if (state.map) {
+        state.maps.event.trigger(state.map, 'resize')
+        if (state.phase === 'submitted' && state.guessLatLng && round?.answerLocation) {
+          const bounds = new state.maps.LatLngBounds()
+          bounds.extend(state.guessLatLng)
+          bounds.extend(round.answerLocation)
+          state.map.fitBounds(bounds, 60)
+        } else if (round?.answerLocation) {
+          state.map.setCenter(round.answerLocation)
+        }
+      }
+
+      if (state.panorama) {
+        state.maps.event.trigger(state.panorama, 'resize')
+      }
+    }, delayMs)
+    state.viewportTimers.push(timer)
+  })
 }
 
 function scoreDistance(distanceKm) {
@@ -403,16 +580,32 @@ function formatDistanceKm(distanceKm) {
   return `${distanceKm.toFixed(1)} km`
 }
 
-async function resolveStreetViewPosition(state, targetPosition) {
-  if (!state.streetViewService || !state.maps) return targetPosition
+async function resolveStreetViewTarget(state, targetPosition) {
+  if (!state.streetViewService || !state.maps) {
+    return {
+      position: targetPosition,
+      fromService: false
+    }
+  }
 
   const maps = state.maps
+  const outdoor = await getPanoramaNear(state, targetPosition, maps.StreetViewSource.OUTDOOR)
+  if (outdoor) return outdoor
+
+  const nearest = await getPanoramaNear(state, targetPosition, maps.StreetViewSource.DEFAULT)
+  if (nearest) return nearest
+
+  return null
+}
+
+async function getPanoramaNear(state, targetPosition, source) {
   let result = null
   try {
     result = await state.streetViewService.getPanorama({
       location: targetPosition,
       radius: STREET_VIEW_RADIUS_METERS,
-      preference: maps.StreetViewPreference.NEAREST
+      preference: state.maps.StreetViewPreference.NEAREST,
+      source
     })
   } catch {
     return null
@@ -422,8 +615,68 @@ async function resolveStreetViewPosition(state, targetPosition) {
   if (!latLng) return null
 
   return {
-    lat: latLng.lat(),
-    lng: latLng.lng()
+    position: {
+      lat: latLng.lat(),
+      lng: latLng.lng()
+    },
+    fromService: true
+  }
+}
+
+function queuePanoramaRefresh(state, position, panoId = '') {
+  if (!state.maps || !state.panorama) return
+
+  VIEWPORT_SYNC_DELAYS_MS.forEach((delayMs) => {
+    const timer = window.setTimeout(() => {
+      if (!state.panorama || !state.maps) return
+      state.panorama.setVisible(true)
+      if (panoId) {
+        state.panorama.setPano(panoId)
+      } else if (position) {
+        state.panorama.setPosition(position)
+      }
+      state.maps.event.trigger(state.panorama, 'resize')
+    }, delayMs)
+    state.viewportTimers.push(timer)
+  })
+}
+
+function clearViewportTimers(state) {
+  if (!state.viewportTimers.length) return
+  state.viewportTimers.forEach((timer) => {
+    window.clearTimeout(timer)
+  })
+  state.viewportTimers = []
+}
+
+function waitForStageReady(refs, shouldWaitForTransition) {
+  if (!shouldWaitForTransition) return Promise.resolve()
+
+  return new Promise((resolve) => {
+    let settled = false
+    const finish = () => {
+      if (settled) return
+      settled = true
+      refs.stageEl.removeEventListener('transitionend', onTransitionEnd)
+      resolve()
+    }
+
+    const onTransitionEnd = (event) => {
+      if (event.target !== refs.stageEl) return
+      finish()
+    }
+
+    refs.stageEl.addEventListener('transitionend', onTransitionEnd)
+    window.setTimeout(finish, STAGE_TRANSITION_MS)
+  })
+}
+
+function normalizePov(rawPov) {
+  const heading = Number(rawPov?.heading)
+  const pitch = Number(rawPov?.pitch)
+  return {
+    heading: Number.isFinite(heading) ? heading : DEFAULT_POV.heading,
+    pitch: Number.isFinite(pitch) ? pitch : DEFAULT_POV.pitch
   }
 }
 

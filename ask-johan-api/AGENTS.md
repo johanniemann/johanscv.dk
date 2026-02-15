@@ -1,75 +1,65 @@
 # AGENTS.md (API: ask-johan-api)
 
-## Purpose
-- This folder is the active Ask Johan backend API (Node + Express + OpenAI).
-- Optimize for safe request validation, predictable JSON responses, and Render compatibility.
+## Mission
+- Keep Ask Johan API stable, secure, and Render-compatible while making minimal, testable changes.
 
-## Ground Rules
-- Keep endpoint contracts stable unless explicitly requested.
-- Do not expose secrets in code or docs.
-- Validate behavior by running tests and at least one runtime smoke command.
-- If uncertain, inspect code/config first and state uncertainty explicitly.
+## Discovery Rule (Mandatory)
+- Do not assume endpoints or env wiring from memory.
+- Before edits, verify current reality dynamically:
+  - server entrypoint,
+  - middleware/auth/rate-limit behavior,
+  - env loading order,
+  - tests and deploy settings.
 
-## Truth Sources / Boundaries
-- Scripts/deps: `ask-johan-api/package.json`
-- Server entry and env wiring: `ask-johan-api/index.js`
-- Route/middleware logic: `ask-johan-api/app.js`
-- Tests: `ask-johan-api/test/api.test.js`
-- Deploy config: `render.yaml`
-- Deploy docs: `ask-johan-api/DEPLOY_RENDER.md`
+## Active API Facts
+- Runtime: Node + Express + OpenAI Responses API.
+- Public endpoints:
+  - `GET /health`
+  - `GET /`
+  - `POST /auth/login`
+  - `POST /api/ask-johan`
+- Auth model:
+  - primary: JWT Bearer (token from `/auth/login`),
+  - optional temporary compatibility: `x-access-code` controlled by `ASK_JOHAN_AUTH_COMPAT_MODE`.
 
-## Standard Workflow
-- Install:
-  - `npm install`
-- Dev (watch):
-  - `npm run dev`
-- Start:
-  - `npm run start`
-- Tests:
-  - `npm test`
+## Security Guardrails (Mandatory)
+- Never commit/log secrets.
+- Keep CORS strict (`ALLOWED_ORIGINS` exact allowlist + localhost dev rule).
+- Keep validation/throttling active:
+  - content-type + input type/length checks,
+  - request rate limiter,
+  - failed-auth throttling,
+  - daily cap per IP.
+- Keep context-protection behavior active:
+  - refuse system/developer/internal prompt exfiltration requests,
+  - never expose raw private context text verbatim.
 
-Run all commands from:
-- `cd /Users/johanniemannhusbjerg/Desktop/WEBSITE/ask-johan-api`
-
-## Environment Variables
-- Local file: `ask-johan-api/.env` (template: `ask-johan-api/.env.example`)
-- Core vars:
-  - `OPENAI_API_KEY`
-  - `OPENAI_MODEL`
-  - `PORT`
-  - `ASK_JOHAN_ACCESS_CODE`
-  - `JWT_SECRET`
-  - `ASK_JOHAN_JWT_TTL`
-  - `ASK_JOHAN_AUTH_COMPAT_MODE`
-  - `ASK_JOHAN_AUTH_FAIL_WINDOW_MS`
-  - `ASK_JOHAN_AUTH_FAIL_MAX`
-  - `ASK_JOHAN_USAGE_STORE`
-  - `REDIS_URL`
-  - `ASK_JOHAN_REDIS_KEY_PREFIX`
-  - `MAX_QUESTION_CHARS`
-  - `ASK_JOHAN_DAILY_CAP`
+## Environment Variables (API)
+- Source of truth: `.env.example` + runtime parsing in server code.
+- Core:
+  - `OPENAI_API_KEY`, `OPENAI_MODEL`, `PORT`
+  - `ASK_JOHAN_ACCESS_CODE`, `JWT_SECRET`, `ASK_JOHAN_JWT_TTL`, `ASK_JOHAN_AUTH_COMPAT_MODE`
+  - `ASK_JOHAN_AUTH_FAIL_WINDOW_MS`, `ASK_JOHAN_AUTH_FAIL_MAX`
+  - `ASK_JOHAN_DAILY_CAP`, `ASK_JOHAN_RATE_LIMIT_WINDOW_MS`, `ASK_JOHAN_RATE_LIMIT_MAX`
+  - `ASK_JOHAN_TIMEOUT_MS`, `MAX_QUESTION_CHARS`
   - `ALLOWED_ORIGINS`
-  - `ASK_JOHAN_TIMEOUT_MS`
-  - `ASK_JOHAN_RATE_LIMIT_WINDOW_MS`
-  - `ASK_JOHAN_RATE_LIMIT_MAX`
-- Context vars (loaded in priority order in `index.js`):
+  - Usage store:
+    - `ASK_JOHAN_USAGE_STORE` (`memory` or `redis`)
+    - `REDIS_URL`, `ASK_JOHAN_REDIS_KEY_PREFIX` (when redis mode)
+- Context source priority:
   - `JOHAN_CONTEXT_B64`
   - `JOHAN_CONTEXT`
   - `JOHAN_CONTEXT_FILE`
-  - fallback files: `johan-context.private.md` then `johan-context.md`
+  - local fallback files.
 
-## Known Gotchas
-- API returns responses as `{ answer: string }` for both success and handled errors.
-- JWT auth is now primary (`POST /auth/login` then `Authorization: Bearer <token>` on ask route).
-- `x-access-code` is compatibility-only and controlled by `ASK_JOHAN_AUTH_COMPAT_MODE`.
-- CORS allowlist is strict; ensure `ALLOWED_ORIGINS` includes actual frontend origins.
-- Render blueprint defaults `ALLOWED_ORIGINS` to `https://johanniemann.github.io,https://johanscv.dk`; adjust if your served origins change.
-- Free Render instances may cold start after inactivity.
-
-## Output Conventions for API Tasks
-- Report changed files and why.
-- Report commands run and pass/fail:
-  - at minimum `npm test`
-  - plus `npm run start` or `npm run dev` smoke status.
-- Include endpoint used for smoke checks (e.g., `/health`) when relevant.
-- Do not claim runtime success without command evidence.
+## Definition Of Done (API)
+- Run from `ask-johan-api/`:
+  - `npm test`
+- For runtime-sensitive changes, also run `npm run start` smoke checks for:
+  - `/health`
+  - `/auth/login`
+  - protected `POST /api/ask-johan`
+- Final summary must include:
+  - changed files,
+  - commands + pass/fail,
+  - API contract or env impacts.

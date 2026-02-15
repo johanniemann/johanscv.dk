@@ -731,6 +731,29 @@ body.welcome-active #site-shell {
   gap: 1rem;
 }
 
+.geojohan-page-header {
+  display: grid;
+  gap: 1rem;
+  transition:
+    opacity var(--duration-major) var(--ease-standard),
+    transform var(--duration-major) var(--ease-standard);
+}
+
+.geojohan-page-title,
+.geojohan-page-intro {
+  margin: 0;
+}
+
+.geojohan-page.is-finishing-results .geojohan-page-header {
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
+}
+
+.geojohan-page.is-results-view .geojohan-page-header {
+  display: none;
+}
+
 .geojohan-shell {
   display: grid;
   gap: 1rem;
@@ -750,8 +773,11 @@ body.welcome-active #site-shell {
 
 .geojohan-running-score {
   margin: 0;
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--text-soft);
+  text-align: right;
+  white-space: nowrap;
 }
 
 .geojohan-config-note {
@@ -766,9 +792,12 @@ body.welcome-active #site-shell {
 
 .geojohan-stage {
   display: grid;
-  grid-template-columns: 1.45fr minmax(280px, 0.85fr);
+  grid-template-columns: 1.45fr 0.85fr;
   gap: 0.9rem;
   align-items: stretch;
+  transition:
+    grid-template-columns var(--duration-major) var(--ease-standard),
+    gap var(--duration-major) var(--ease-standard);
 }
 
 .geojohan-panorama,
@@ -778,10 +807,23 @@ body.welcome-active #site-shell {
   border-radius: 1rem;
   border: 1px solid var(--surface-inner-border);
   overflow: hidden;
+  min-width: 0;
 }
 
 .geojohan-map-panel {
   display: flex;
+  position: relative;
+  transition:
+    transform var(--duration-major) var(--ease-standard),
+    opacity var(--duration-major) var(--ease-standard),
+    border-color var(--duration-major) var(--ease-standard);
+}
+
+.geojohan-panorama {
+  transition:
+    opacity var(--duration-major) var(--ease-standard),
+    transform var(--duration-major) var(--ease-standard),
+    border-color var(--duration-major) var(--ease-standard);
 }
 
 .geojohan-map {
@@ -790,17 +832,48 @@ body.welcome-active #site-shell {
   width: 100%;
 }
 
+.geojohan-map-actions {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.85rem;
+  height: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.geojohan-shell.is-reviewing-result .geojohan-stage {
+  grid-template-columns: 0fr 1fr;
+  gap: 0;
+}
+
+.geojohan-shell.is-reviewing-result .geojohan-panorama {
+  opacity: 0;
+  transform: translateX(-18px) scale(0.985);
+  border-color: transparent;
+  pointer-events: none;
+}
+
 .geojohan-feedback {
   margin: 0;
   color: var(--text-soft);
 }
 
-.geojohan-shell > .geojohan-actions {
+.geojohan-status-row {
   display: flex;
-  justify-content: center;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+}
+
+.geojohan-status-row .geojohan-feedback {
+  flex: 1;
 }
 
 .projects-cta.geojohan-primary-action {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
   margin-top: 0;
   min-height: 34px;
   border: 1px solid rgba(128, 148, 204, 0.5);
@@ -814,7 +887,11 @@ body.welcome-active #site-shell {
   background-size: 220% 220%;
   box-shadow: 0 6px 14px rgba(56, 82, 156, 0.28);
   animation: askButtonGradient 20s linear infinite;
+  opacity: 0;
+  transform: translate(-50%, 10px) scale(0.985);
+  pointer-events: none;
   transition:
+    opacity var(--duration-base) var(--ease-standard),
     transform var(--duration-base) var(--ease-standard),
     filter var(--duration-base) var(--ease-standard),
     box-shadow var(--duration-base) var(--ease-standard);
@@ -822,16 +899,32 @@ body.welcome-active #site-shell {
 
 .projects-cta.geojohan-primary-action:hover {
   color: #fff;
+  background: linear-gradient(120deg, #f3b885, #f9e3b9, #ebb17f, #f3b885);
+  background-size: 220% 220%;
+  border-color: rgba(128, 148, 204, 0.5);
   filter: brightness(1.06);
-  transform: translateY(-1px);
+  transform: translate(-50%, -1px) scale(1);
   box-shadow: 0 8px 16px rgba(56, 82, 156, 0.33);
 }
 
+.projects-cta.geojohan-primary-action.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+  pointer-events: auto;
+}
+
 .projects-cta.geojohan-primary-action.is-hidden {
-  display: none;
+  opacity: 0;
+  transform: translate(-50%, 10px) scale(0.985);
+  pointer-events: none;
 }
 
 :root[data-theme='dark'] .projects-cta.geojohan-primary-action {
+  background: linear-gradient(120deg, #5f77db, #8eb6ff, #6b57b9, #5f77db);
+  background-size: 220% 220%;
+}
+
+:root[data-theme='dark'] .projects-cta.geojohan-primary-action:hover {
   background: linear-gradient(120deg, #5f77db, #8eb6ff, #6b57b9, #5f77db);
   background-size: 220% 220%;
 }
@@ -842,13 +935,33 @@ body.welcome-active #site-shell {
   gap: 0.62rem;
 }
 
+.geojohan-summary .geojohan-actions .projects-cta {
+  margin-top: 0;
+}
+
 .geojohan-summary {
-  display: none;
+  display: grid;
   gap: 0.85rem;
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(10px);
+  overflow: hidden;
+  pointer-events: none;
+  transition:
+    max-height var(--duration-major) var(--ease-standard),
+    opacity var(--duration-major) var(--ease-standard),
+    transform var(--duration-major) var(--ease-standard);
+}
+
+.geojohan-shell:not(.is-finished) .geojohan-summary {
+  display: none;
 }
 
 .geojohan-summary.is-visible {
-  display: grid;
+  max-height: 1200px;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
 }
 
 .geojohan-summary-list {
@@ -859,11 +972,37 @@ body.welcome-active #site-shell {
 
 .geojohan-total {
   margin: 0;
+  justify-self: start;
+  text-align: left;
+}
+
+.geojohan-summary-address {
+  margin-top: 0.45rem;
+  font-weight: 600;
+}
+
+.geojohan-shell.is-finishing-summary .geojohan-header,
+.geojohan-shell.is-finishing-summary .geojohan-stage,
+.geojohan-shell.is-finishing-summary > .geojohan-status-row {
+  animation: geojohanSummaryFadeOut var(--duration-major) var(--ease-standard) forwards;
+  pointer-events: none;
+}
+
+@keyframes geojohanSummaryFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
 }
 
 .geojohan-shell.is-finished .geojohan-header,
 .geojohan-shell.is-finished .geojohan-stage,
-.geojohan-shell.is-finished > .geojohan-feedback,
+.geojohan-shell.is-finished > .geojohan-status-row,
 .geojohan-shell.is-finished > .geojohan-actions {
   display: none;
 }
@@ -1559,6 +1698,10 @@ body.welcome-active #site-shell {
 
   .geojohan-stage {
     grid-template-columns: 1fr;
+  }
+
+  .geojohan-status-row {
+    flex-wrap: wrap;
   }
 
   .geojohan-shell {
