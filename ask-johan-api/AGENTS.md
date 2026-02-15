@@ -38,7 +38,13 @@ Run all commands from:
   - `OPENAI_MODEL`
   - `PORT`
   - `ASK_JOHAN_ACCESS_CODE`
+  - `JWT_SECRET`
+  - `ASK_JOHAN_JWT_TTL`
+  - `ASK_JOHAN_AUTH_COMPAT_MODE`
+  - `ASK_JOHAN_AUTH_FAIL_WINDOW_MS`
+  - `ASK_JOHAN_AUTH_FAIL_MAX`
   - `MAX_QUESTION_CHARS`
+  - `ASK_JOHAN_DAILY_CAP`
   - `ALLOWED_ORIGINS`
   - `ASK_JOHAN_TIMEOUT_MS`
   - `ASK_JOHAN_RATE_LIMIT_WINDOW_MS`
@@ -51,9 +57,10 @@ Run all commands from:
 
 ## Known Gotchas
 - API returns responses as `{ answer: string }` for both success and handled errors.
-- Access code check is active when `ASK_JOHAN_ACCESS_CODE` is set (`x-access-code` header required).
+- JWT auth is now primary (`POST /auth/login` then `Authorization: Bearer <token>` on ask route).
+- `x-access-code` is compatibility-only and controlled by `ASK_JOHAN_AUTH_COMPAT_MODE`.
 - CORS allowlist is strict; ensure `ALLOWED_ORIGINS` includes actual frontend origins.
-- Render blueprint defaults `ALLOWED_ORIGINS` to GitHub Pages domain; update when moving to custom domains.
+- Render blueprint defaults `ALLOWED_ORIGINS` to `https://johanniemann.github.io,https://johanscv.dk`; adjust if your served origins change.
 - Free Render instances may cold start after inactivity.
 
 ## Output Conventions for API Tasks

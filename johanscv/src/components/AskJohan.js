@@ -2,6 +2,8 @@ import mockAnswers from '../data/mockAnswers.json'
 
 const API_MODE = import.meta.env.VITE_ASK_JOHAN_MODE === 'api'
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
+const API_LOGIN_PATH = '/auth/login'
+const API_ASK_PATH = '/api/ask-johan'
 const ACCESS_CODE_KEY = 'johanscv.askJohanAccessCode'
 const ACCESS_CODE_REQUIRED_MESSAGE = 'Access code is required to use Ask Johan.'
 const API_TEMPORARY_UNAVAILABLE_MESSAGE =
@@ -47,6 +49,7 @@ const SAMPLE_QUESTIONS = {
 let placeholderTimer = null
 let placeholderRunId = 0
 let apiWarmupStarted = false
+let apiAuthToken = ''
 
 export function AskJohan({ t }) {
   const [askLabel, johanLabel] = splitAskTitle(t.ask.title)
@@ -162,12 +165,21 @@ async function getApiAnswer(question) {
   if (!accessCode) return ACCESS_CODE_REQUIRED_MESSAGE
 
   let lastError = null
+  let forceTokenRefresh = false
 
   for (let attempt = 1; attempt <= API_MAX_ATTEMPTS; attempt += 1) {
     try {
-      const response = await postQuestion(question, accessCode)
+      const token = await ensureApiToken(accessCode, forceTokenRefresh)
+      forceTokenRefresh = false
+      const response = await postQuestion(question, token)
 
       if (response.status === 401) {
+        clearApiToken()
+        if (attempt < API_MAX_ATTEMPTS) {
+          forceTokenRefresh = true
+          continue
+        }
+
         localStorage.removeItem(ACCESS_CODE_KEY)
         return ACCESS_CODE_REQUIRED_MESSAGE
       }
@@ -189,6 +201,10 @@ async function getApiAnswer(question) {
 
       return answer
     } catch (error) {
+      if (error instanceof Error && error.message === ACCESS_CODE_REQUIRED_MESSAGE) {
+        return ACCESS_CODE_REQUIRED_MESSAGE
+      }
+
       lastError = error
       if (attempt < API_MAX_ATTEMPTS && isRetryableError(error)) {
         await wait(API_RETRY_DELAY_MS)
@@ -201,17 +217,61 @@ async function getApiAnswer(question) {
   throw lastError || new Error('API request failed.')
 }
 
-function postQuestion(question, accessCode) {
-  const controller = new AbortController()
-  const timeoutId = window.setTimeout(() => controller.abort(), API_REQUEST_TIMEOUT_MS)
+async function ensureApiToken(accessCode, forceRefresh = false) {
+  if (!forceRefresh && apiAuthToken) return apiAuthToken
 
-  return fetch(`${API_BASE}/api/ask-johan`, {
+  const response = await postLogin(accessCode)
+  if (response.status === 401) {
+    localStorage.removeItem(ACCESS_CODE_KEY)
+    clearApiToken()
+    throw new Error(ACCESS_CODE_REQUIRED_MESSAGE)
+  }
+  if (!response.ok) {
+    const message = await getApiErrorMessage(response, 'Authentication failed.')
+    throw new Error(message)
+  }
+
+  const payload = await response.json()
+  const token = typeof payload?.token === 'string' ? payload.token.trim() : ''
+  if (!token) {
+    throw new Error('API login did not return a token.')
+  }
+
+  apiAuthToken = token
+  return apiAuthToken
+}
+
+function clearApiToken() {
+  apiAuthToken = ''
+}
+
+function postLogin(accessCode) {
+  return fetchWithTimeout(`${API_BASE}${API_LOGIN_PATH}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ accessCode })
+  })
+}
+
+function postQuestion(question, token) {
+  return fetchWithTimeout(`${API_BASE}${API_ASK_PATH}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-access-code': accessCode
+      Authorization: `Bearer ${token}`
     },
-    body: JSON.stringify({ question }),
+    body: JSON.stringify({ question })
+  })
+}
+
+function fetchWithTimeout(url, options) {
+  const controller = new AbortController()
+  const timeoutId = window.setTimeout(() => controller.abort(), API_REQUEST_TIMEOUT_MS)
+
+  return fetch(url, {
+    ...options,
     signal: controller.signal
   }).finally(() => {
     window.clearTimeout(timeoutId)
@@ -224,7 +284,7 @@ function parseAnswer(payload) {
   return answer || ''
 }
 
-async function getApiErrorMessage(response) {
+async function getApiErrorMessage(response, fallbackMessage = 'API request failed.') {
   try {
     const payload = await response.json()
     if (typeof payload?.answer === 'string' && payload.answer.trim()) {
@@ -234,7 +294,7 @@ async function getApiErrorMessage(response) {
     // Ignore JSON parse errors and use a generic message below.
   }
 
-  return `${response.status} ${response.statusText}: API request failed.`
+  return `${response.status} ${response.statusText}: ${fallbackMessage}`
 }
 
 function formatApiError(error) {

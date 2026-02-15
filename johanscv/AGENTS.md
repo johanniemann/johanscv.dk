@@ -17,7 +17,7 @@
 - Routing: `johanscv/src/router.js`
 - Data and translations: `johanscv/src/data/*`
 - Deployment docs: `johanscv/DEPLOYMENT.md`
-- Root-level `src/` is legacy and not this app's source tree.
+- Legacy prototype source lives in `legacy/root-src/` and is not this app's source tree.
 
 ## Standard Workflow
 - Install:

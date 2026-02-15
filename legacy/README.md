@@ -2,7 +2,7 @@
 
 This repository keeps an older prototype frontend in:
 
-- `src/`
+- `legacy/root-src/`
 - `public/`
 
 These folders are currently retained for reference only.

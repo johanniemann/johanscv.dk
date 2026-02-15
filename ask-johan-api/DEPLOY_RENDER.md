@@ -23,9 +23,17 @@ This deploys `ask-johan-api` as a free Render Web Service using the repo's `rend
 3. In the new service, set secret env vars:
    - `OPENAI_API_KEY` = your OpenAI key
    - `ASK_JOHAN_ACCESS_CODE` = your private access code
+   - `JWT_SECRET` = a long random secret for signing JWTs
    - `JOHAN_CONTEXT_B64` = Base64-encoded private Ask Johan context (recommended so context is not in GitHub)
    - Optional safety vars:
-     - `ALLOWED_ORIGINS` (comma-separated)
+     - `ALLOWED_ORIGINS` (comma-separated exact origins)
+       - recommended: `https://johanniemann.github.io,https://johanscv.dk`
+       - localhost dev origins are allowed automatically by backend localhost checks
+     - `ASK_JOHAN_AUTH_COMPAT_MODE` (default `true` during rollout)
+     - `ASK_JOHAN_JWT_TTL` (default `7d`)
+     - `ASK_JOHAN_AUTH_FAIL_WINDOW_MS` (default `600000`)
+     - `ASK_JOHAN_AUTH_FAIL_MAX` (default `10`)
+     - `ASK_JOHAN_DAILY_CAP` (default `100`)
      - `ASK_JOHAN_TIMEOUT_MS` (default `15000`)
      - `ASK_JOHAN_RATE_LIMIT_WINDOW_MS` (default `60000`)
      - `ASK_JOHAN_RATE_LIMIT_MAX` (default `30`)
@@ -46,6 +54,11 @@ VITE_API_BASE_URL=https://<your-render-service>.onrender.com
 VITE_SITE_ACCESS_CODE=<same_as_ASK_JOHAN_ACCESS_CODE>
 ```
 
+Frontend flow in API mode:
+- `VITE_SITE_ACCESS_CODE` unlocks the site and is sent to `POST /auth/login`
+- API returns JWT
+- Ask requests use `Authorization: Bearer <token>`
+
 Then redeploy frontend:
 
 ```bash
@@ -62,10 +75,23 @@ npm run deploy
 ## Built-in API safety now enabled
 
 - Security headers via `helmet`
+- JWT auth (`POST /auth/login`) with Bearer token protection on `POST /api/ask-johan`
+- Temporary access-code compatibility mode (`ASK_JOHAN_AUTH_COMPAT_MODE`)
 - IP-based rate limiting on `POST /api/ask-johan`
+- Failed-auth throttling (`ASK_JOHAN_AUTH_FAIL_*`)
+- Daily per-IP soft cap (`ASK_JOHAN_DAILY_CAP`)
 - Configurable CORS allowlist
 - Request timeout protection for model calls
 - Automated API tests via GitHub Actions
+
+## Safe Auth Rollout Plan
+
+1. Deploy backend with:
+   - `JWT_SECRET` set
+   - `ASK_JOHAN_AUTH_COMPAT_MODE=true`
+2. Deploy frontend that uses `/auth/login` + Bearer token.
+3. Verify login + ask flow works for users.
+4. Set `ASK_JOHAN_AUTH_COMPAT_MODE=false` to fully disable legacy `x-access-code` auth.
 
 ## Private context without storing in GitHub
 

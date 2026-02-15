@@ -8,7 +8,7 @@ Personal website stack for Johan with a static frontend and a separate Ask Johan
 | --- | --- | --- |
 | `johanscv/` | Active frontend SPA (Vite + Vanilla JS + Tailwind), deployed to GitHub Pages | Active |
 | `ask-johan-api/` | Active backend API (Node/Express/OpenAI), deployed to Render | Active |
-| `src/` | Old prototype frontend source tree at repo root | Legacy (not used by CI/deploy) |
+| `legacy/root-src/` | Old prototype frontend source tree moved from repo root | Legacy (not used by CI/deploy) |
 | `public/` | Old prototype public folder at repo root | Legacy (not used by CI/deploy) |
 | `.github/workflows/ci.yml` | CI pipeline: frontend build + backend tests | Active |
 | `render.yaml` | Render blueprint for `ask-johan-api` | Active |
@@ -70,7 +70,13 @@ API (`ask-johan-api/.env`):
 - `OPENAI_MODEL`
 - `PORT`
 - `ASK_JOHAN_ACCESS_CODE`
+- `JWT_SECRET`
+- `ASK_JOHAN_JWT_TTL`
+- `ASK_JOHAN_AUTH_COMPAT_MODE`
+- `ASK_JOHAN_AUTH_FAIL_WINDOW_MS`
+- `ASK_JOHAN_AUTH_FAIL_MAX`
 - `MAX_QUESTION_CHARS`
+- `ASK_JOHAN_DAILY_CAP`
 - `ALLOWED_ORIGINS`
 - `ASK_JOHAN_TIMEOUT_MS`
 - `ASK_JOHAN_RATE_LIMIT_WINDOW_MS`
@@ -96,8 +102,21 @@ cd ask-johan-api
 npm test
 ```
 
+## Secret Scan Before Push
+
+Preferred (if installed locally):
+
+```bash
+gitleaks detect --no-git --source . --redact
+```
+
+Fallback (quick local heuristic scan):
+
+```bash
+rg -n --hidden --glob '!.git' '(?i)(api[_-]?key|secret|token|password|sk-[A-Za-z0-9]{20,}|-----BEGIN (RSA|EC|OPENSSH) PRIVATE KEY-----)'
+```
+
 ## Deployment Quick Links
 
 - Frontend deploy instructions: `johanscv/DEPLOYMENT.md`
 - API deploy instructions: `ask-johan-api/DEPLOY_RENDER.md`
-

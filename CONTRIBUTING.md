@@ -17,5 +17,12 @@
 
 ## Legacy Code
 
-- Root-level `src/` and `public/` are legacy references.
+- `legacy/root-src/` and root-level `public/` are legacy references.
 - Active production code lives in `johanscv/` and `ask-johan-api/`.
+
+## Secret Scanning (Local)
+
+- Preferred:
+  - `gitleaks detect --no-git --source . --redact`
+- Fallback:
+  - `rg -n --hidden --glob '!.git' '(?i)(api[_-]?key|secret|token|password|sk-[A-Za-z0-9]{20,}|-----BEGIN (RSA|EC|OPENSSH) PRIVATE KEY-----)'`

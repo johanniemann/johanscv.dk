@@ -6,7 +6,7 @@ Personal CV website built with Vite, Vanilla JS, and Tailwind CSS.
 
 - Frontend app (this folder): `johanscv/`
 - Backend API (separate folder): `../ask-johan-api/`
-- Legacy prototype code exists in repo root `src/` and `public/` but is not used by this app's scripts.
+- Legacy prototype code exists in `../legacy/root-src/` and `../public/` but is not used by this app's scripts.
 
 ## Run Locally (VS Code terminal)
 
@@ -27,6 +27,7 @@ cp .env.local.example .env.local
 - `VITE_ASK_JOHAN_MODE` (`api` or `mock`)
 - `VITE_API_BASE_URL` (Ask Johan API URL)
 - `VITE_SITE_ACCESS_CODE` should match `ASK_JOHAN_ACCESS_CODE` on backend when API mode is used
+- In API mode, the frontend exchanges the access code for a JWT at `POST /auth/login`, then calls Ask Johan with `Authorization: Bearer <token>`
 
 4. Start frontend:
 ```bash
@@ -52,6 +53,10 @@ Fill `.env`:
 - `OPENAI_MODEL` (default `gpt-4.1-mini`)
 - `PORT` (default `8787`)
 - `ASK_JOHAN_ACCESS_CODE`
+- `JWT_SECRET`
+- `ASK_JOHAN_JWT_TTL` (default `7d`)
+- `ASK_JOHAN_AUTH_COMPAT_MODE` (default `true` during rollout)
+- `ASK_JOHAN_DAILY_CAP` (default `100`)
 - `MAX_QUESTION_CHARS` (default `800`)
 - Optional private context source:
   - `JOHAN_CONTEXT_B64` (recommended for hosted deploys)

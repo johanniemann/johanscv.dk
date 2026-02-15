@@ -18,7 +18,7 @@
 - `ask-johan-api/`: active backend API.
 - `.github/workflows/ci.yml`: CI runs frontend build and API tests.
 - `render.yaml`: Render blueprint for API deployment.
-- `src/` and `public/` at repo root: legacy prototype assets; not used by active build/deploy pipelines.
+- `legacy/root-src/` and `public/` at repo root: legacy prototype assets; not used by active build/deploy pipelines.
 - `legacy/README.md`: notes on legacy status.
 
 ## Standard Workflow
@@ -46,7 +46,13 @@
   - `OPENAI_MODEL`
   - `PORT`
   - `ASK_JOHAN_ACCESS_CODE`
+  - `JWT_SECRET`
+  - `ASK_JOHAN_JWT_TTL`
+  - `ASK_JOHAN_AUTH_COMPAT_MODE`
+  - `ASK_JOHAN_AUTH_FAIL_WINDOW_MS`
+  - `ASK_JOHAN_AUTH_FAIL_MAX`
   - `MAX_QUESTION_CHARS`
+  - `ASK_JOHAN_DAILY_CAP`
   - `ALLOWED_ORIGINS`
   - `ASK_JOHAN_TIMEOUT_MS`
   - `ASK_JOHAN_RATE_LIMIT_WINDOW_MS`
@@ -57,7 +63,7 @@
     - `JOHAN_CONTEXT_FILE`
 
 ## Known Gotchas
-- Root-level `src/` is not the active app source; active frontend code is under `johanscv/src/`.
+- Legacy frontend code now lives in `legacy/root-src/`; active frontend code is under `johanscv/src/`.
 - Frontend base path defaults to `/johanscv.dk/`; local dev URL usually includes that path unless `CUSTOM_DOMAIN=true`.
 - Render free plan can cold start after inactivity; first API call may be slower.
 - API CORS allowlist is controlled by `ALLOWED_ORIGINS`; keep it aligned with deployed frontend origins.
