@@ -67,8 +67,56 @@
     "playground": {
       "title": "Experimental Playground",
       "intro": "This is a sandbox page for testing ideas, UI experiments, and prototypes.",
+      "quizHubTitle": "Quiz Landing",
+      "quizHubIntro": "Choose an experience. GeoJohan is a 3-round location guessing mini game.",
+      "cards": {
+        "askJohan": {
+          "title": "Ask Johan",
+          "subtitle": "Profile Q&A • instant answers • architecture context",
+          "cta": "Open Ask Johan"
+        },
+        "cityQuiz": {
+          "title": "City Quiz",
+          "subtitle": "Timed city questions • visual clues • score chase",
+          "cta": "Coming soon"
+        },
+        "geoJohan": {
+          "title": "GeoJohan",
+          "subtitle": "3 rounds • pan Street View • guess on map",
+          "cta": "Play GeoJohan"
+        }
+      },
       "moreToComeTitle": "More To Come",
       "moreToComeBody": "More experiments and interactive prototypes will be added here soon."
+    },
+    "geojohan": {
+      "title": "GeoJohan",
+      "intro": "Pan around Street View, place your guess on the map, and score points across 3 rounds.",
+      "panoramaAria": "Street View panorama",
+      "mapAria": "Guess map",
+      "loading": "Loading map and Street View...",
+      "loadingRound": "Preparing this round...",
+      "progressLabel": "Round",
+      "currentTotalLabel": "Current total",
+      "roundReady": "Click the map to place your guess, then submit.",
+      "streetViewFallback": "Street View is limited here. You can still guess on the map.",
+      "mapHint": "Click map to place your guess",
+      "guessPlacedHint": "Guess placed. Submit or move your pin.",
+      "submitGuess": "Submit guess",
+      "resetGuess": "Reset guess",
+      "nextRound": "Next round",
+      "finishRound": "Finish",
+      "summaryTitle": "Results",
+      "totalScoreLabel": "Total score",
+      "distanceLabel": "Distance",
+      "pointsLabel": "Points",
+      "playAgain": "Play again",
+      "backToQuiz": "Back to quiz",
+      "missingKey": "Google Maps API key is missing. GeoJohan is disabled.",
+      "missingKeyHint": "Set VITE_GOOGLE_MAPS_API_KEY in .env.local and restart dev server.",
+      "loadError": "Google Maps failed to load. Please try again.",
+      "loadErrorHint": "Check API key restrictions, billing, and allowed referrers.",
+      "demoCoordinatesNote": "Using demo coordinates. Set VITE_GEOJOHAN_ROUND*_... vars in .env.local for your real rounds."
     },
     "scrollHint": {
       "label": "Scroll for more"
@@ -147,8 +195,56 @@
     "playground": {
       "title": "Eksperimentelt Playground",
       "intro": "Dette er en sandbox-side til at teste ideer, UI-eksperimenter og prototyper.",
+      "quizHubTitle": "Quiz landing",
+      "quizHubIntro": "Vælg en oplevelse. GeoJohan er et 3-runders locationspil.",
+      "cards": {
+        "askJohan": {
+          "title": "Spørg Johan",
+          "subtitle": "Profil Q&A • hurtige svar • arkitekturkontekst",
+          "cta": "Åbn Spørg Johan"
+        },
+        "cityQuiz": {
+          "title": "By-quiz",
+          "subtitle": "Tidsbaserede byspørgsmål • visuelle hints • jagt på score",
+          "cta": "Kommer snart"
+        },
+        "geoJohan": {
+          "title": "GeoJohan",
+          "subtitle": "3 rounds • pan Street View • guess on map",
+          "cta": "Spil GeoJohan"
+        }
+      },
       "moreToComeTitle": "Mere På Vej",
       "moreToComeBody": "Flere eksperimenter og interaktive prototyper bliver tilføjet her snart."
+    },
+    "geojohan": {
+      "title": "GeoJohan",
+      "intro": "Panorer i Street View, placér dit gæt på kortet og få point over 3 runder.",
+      "panoramaAria": "Street View panorama",
+      "mapAria": "Gættekort",
+      "loading": "Indlæser kort og Street View...",
+      "loadingRound": "Forbereder denne runde...",
+      "progressLabel": "Runde",
+      "currentTotalLabel": "Nuværende total",
+      "roundReady": "Klik på kortet for at placere dit gæt, og indsend derefter.",
+      "streetViewFallback": "Street View er begrænset her. Du kan stadig gætte på kortet.",
+      "mapHint": "Klik på kortet for at placere dit gæt",
+      "guessPlacedHint": "Gæt placeret. Indsend eller flyt din pin.",
+      "submitGuess": "Indsend gæt",
+      "resetGuess": "Nulstil gæt",
+      "nextRound": "Næste runde",
+      "finishRound": "Afslut",
+      "summaryTitle": "Resultat",
+      "totalScoreLabel": "Samlet score",
+      "distanceLabel": "Afstand",
+      "pointsLabel": "Point",
+      "playAgain": "Spil igen",
+      "backToQuiz": "Tilbage til quiz",
+      "missingKey": "Google Maps API key mangler. GeoJohan er deaktiveret.",
+      "missingKeyHint": "Sæt VITE_GOOGLE_MAPS_API_KEY i .env.local og genstart dev serveren.",
+      "loadError": "Google Maps kunne ikke indlæses. Prøv igen.",
+      "loadErrorHint": "Tjek API key-restriktioner, billing og tilladte domæner.",
+      "demoCoordinatesNote": "Demo-koordinater bruges lige nu. Sæt VITE_GEOJOHAN_ROUND*_... i .env.local for rigtige runder."
     },
     "scrollHint": {
       "label": "Scroll for mere"

@@ -26,8 +26,14 @@ cp .env.local.example .env.local
 - `VITE_SITE_ACCESS_CODE` (site gate + Ask Johan access code)
 - `VITE_ASK_JOHAN_MODE` (`api` or `mock`)
 - `VITE_API_BASE_URL` (Ask Johan API URL)
+- `VITE_GOOGLE_MAPS_API_KEY` (required for GeoJohan Street View + map)
+- Optional GeoJohan round config (recommended for real gameplay):
+  - `VITE_GEOJOHAN_ROUND1_PANO_LAT`, `VITE_GEOJOHAN_ROUND1_PANO_LNG`
+  - `VITE_GEOJOHAN_ROUND1_ANSWER_LAT`, `VITE_GEOJOHAN_ROUND1_ANSWER_LNG`
+  - same pattern for rounds 2 and 3
 - `VITE_SITE_ACCESS_CODE` should match `ASK_JOHAN_ACCESS_CODE` on backend when API mode is used
 - In API mode, the frontend exchanges the access code for a JWT at `POST /auth/login`, then calls Ask Johan with `Authorization: Bearer <token>`
+- Restrict Google Maps key by HTTP referrer domains in Google Cloud Console.
 
 4. Start frontend:
 ```bash
@@ -37,6 +43,7 @@ npm run dev
 5. Open:
    - `http://localhost:5173/johanscv.dk/` (default base path)
    - or, if started with `CUSTOM_DOMAIN=true npm run dev`, open `http://localhost:5173/`
+   - GeoJohan route: `/quiz/geojohan` (from Quiz landing on `/quiz` or `/playground`)
 
 ### 2) Backend setup (Ask Johan API)
 

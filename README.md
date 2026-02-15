@@ -64,6 +64,7 @@ Frontend (`johanscv/.env.local`):
 - `VITE_ASK_JOHAN_MODE` (`mock` or `api`)
 - `VITE_API_BASE_URL`
 - `VITE_SITE_ACCESS_CODE`
+- `VITE_GOOGLE_MAPS_API_KEY` (GeoJohan map + Street View)
 
 API (`ask-johan-api/.env`):
 - `OPENAI_API_KEY`

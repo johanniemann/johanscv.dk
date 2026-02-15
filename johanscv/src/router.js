@@ -3,6 +3,7 @@ import * as Projects from './pages/Projects.js'
 import * as Files from './pages/Files.js'
 import * as Contact from './pages/Contact.js'
 import * as Playground from './pages/Playground.js'
+import * as GeoJohan from './pages/GeoJohan.js'
 import { PageTransition } from './components/PageTransition.js'
 
 const ROUTES = {
@@ -10,7 +11,9 @@ const ROUTES = {
   '/projects': Projects,
   '/resume': Files,
   '/contact': Contact,
-  '/playground': Playground
+  '/playground': Playground,
+  '/quiz': Playground,
+  '/quiz/geojohan': GeoJohan
 }
 
 const BASE = import.meta.env.BASE_URL
