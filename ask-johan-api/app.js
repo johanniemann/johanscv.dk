@@ -10,6 +10,7 @@ const LOCAL_ORIGIN_RE = /^https?:\/\/(127\.0\.0\.1|localhost):\d+$/
 const DEFAULT_ALLOWED_ORIGINS = ['https://johanniemann.github.io', 'https://johanscv.dk']
 const AUTH_FAILURE_MESSAGE = 'Too many failed authentication attempts. Please wait a few minutes and try again.'
 const AUTH_REQUIRED_MESSAGE = 'Authentication required. Log in at /auth/login and send Authorization: Bearer <token>.'
+const RATE_LIMIT_STORE_UNAVAILABLE_MESSAGE = 'Rate-limit store unavailable. Please try again shortly.'
 const LEGACY_HEADER_DEPRECATION =
   '299 - "x-access-code is deprecated and will be removed. Use /auth/login and Bearer token auth."'
 const CONTEXT_EXFILTRATION_PATTERNS = [
@@ -48,6 +49,48 @@ export function createApp({
   const requiresAuth = hasAccessCode || hasJwtSecret
   const tokenTtl = typeof jwtTtl === 'string' && jwtTtl.trim() ? jwtTtl.trim() : '7d'
   const assistantInstructions = buildAssistantInstructions(johanContext)
+  const usageStoreError = (scope, error, res) => {
+    logger.error?.(`Usage store error (${scope}):`, error)
+    if (res) {
+      sendAnswer(res, 503, RATE_LIMIT_STORE_UNAVAILABLE_MESSAGE)
+    }
+  }
+  const recordAuthFailureSafe = async (scope, requestIp) => {
+    try {
+      await usageStore.recordAuthFailure(requestIp, authFailureWindowMs)
+    } catch (error) {
+      usageStoreError(scope, error)
+    }
+  }
+  const clearAuthFailuresOrFail = async (scope, requestIp, res) => {
+    try {
+      await usageStore.clearAuthFailures(requestIp)
+      return true
+    } catch (error) {
+      usageStoreError(scope, error, res)
+      return false
+    }
+  }
+  const isAuthFailureLimitedOrFail = async (scope, requestIp, res) => {
+    try {
+      if (await usageStore.isAuthFailureLimited(requestIp, authFailureWindowMs, authFailureMax)) {
+        sendAnswer(res, 429, AUTH_FAILURE_MESSAGE)
+        return true
+      }
+      return false
+    } catch (error) {
+      usageStoreError(scope, error, res)
+      return true
+    }
+  }
+  const takeDailyQuotaOrFail = async (requestIp, res) => {
+    try {
+      return await usageStore.takeDailyQuota(requestIp, dailyCapMax)
+    } catch (error) {
+      usageStoreError('daily quota', error, res)
+      return null
+    }
+  }
 
   app.disable('x-powered-by')
   app.set('trust proxy', 1)
@@ -112,13 +155,8 @@ export function createApp({
 
   app.post('/auth/login', async (req, res) => {
     const requestIp = getRequestIp(req)
-    try {
-      if (await usageStore.isAuthFailureLimited(requestIp, authFailureWindowMs, authFailureMax)) {
-        return sendAnswer(res, 429, AUTH_FAILURE_MESSAGE)
-      }
-    } catch (error) {
-      logger.error?.('Usage store error (auth login check):', error)
-      return sendAnswer(res, 503, 'Rate-limit store unavailable. Please try again shortly.')
+    if (await isAuthFailureLimitedOrFail('auth login check', requestIp, res)) {
+      return
     }
 
     if (!req.is('application/json')) {
@@ -127,11 +165,7 @@ export function createApp({
 
     const providedCode = typeof req.body?.accessCode === 'string' ? req.body.accessCode.trim() : ''
     if (hasAccessCode && !safeEqual(providedCode, normalizedAccessCode)) {
-      try {
-        await usageStore.recordAuthFailure(requestIp, authFailureWindowMs)
-      } catch (error) {
-        logger.error?.('Usage store error (auth login failure record):', error)
-      }
+      await recordAuthFailureSafe('auth login failure record', requestIp)
       return sendAnswer(res, 401, 'Access denied. Invalid access code.')
     }
 
@@ -139,11 +173,8 @@ export function createApp({
       return sendAnswer(res, 500, 'Server auth is not configured. Missing JWT_SECRET.')
     }
 
-    try {
-      await usageStore.clearAuthFailures(requestIp)
-    } catch (error) {
-      logger.error?.('Usage store error (auth login clear):', error)
-      return sendAnswer(res, 503, 'Rate-limit store unavailable. Please try again shortly.')
+    if (!(await clearAuthFailuresOrFail('auth login clear', requestIp, res))) {
+      return
     }
 
     const token = issueJwtToken(jwtSecret, tokenTtl)
@@ -159,56 +190,33 @@ export function createApp({
     const requestIp = getRequestIp(req)
 
     if (requiresAuth) {
-      try {
-        if (await usageStore.isAuthFailureLimited(requestIp, authFailureWindowMs, authFailureMax)) {
-          return sendAnswer(res, 429, AUTH_FAILURE_MESSAGE)
-        }
-      } catch (error) {
-        logger.error?.('Usage store error (ask auth check):', error)
-        return sendAnswer(res, 503, 'Rate-limit store unavailable. Please try again shortly.')
+      if (await isAuthFailureLimitedOrFail('ask auth check', requestIp, res)) {
+        return
       }
 
       const bearerToken = getBearerToken(req)
       if (bearerToken) {
         const tokenPayload = verifyJwtToken(bearerToken, jwtSecret)
         if (!tokenPayload) {
-          try {
-            await usageStore.recordAuthFailure(requestIp, authFailureWindowMs)
-          } catch (error) {
-            logger.error?.('Usage store error (ask bearer failure record):', error)
-          }
+          await recordAuthFailureSafe('ask bearer failure record', requestIp)
           return sendAnswer(res, 401, 'Access denied. Invalid or expired token.')
         }
-        try {
-          await usageStore.clearAuthFailures(requestIp)
-        } catch (error) {
-          logger.error?.('Usage store error (ask bearer clear):', error)
-          return sendAnswer(res, 503, 'Rate-limit store unavailable. Please try again shortly.')
+        if (!(await clearAuthFailuresOrFail('ask bearer clear', requestIp, res))) {
+          return
         }
       } else if (authCompatMode && hasAccessCode) {
         const providedCode = req.header('x-access-code')?.trim() || ''
         if (!providedCode || !safeEqual(providedCode, normalizedAccessCode)) {
-          try {
-            await usageStore.recordAuthFailure(requestIp, authFailureWindowMs)
-          } catch (error) {
-            logger.error?.('Usage store error (ask legacy failure record):', error)
-          }
+          await recordAuthFailureSafe('ask legacy failure record', requestIp)
           return sendAnswer(res, 401, providedCode ? 'Access denied. Invalid access code.' : AUTH_REQUIRED_MESSAGE)
         }
-        try {
-          await usageStore.clearAuthFailures(requestIp)
-        } catch (error) {
-          logger.error?.('Usage store error (ask legacy clear):', error)
-          return sendAnswer(res, 503, 'Rate-limit store unavailable. Please try again shortly.')
+        if (!(await clearAuthFailuresOrFail('ask legacy clear', requestIp, res))) {
+          return
         }
         res.setHeader('Warning', LEGACY_HEADER_DEPRECATION)
         res.setHeader('X-Ask-Johan-Auth-Deprecated', 'x-access-code')
       } else {
-        try {
-          await usageStore.recordAuthFailure(requestIp, authFailureWindowMs)
-        } catch (error) {
-          logger.error?.('Usage store error (ask auth-required record):', error)
-        }
+        await recordAuthFailureSafe('ask auth-required record', requestIp)
         return sendAnswer(res, 401, AUTH_REQUIRED_MESSAGE)
       }
     }
@@ -239,12 +247,9 @@ export function createApp({
       })
     }
 
-    let dailyQuota = null
-    try {
-      dailyQuota = await usageStore.takeDailyQuota(requestIp, dailyCapMax)
-    } catch (error) {
-      logger.error?.('Usage store error (daily quota):', error)
-      return sendAnswer(res, 503, 'Rate-limit store unavailable. Please try again shortly.')
+    const dailyQuota = await takeDailyQuotaOrFail(requestIp, res)
+    if (!dailyQuota) {
+      return
     }
 
     if (!dailyQuota.allowed) {
