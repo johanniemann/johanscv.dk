@@ -40,7 +40,6 @@ export function renderGeoJohanSection({ t }) {
         <div class="geojohan-stage">
           <div class="geojohan-panorama" id="geojohan-panorama" aria-label="${t.geojohan.panoramaAria}"></div>
           <div class="geojohan-map-panel">
-            <p class="geojohan-map-hint" id="geojohan-map-hint">${t.geojohan.mapHint}</p>
             <div class="geojohan-map" id="geojohan-map" aria-label="${t.geojohan.mapAria}"></div>
           </div>
         </div>
@@ -48,9 +47,9 @@ export function renderGeoJohanSection({ t }) {
         <p class="geojohan-feedback" id="geojohan-feedback">${t.geojohan.loading}</p>
 
         <div class="geojohan-actions">
-          <button class="projects-cta" id="geojohan-submit" type="button" disabled>${t.geojohan.submitGuess}</button>
-          <button class="projects-cta" id="geojohan-reset" type="button" disabled>${t.geojohan.resetGuess}</button>
-          <button class="projects-cta" id="geojohan-next" type="button" disabled>${t.geojohan.nextRound}</button>
+          <button class="projects-cta geojohan-primary-action is-hidden" id="geojohan-action" type="button" disabled>
+            ${t.geojohan.guessAndContinue}
+          </button>
         </div>
 
         <section class="geojohan-summary" id="geojohan-summary" aria-live="polite">
@@ -95,19 +94,9 @@ export function mount({ t }) {
 
   const isMounted = () => currentMountId === mountCounter && root.isConnected
 
-  refs.submitBtn.addEventListener('click', () => {
+  refs.actionBtn.addEventListener('click', () => {
     if (!isMounted()) return
-    submitGuess(state, refs, t)
-  })
-
-  refs.resetBtn.addEventListener('click', () => {
-    if (!isMounted()) return
-    resetGuess(state, refs, t)
-  })
-
-  refs.nextBtn.addEventListener('click', () => {
-    if (!isMounted()) return
-    advanceRound(state, refs, t)
+    handlePrimaryAction(state, refs, t)
   })
 
   refs.replayBtn.addEventListener('click', () => {
@@ -121,7 +110,8 @@ export function mount({ t }) {
 
   if (!GEOJOHAN_MAPS_API_KEY) {
     refs.feedback.textContent = t.geojohan.missingKey
-    refs.mapHint.textContent = t.geojohan.missingKeyHint
+    refs.actionBtn.disabled = true
+    refs.actionBtn.classList.add('is-hidden')
     return
   }
 
@@ -135,7 +125,8 @@ export function mount({ t }) {
     .catch(() => {
       if (!isMounted()) return
       refs.feedback.textContent = t.geojohan.loadError
-      refs.mapHint.textContent = t.geojohan.loadErrorHint
+      refs.actionBtn.disabled = true
+      refs.actionBtn.classList.add('is-hidden')
     })
 }
 
@@ -147,11 +138,8 @@ function getRefs() {
   const configNote = document.querySelector('#geojohan-config-note')
   const panoramaEl = document.querySelector('#geojohan-panorama')
   const mapEl = document.querySelector('#geojohan-map')
-  const mapHint = document.querySelector('#geojohan-map-hint')
   const feedback = document.querySelector('#geojohan-feedback')
-  const submitBtn = document.querySelector('#geojohan-submit')
-  const resetBtn = document.querySelector('#geojohan-reset')
-  const nextBtn = document.querySelector('#geojohan-next')
+  const actionBtn = document.querySelector('#geojohan-action')
   const summary = document.querySelector('#geojohan-summary')
   const total = document.querySelector('#geojohan-total')
   const summaryList = document.querySelector('#geojohan-summary-list')
@@ -165,11 +153,8 @@ function getRefs() {
     !configNote ||
     !panoramaEl ||
     !mapEl ||
-    !mapHint ||
     !feedback ||
-    !submitBtn ||
-    !resetBtn ||
-    !nextBtn ||
+    !actionBtn ||
     !summary ||
     !total ||
     !summaryList ||
@@ -186,11 +171,8 @@ function getRefs() {
     configNote,
     panoramaEl,
     mapEl,
-    mapHint,
     feedback,
-    submitBtn,
-    resetBtn,
-    nextBtn,
+    actionBtn,
     summary,
     total,
     summaryList,
@@ -209,19 +191,17 @@ async function beginRound(state, refs, t) {
   refs.roundTitle.textContent = round.title
   refs.runningScore.textContent = `${t.geojohan.currentTotalLabel}: ${state.totalScore}`
   refs.feedback.textContent = t.geojohan.loadingRound
-  refs.mapHint.textContent = t.geojohan.mapHint
-  refs.submitBtn.disabled = true
-  refs.resetBtn.disabled = true
-  refs.nextBtn.disabled = true
-  refs.nextBtn.textContent = t.geojohan.nextRound
+  refs.actionBtn.disabled = true
+  refs.actionBtn.classList.add('is-hidden')
+  refs.actionBtn.textContent = t.geojohan.guessAndContinue
 
-  const panoramaReady = await setupScene(state, refs, round, t)
+  const panoramaReady = await setupScene(state, refs, round)
 
   state.phase = 'guessing'
   refs.feedback.textContent = panoramaReady ? t.geojohan.roundReady : t.geojohan.streetViewFallback
 }
 
-async function setupScene(state, refs, round, t) {
+async function setupScene(state, refs, round) {
   const maps = state.maps
   const answerCenter = round.answerLocation || DEFAULT_CENTER
 
@@ -259,9 +239,8 @@ async function setupScene(state, refs, round, t) {
       state.guessMarker.setMap(state.map)
     }
 
-    refs.submitBtn.disabled = false
-    refs.resetBtn.disabled = false
-    refs.mapHint.textContent = t.geojohan.guessPlacedHint
+    refs.actionBtn.disabled = false
+    refs.actionBtn.classList.remove('is-hidden')
   })
 
   const panoramaPosition = await resolveStreetViewPosition(state, round.streetViewLocation)
@@ -314,10 +293,8 @@ function submitGuess(state, refs, t) {
 
   refs.feedback.textContent = `${t.geojohan.distanceLabel}: ${formatDistanceKm(distanceKm)} · ${t.geojohan.pointsLabel}: ${points}`
   refs.runningScore.textContent = `${t.geojohan.currentTotalLabel}: ${state.totalScore}`
-  refs.submitBtn.disabled = true
-  refs.resetBtn.disabled = true
-  refs.nextBtn.disabled = false
-  refs.nextBtn.textContent = state.roundIndex === state.rounds.length - 1 ? t.geojohan.finishRound : t.geojohan.nextRound
+  refs.actionBtn.disabled = false
+  refs.actionBtn.classList.remove('is-hidden')
 
   const maps = state.maps
   state.answerMarker = new maps.Marker({
@@ -337,14 +314,15 @@ function submitGuess(state, refs, t) {
   state.map.fitBounds(bounds, 60)
 }
 
-function resetGuess(state, refs, t) {
-  if (state.phase !== 'guessing') return
-  if (state.guessMarker) state.guessMarker.setMap(null)
-  state.guessMarker = null
-  state.guessLatLng = null
-  refs.submitBtn.disabled = true
-  refs.resetBtn.disabled = true
-  refs.mapHint.textContent = t.geojohan.mapHint
+function handlePrimaryAction(state, refs, t) {
+  if (state.phase === 'guessing') {
+    submitGuess(state, refs, t)
+    return
+  }
+
+  if (state.phase === 'submitted') {
+    advanceRound(state, refs, t)
+  }
 }
 
 function advanceRound(state, refs, t) {
@@ -361,6 +339,8 @@ function advanceRound(state, refs, t) {
 
 function showSummary(state, refs, t) {
   state.phase = 'finished'
+  refs.actionBtn.disabled = true
+  refs.actionBtn.classList.add('is-hidden')
   refs.shell.classList.add('is-finished')
   refs.summary.classList.add('is-visible')
   refs.total.textContent = `${t.geojohan.totalScoreLabel}: ${state.totalScore}`
