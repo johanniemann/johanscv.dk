@@ -23,7 +23,7 @@ This deploys `ask-johan-api` as a free Render Web Service using the repo's `rend
 3. In the new service, set secret env vars:
    - `OPENAI_API_KEY` = your OpenAI key
    - `ASK_JOHAN_ACCESS_CODE` = your private access code
-   - `JWT_SECRET` = a long random secret for signing JWTs
+   - `JWT_SECRET` = a long random secret for signing JWTs (required when `NODE_ENV=production`)
    - `JOHAN_CONTEXT_B64` = Base64-encoded private Ask Johan context (recommended so context is not in GitHub)
    - Optional safety vars:
      - `ALLOWED_ORIGINS` (comma-separated exact origins)

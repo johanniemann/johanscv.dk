@@ -17,11 +17,14 @@ const authFailureWindowMs = parsePositiveInt(process.env.ASK_JOHAN_AUTH_FAIL_WIN
 const authFailureMax = parsePositiveInt(process.env.ASK_JOHAN_AUTH_FAIL_MAX, 10)
 const authCompatMode = parseBoolean(process.env.ASK_JOHAN_AUTH_COMPAT_MODE, true)
 const jwtTtl = (process.env.ASK_JOHAN_JWT_TTL || '7d').trim() || '7d'
+const isProduction = String(process.env.NODE_ENV || '').trim().toLowerCase() === 'production'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const johanContext = loadJohanContext()
 const accessCode = process.env.ASK_JOHAN_ACCESS_CODE || ''
-const { jwtSecret, jwtSecretSource } = resolveJwtSecret(process.env.JWT_SECRET, accessCode)
+const { jwtSecret, jwtSecretSource } = resolveJwtSecret(process.env.JWT_SECRET, accessCode, {
+  allowFallback: !isProduction
+})
 const allowedOrigins = parseAllowedOrigins(process.env.ALLOWED_ORIGINS || 'https://johanniemann.github.io,https://johanscv.dk')
 const apiKey = process.env.OPENAI_API_KEY
 const client = apiKey ? new OpenAI({ apiKey }) : null
@@ -139,13 +142,17 @@ function parseBoolean(value, fallback) {
   return fallback
 }
 
-function resolveJwtSecret(rawJwtSecret, accessCode) {
+function resolveJwtSecret(rawJwtSecret, accessCode, { allowFallback = true } = {}) {
   const jwtFromEnv = String(rawJwtSecret || '').trim()
   if (jwtFromEnv) {
     return {
       jwtSecret: jwtFromEnv,
       jwtSecretSource: 'JWT_SECRET'
     }
+  }
+
+  if (!allowFallback) {
+    throw new Error('JWT_SECRET is required when NODE_ENV=production.')
   }
 
   const normalizedAccessCode = String(accessCode || '').trim()
