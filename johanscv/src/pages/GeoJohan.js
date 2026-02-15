@@ -18,46 +18,52 @@ let mountCounter = 0
 export function render({ t }) {
   return `
     <main class="page-stack">
-      <section class="content-section section-reveal geojohan-page" id="geojohan-root">
-        <h2 class="section-title">${t.geojohan.title}</h2>
-        <p class="section-body">${t.geojohan.intro}</p>
-
-        <div class="geojohan-shell" id="geojohan-shell">
-          <header class="geojohan-header">
-            <p class="geojohan-progress" id="geojohan-progress"></p>
-            <h3 class="section-title geojohan-round-title" id="geojohan-round-title"></h3>
-            <p class="geojohan-running-score" id="geojohan-running-score"></p>
-            <p class="geojohan-config-note" id="geojohan-config-note"></p>
-          </header>
-
-          <div class="geojohan-stage">
-            <div class="geojohan-panorama" id="geojohan-panorama" aria-label="${t.geojohan.panoramaAria}"></div>
-            <div class="geojohan-map-panel">
-              <p class="geojohan-map-hint" id="geojohan-map-hint">${t.geojohan.mapHint}</p>
-              <div class="geojohan-map" id="geojohan-map" aria-label="${t.geojohan.mapAria}"></div>
-            </div>
-          </div>
-
-          <p class="geojohan-feedback" id="geojohan-feedback">${t.geojohan.loading}</p>
-
-          <div class="geojohan-actions">
-            <button class="projects-cta" id="geojohan-submit" type="button" disabled>${t.geojohan.submitGuess}</button>
-            <button class="projects-cta" id="geojohan-reset" type="button" disabled>${t.geojohan.resetGuess}</button>
-            <button class="projects-cta" id="geojohan-next" type="button" disabled>${t.geojohan.nextRound}</button>
-          </div>
-
-          <section class="geojohan-summary" id="geojohan-summary" aria-live="polite">
-            <h3 class="section-title">${t.geojohan.summaryTitle}</h3>
-            <p class="section-body geojohan-total" id="geojohan-total"></p>
-            <div class="geojohan-summary-list" id="geojohan-summary-list"></div>
-            <div class="geojohan-actions">
-              <button class="projects-cta" id="geojohan-replay" type="button">${t.geojohan.playAgain}</button>
-              <a class="projects-cta" href="/quiz" data-link>${t.geojohan.backToQuiz}</a>
-            </div>
-          </section>
-        </div>
-      </section>
+      ${renderGeoJohanSection({ t })}
     </main>
+  `
+}
+
+export function renderGeoJohanSection({ t }) {
+  return `
+    <section class="content-section section-reveal geojohan-page" id="geojohan-root">
+      <h2 class="section-title">${t.geojohan.title}</h2>
+      <p class="section-body">${t.geojohan.intro}</p>
+
+      <div class="geojohan-shell" id="geojohan-shell">
+        <header class="geojohan-header">
+          <p class="geojohan-progress" id="geojohan-progress"></p>
+          <h3 class="section-title geojohan-round-title" id="geojohan-round-title"></h3>
+          <p class="geojohan-running-score" id="geojohan-running-score"></p>
+          <p class="geojohan-config-note" id="geojohan-config-note"></p>
+        </header>
+
+        <div class="geojohan-stage">
+          <div class="geojohan-panorama" id="geojohan-panorama" aria-label="${t.geojohan.panoramaAria}"></div>
+          <div class="geojohan-map-panel">
+            <p class="geojohan-map-hint" id="geojohan-map-hint">${t.geojohan.mapHint}</p>
+            <div class="geojohan-map" id="geojohan-map" aria-label="${t.geojohan.mapAria}"></div>
+          </div>
+        </div>
+
+        <p class="geojohan-feedback" id="geojohan-feedback">${t.geojohan.loading}</p>
+
+        <div class="geojohan-actions">
+          <button class="projects-cta" id="geojohan-submit" type="button" disabled>${t.geojohan.submitGuess}</button>
+          <button class="projects-cta" id="geojohan-reset" type="button" disabled>${t.geojohan.resetGuess}</button>
+          <button class="projects-cta" id="geojohan-next" type="button" disabled>${t.geojohan.nextRound}</button>
+        </div>
+
+        <section class="geojohan-summary" id="geojohan-summary" aria-live="polite">
+          <h3 class="section-title">${t.geojohan.summaryTitle}</h3>
+          <p class="section-body geojohan-total" id="geojohan-total"></p>
+          <div class="geojohan-summary-list" id="geojohan-summary-list"></div>
+          <div class="geojohan-actions">
+            <button class="projects-cta" id="geojohan-replay" type="button">${t.geojohan.playAgain}</button>
+            <a class="projects-cta" href="/quiz" data-link>${t.geojohan.backToQuiz}</a>
+          </div>
+        </section>
+      </div>
+    </section>
   `
 }
 
