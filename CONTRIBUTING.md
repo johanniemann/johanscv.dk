@@ -6,7 +6,7 @@
 2. Verify locally before opening a PR:
    - Fast path: `./scripts/verify.sh`
    - Manual split:
-     - Frontend: `cd johanscv && npm run build`
+     - Frontend: `cd johanscv && npm run lint && npm run smoke && npm run build`
      - API: `cd ask-johan-api && npm test`
 3. Keep secrets out of Git:
    - Use `.env` files locally

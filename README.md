@@ -93,6 +93,8 @@ Frontend:
 
 ```bash
 cd johanscv
+npm run lint
+npm run smoke
 npm run build
 ```
 

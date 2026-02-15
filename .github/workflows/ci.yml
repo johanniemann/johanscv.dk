@@ -26,6 +26,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Lint
+        run: npm run lint
+
+      - name: Frontend smoke checks
+        run: npm run smoke
+
       - name: Build
         run: npm run build
 
