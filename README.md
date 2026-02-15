@@ -102,6 +102,12 @@ cd ask-johan-api
 npm test
 ```
 
+One-command verify (repo root):
+
+```bash
+./scripts/verify.sh
+```
+
 ## Secret Scan Before Push
 
 Preferred (if installed locally):
@@ -120,3 +126,4 @@ rg -n --hidden --glob '!.git' '(?i)(api[_-]?key|secret|token|password|sk-[A-Za-z
 
 - Frontend deploy instructions: `johanscv/DEPLOYMENT.md`
 - API deploy instructions: `ask-johan-api/DEPLOY_RENDER.md`
+- Operations runbook: `docs/ask-johan-operations-runbook.md`

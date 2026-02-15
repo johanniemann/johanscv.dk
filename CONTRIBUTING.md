@@ -4,8 +4,10 @@
 
 1. Make focused changes in the relevant app folder (`johanscv/` or `ask-johan-api/`).
 2. Verify locally before opening a PR:
-   - Frontend: `cd johanscv && npm run build`
-   - API: `cd ask-johan-api && npm test`
+   - Fast path: `./scripts/verify.sh`
+   - Manual split:
+     - Frontend: `cd johanscv && npm run build`
+     - API: `cd ask-johan-api && npm test`
 3. Keep secrets out of Git:
    - Use `.env` files locally
    - Use Render/GitHub secret settings for hosted values
