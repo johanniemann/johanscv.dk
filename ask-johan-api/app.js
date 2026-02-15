@@ -4,6 +4,7 @@ import express from 'express'
 import helmet from 'helmet'
 import jwt from 'jsonwebtoken'
 import rateLimit from 'express-rate-limit'
+import { createUsageStore } from './usage-store.js'
 
 const LOCAL_ORIGIN_RE = /^https?:\/\/(127\.0\.0\.1|localhost):\d+$/
 const DEFAULT_ALLOWED_ORIGINS = ['https://johanniemann.github.io', 'https://johanscv.dk']
@@ -36,7 +37,8 @@ export function createApp({
   model = 'gpt-4.1-mini',
   rateLimitMax = 30,
   rateLimitWindowMs = 60_000,
-  requestTimeoutMs = 15_000
+  requestTimeoutMs = 15_000,
+  usageStore = createUsageStore()
 } = {}) {
   const app = express()
   const allowedOriginSet = new Set(allowedOrigins.filter(Boolean))
@@ -44,8 +46,6 @@ export function createApp({
   const hasAccessCode = Boolean(normalizedAccessCode)
   const hasJwtSecret = Boolean(jwtSecret)
   const requiresAuth = hasAccessCode || hasJwtSecret
-  const authFailureStore = new Map()
-  const dailyUsageStore = new Map()
   const tokenTtl = typeof jwtTtl === 'string' && jwtTtl.trim() ? jwtTtl.trim() : '7d'
   const assistantInstructions = buildAssistantInstructions(johanContext)
 
@@ -110,10 +110,15 @@ export function createApp({
     }
   })
 
-  app.post('/auth/login', (req, res) => {
+  app.post('/auth/login', async (req, res) => {
     const requestIp = getRequestIp(req)
-    if (isAuthFailureLimited(authFailureStore, requestIp, authFailureWindowMs, authFailureMax)) {
-      return sendAnswer(res, 429, AUTH_FAILURE_MESSAGE)
+    try {
+      if (await usageStore.isAuthFailureLimited(requestIp, authFailureWindowMs, authFailureMax)) {
+        return sendAnswer(res, 429, AUTH_FAILURE_MESSAGE)
+      }
+    } catch (error) {
+      logger.error?.('Usage store error (auth login check):', error)
+      return sendAnswer(res, 503, 'Rate-limit store unavailable. Please try again shortly.')
     }
 
     if (!req.is('application/json')) {
@@ -122,7 +127,11 @@ export function createApp({
 
     const providedCode = typeof req.body?.accessCode === 'string' ? req.body.accessCode.trim() : ''
     if (hasAccessCode && !safeEqual(providedCode, normalizedAccessCode)) {
-      recordAuthFailure(authFailureStore, requestIp, authFailureWindowMs)
+      try {
+        await usageStore.recordAuthFailure(requestIp, authFailureWindowMs)
+      } catch (error) {
+        logger.error?.('Usage store error (auth login failure record):', error)
+      }
       return sendAnswer(res, 401, 'Access denied. Invalid access code.')
     }
 
@@ -130,7 +139,13 @@ export function createApp({
       return sendAnswer(res, 500, 'Server auth is not configured. Missing JWT_SECRET.')
     }
 
-    clearAuthFailures(authFailureStore, requestIp)
+    try {
+      await usageStore.clearAuthFailures(requestIp)
+    } catch (error) {
+      logger.error?.('Usage store error (auth login clear):', error)
+      return sendAnswer(res, 503, 'Rate-limit store unavailable. Please try again shortly.')
+    }
+
     const token = issueJwtToken(jwtSecret, tokenTtl)
     return res.json({
       token,
@@ -144,29 +159,56 @@ export function createApp({
     const requestIp = getRequestIp(req)
 
     if (requiresAuth) {
-      if (isAuthFailureLimited(authFailureStore, requestIp, authFailureWindowMs, authFailureMax)) {
-        return sendAnswer(res, 429, AUTH_FAILURE_MESSAGE)
+      try {
+        if (await usageStore.isAuthFailureLimited(requestIp, authFailureWindowMs, authFailureMax)) {
+          return sendAnswer(res, 429, AUTH_FAILURE_MESSAGE)
+        }
+      } catch (error) {
+        logger.error?.('Usage store error (ask auth check):', error)
+        return sendAnswer(res, 503, 'Rate-limit store unavailable. Please try again shortly.')
       }
 
       const bearerToken = getBearerToken(req)
       if (bearerToken) {
         const tokenPayload = verifyJwtToken(bearerToken, jwtSecret)
         if (!tokenPayload) {
-          recordAuthFailure(authFailureStore, requestIp, authFailureWindowMs)
+          try {
+            await usageStore.recordAuthFailure(requestIp, authFailureWindowMs)
+          } catch (error) {
+            logger.error?.('Usage store error (ask bearer failure record):', error)
+          }
           return sendAnswer(res, 401, 'Access denied. Invalid or expired token.')
         }
-        clearAuthFailures(authFailureStore, requestIp)
+        try {
+          await usageStore.clearAuthFailures(requestIp)
+        } catch (error) {
+          logger.error?.('Usage store error (ask bearer clear):', error)
+          return sendAnswer(res, 503, 'Rate-limit store unavailable. Please try again shortly.')
+        }
       } else if (authCompatMode && hasAccessCode) {
         const providedCode = req.header('x-access-code')?.trim() || ''
         if (!providedCode || !safeEqual(providedCode, normalizedAccessCode)) {
-          recordAuthFailure(authFailureStore, requestIp, authFailureWindowMs)
+          try {
+            await usageStore.recordAuthFailure(requestIp, authFailureWindowMs)
+          } catch (error) {
+            logger.error?.('Usage store error (ask legacy failure record):', error)
+          }
           return sendAnswer(res, 401, providedCode ? 'Access denied. Invalid access code.' : AUTH_REQUIRED_MESSAGE)
         }
-        clearAuthFailures(authFailureStore, requestIp)
+        try {
+          await usageStore.clearAuthFailures(requestIp)
+        } catch (error) {
+          logger.error?.('Usage store error (ask legacy clear):', error)
+          return sendAnswer(res, 503, 'Rate-limit store unavailable. Please try again shortly.')
+        }
         res.setHeader('Warning', LEGACY_HEADER_DEPRECATION)
         res.setHeader('X-Ask-Johan-Auth-Deprecated', 'x-access-code')
       } else {
-        recordAuthFailure(authFailureStore, requestIp, authFailureWindowMs)
+        try {
+          await usageStore.recordAuthFailure(requestIp, authFailureWindowMs)
+        } catch (error) {
+          logger.error?.('Usage store error (ask auth-required record):', error)
+        }
         return sendAnswer(res, 401, AUTH_REQUIRED_MESSAGE)
       }
     }
@@ -197,7 +239,14 @@ export function createApp({
       })
     }
 
-    const dailyQuota = takeDailyQuota(dailyUsageStore, requestIp, dailyCapMax)
+    let dailyQuota = null
+    try {
+      dailyQuota = await usageStore.takeDailyQuota(requestIp, dailyCapMax)
+    } catch (error) {
+      logger.error?.('Usage store error (daily quota):', error)
+      return sendAnswer(res, 503, 'Rate-limit store unavailable. Please try again shortly.')
+    }
+
     if (!dailyQuota.allowed) {
       return sendAnswer(res, 429, `Daily Ask Johan limit reached (${dailyCapMax}/day per IP). Please try again tomorrow.`)
     }
@@ -323,64 +372,6 @@ function getRequestIp(req) {
 
 function isSensitiveContextRequest(question) {
   return CONTEXT_EXFILTRATION_PATTERNS.some((pattern) => pattern.test(question))
-}
-
-function takeDailyQuota(store, key, dailyLimit) {
-  if (!dailyLimit || dailyLimit <= 0) {
-    return { allowed: true, remaining: -1 }
-  }
-
-  const today = new Date().toISOString().slice(0, 10)
-  let entry = store.get(key)
-  if (!entry || entry.day !== today) {
-    entry = { day: today, count: 0 }
-  }
-
-  if (entry.count >= dailyLimit) {
-    return { allowed: false, remaining: 0 }
-  }
-
-  entry.count += 1
-  store.set(key, entry)
-  if (store.size > 2000) {
-    for (const [storedKey, storedEntry] of store.entries()) {
-      if (storedEntry.day !== today) {
-        store.delete(storedKey)
-      }
-    }
-  }
-
-  return { allowed: true, remaining: dailyLimit - entry.count }
-}
-
-function isAuthFailureLimited(store, key, windowMs, maxFailures) {
-  if (!maxFailures || maxFailures <= 0) return false
-
-  const now = Date.now()
-  const entry = store.get(key)
-  if (!entry) return false
-  if (now - entry.windowStart > windowMs) {
-    store.delete(key)
-    return false
-  }
-
-  return entry.count >= maxFailures
-}
-
-function recordAuthFailure(store, key, windowMs) {
-  const now = Date.now()
-  const entry = store.get(key)
-  if (!entry || now - entry.windowStart > windowMs) {
-    store.set(key, { windowStart: now, count: 1 })
-    return
-  }
-
-  entry.count += 1
-  store.set(key, entry)
-}
-
-function clearAuthFailures(store, key) {
-  store.delete(key)
 }
 
 function sendAnswer(res, status, answer) {

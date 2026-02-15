@@ -29,6 +29,8 @@ services:
         value: "600000"
       - key: ASK_JOHAN_AUTH_FAIL_MAX
         value: "10"
+      - key: ASK_JOHAN_USAGE_STORE
+        value: memory
       - key: ASK_JOHAN_AUTH_COMPAT_MODE
         value: "false"
       - key: ASK_JOHAN_JWT_TTL
@@ -40,4 +42,6 @@ services:
       - key: JWT_SECRET
         sync: false
       - key: JOHAN_CONTEXT_B64
+        sync: false
+      - key: REDIS_URL
         sync: false

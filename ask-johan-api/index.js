@@ -5,6 +5,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import OpenAI from 'openai'
 import { createApp, parseAllowedOrigins } from './app.js'
+import { createUsageStore } from './usage-store.js'
 
 const port = process.env.PORT || 8787
 const maxQuestionChars = parsePositiveInt(process.env.MAX_QUESTION_CHARS, 800)
@@ -17,6 +18,9 @@ const authFailureWindowMs = parsePositiveInt(process.env.ASK_JOHAN_AUTH_FAIL_WIN
 const authFailureMax = parsePositiveInt(process.env.ASK_JOHAN_AUTH_FAIL_MAX, 10)
 const authCompatMode = parseBoolean(process.env.ASK_JOHAN_AUTH_COMPAT_MODE, true)
 const jwtTtl = (process.env.ASK_JOHAN_JWT_TTL || '7d').trim() || '7d'
+const usageStoreMode = String(process.env.ASK_JOHAN_USAGE_STORE || 'memory').trim().toLowerCase()
+const redisUrl = String(process.env.REDIS_URL || '').trim()
+const redisKeyPrefix = String(process.env.ASK_JOHAN_REDIS_KEY_PREFIX || 'ask-johan').trim() || 'ask-johan'
 const isProduction = String(process.env.NODE_ENV || '').trim().toLowerCase() === 'production'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -28,6 +32,12 @@ const { jwtSecret, jwtSecretSource } = resolveJwtSecret(process.env.JWT_SECRET, 
 const allowedOrigins = parseAllowedOrigins(process.env.ALLOWED_ORIGINS || 'https://johanniemann.github.io,https://johanscv.dk')
 const apiKey = process.env.OPENAI_API_KEY
 const client = apiKey ? new OpenAI({ apiKey }) : null
+const usageStore = createUsageStore({
+  mode: usageStoreMode,
+  redisUrl,
+  redisKeyPrefix,
+  logger: console
+})
 const app = createApp({
   accessCode,
   allowedOrigins,
@@ -43,7 +53,8 @@ const app = createApp({
   model,
   rateLimitMax,
   rateLimitWindowMs,
-  requestTimeoutMs
+  requestTimeoutMs,
+  usageStore
 })
 
 app.listen(port, () => {
@@ -59,6 +70,7 @@ app.listen(port, () => {
   console.log(`Ask Johan rate limit: ${rateLimitMax} requests / ${rateLimitWindowMs}ms`)
   console.log(`Ask Johan daily cap: ${dailyCapMax} requests/day/IP`)
   console.log(`Ask Johan failed-auth limit: ${authFailureMax} failures / ${authFailureWindowMs}ms`)
+  console.log(`Ask Johan usage store: ${usageStore.mode}`)
   console.log(`Ask Johan auth compatibility mode: ${authCompatMode ? 'enabled' : 'disabled'}`)
   console.log(`Ask Johan JWT TTL: ${jwtTtl}`)
 })

@@ -76,6 +76,9 @@ API (`ask-johan-api/.env`):
 - `ASK_JOHAN_AUTH_COMPAT_MODE`
 - `ASK_JOHAN_AUTH_FAIL_WINDOW_MS`
 - `ASK_JOHAN_AUTH_FAIL_MAX`
+- `ASK_JOHAN_USAGE_STORE` (`memory` or `redis`)
+- `REDIS_URL` (required only when using `redis` store)
+- `ASK_JOHAN_REDIS_KEY_PREFIX` (optional)
 - `MAX_QUESTION_CHARS`
 - `ASK_JOHAN_DAILY_CAP`
 - `ALLOWED_ORIGINS`
