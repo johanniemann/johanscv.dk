@@ -64,7 +64,7 @@ function loadJohanContext() {
   const envB64 = process.env.JOHAN_CONTEXT_B64?.trim() || ''
   if (envB64) {
     try {
-      return Buffer.from(envB64, 'base64').toString('utf8')
+      return decodeContextFromBase64(envB64)
     } catch (error) {
       console.error('Failed to decode JOHAN_CONTEXT_B64:', error)
     }
@@ -92,6 +92,37 @@ function loadJohanContext() {
   }
 
   return ''
+}
+
+function decodeContextFromBase64(rawValue) {
+  let normalized = String(rawValue || '').trim()
+  if (!normalized) return ''
+
+  // Accept accidental full "KEY=value" paste from shell files.
+  if (normalized.startsWith('JOHAN_CONTEXT_B64=')) {
+    normalized = normalized.slice('JOHAN_CONTEXT_B64='.length).trim()
+  }
+
+  // Remove surrounding quotes from env dashboards.
+  if (
+    (normalized.startsWith('"') && normalized.endsWith('"')) ||
+    (normalized.startsWith("'") && normalized.endsWith("'"))
+  ) {
+    normalized = normalized.slice(1, -1).trim()
+  }
+
+  // Accept multiline base64 values copied from terminals/editors.
+  normalized = normalized.replace(/\s+/g, '')
+  if (!normalized) return ''
+
+  // Support URL-safe base64 variants.
+  let b64 = normalized.replace(/-/g, '+').replace(/_/g, '/')
+  const remainder = b64.length % 4
+  if (remainder) {
+    b64 = `${b64}${'='.repeat(4 - remainder)}`
+  }
+
+  return Buffer.from(b64, 'base64').toString('utf8')
 }
 
 function parsePositiveInt(value, fallback) {
