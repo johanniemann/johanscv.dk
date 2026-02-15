@@ -5,3 +5,7 @@ Thumbs.db
 .env.*
 !**/.env.example
 !**/.env.local.example
+
+# Prevent accidental commit of generated static build artifacts at repo root.
+/assets/
+/index.html

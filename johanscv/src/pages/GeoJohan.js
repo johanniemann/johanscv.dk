@@ -34,10 +34,15 @@ export function render({ t }) {
 }
 
 export function renderGeoJohanSection({ t }) {
+  const globeIconPath = `${import.meta.env.BASE_URL}images/globe-icon.png`
+
   return `
     <section class="content-section section-reveal geojohan-page" id="geojohan-root">
       <div class="geojohan-page-header">
-        <h2 class="section-title geojohan-page-title">${t.geojohan.title}</h2>
+        <h2 class="section-title geojohan-page-title">
+          <span class="geojohan-page-title-text">${t.geojohan.title}</span>
+          <span class="geojohan-title-icon-png" style="--geojohan-icon-url: url('${globeIconPath}')" aria-hidden="true"></span>
+        </h2>
         <p class="section-body geojohan-page-intro">${t.geojohan.intro}</p>
       </div>
 

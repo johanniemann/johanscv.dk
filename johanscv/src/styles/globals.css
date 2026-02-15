@@ -744,6 +744,58 @@ body.welcome-active #site-shell {
   margin: 0;
 }
 
+.geojohan-page-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.geojohan-page-title-text {
+  display: inline-block;
+}
+
+.geojohan-title-icon-png {
+  display: inline-flex;
+  width: 1.1rem;
+  height: 1.1rem;
+  transform: translateY(-1px);
+  background-image: linear-gradient(120deg, #f3b885, #f9e3b9, #ebb17f, #f3b885);
+  background-size: 220% 220%;
+  background-repeat: no-repeat;
+  animation: askButtonGradient 20s linear infinite;
+  -webkit-mask-image: var(--geojohan-icon-url);
+  mask-image: var(--geojohan-icon-url);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+:root[data-theme='dark'] .geojohan-title-icon-png {
+  background-image: linear-gradient(120deg, #5f77db, #8eb6ff, #6b57b9, #5f77db);
+  background-size: 220% 220%;
+}
+
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .geojohan-page-title-text {
+    background-image: linear-gradient(120deg, #f3b885, #f9e3b9, #ebb17f, #f3b885);
+    background-size: 220% 220%;
+    background-repeat: no-repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    animation: askButtonGradient 20s linear infinite;
+  }
+
+  :root[data-theme='dark'] .geojohan-page-title-text {
+    background-image: linear-gradient(120deg, #5f77db, #8eb6ff, #6b57b9, #5f77db);
+    background-size: 220% 220%;
+  }
+}
+
 .geojohan-page.is-finishing-results .geojohan-page-header {
   opacity: 0;
   transform: translateY(-10px);
