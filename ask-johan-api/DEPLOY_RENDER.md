@@ -27,9 +27,9 @@ This deploys `ask-johan-api` as a free Render Web Service using the repo's `rend
    - `JOHAN_CONTEXT_B64` = Base64-encoded private Ask Johan context (recommended so context is not in GitHub)
    - Optional safety vars:
      - `ALLOWED_ORIGINS` (comma-separated exact origins)
-       - recommended: `https://johanniemann.github.io,https://johanscv.dk`
+       - recommended: `https://johanniemann.github.io,https://johanscv.dk,https://www.johanscv.dk`
        - localhost dev origins are allowed automatically by backend localhost checks
-     - `ASK_JOHAN_AUTH_COMPAT_MODE` (default `true` during rollout)
+     - `ASK_JOHAN_AUTH_COMPAT_MODE` (default `false`; set `true` only for temporary rollout compatibility)
      - `ASK_JOHAN_JWT_TTL` (default `7d`)
      - `ASK_JOHAN_AUTH_FAIL_WINDOW_MS` (default `600000`)
      - `ASK_JOHAN_AUTH_FAIL_MAX` (default `10`)
