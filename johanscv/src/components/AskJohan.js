@@ -2,7 +2,6 @@ import mockAnswers from '../data/mockAnswers.json'
 
 const API_MODE = import.meta.env.VITE_ASK_JOHAN_MODE === 'api'
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
-const SITE_ACCESS_CODE = (import.meta.env.VITE_SITE_ACCESS_CODE || '').trim()
 const API_LOGIN_PATH = '/auth/login'
 const API_ASK_PATH = '/api/ask-johan'
 const ACCESS_CODE_KEY = 'johanscv.askJohanAccessCode'
@@ -154,11 +153,6 @@ function getMockAnswer(query) {
 function getAccessCode() {
   const saved = localStorage.getItem(ACCESS_CODE_KEY)
   if (saved && saved.trim()) return saved
-
-  if (SITE_ACCESS_CODE) {
-    localStorage.setItem(ACCESS_CODE_KEY, SITE_ACCESS_CODE)
-    return SITE_ACCESS_CODE
-  }
 
   return ''
 }

@@ -33,8 +33,12 @@ export function bindWelcomeGate(onContinue) {
   const errorEl = document.querySelector('#welcome-error')
   if (!button || !input) return
 
-  const submit = () => {
-    const result = onContinue(input.value.trim())
+  const submit = async () => {
+    if (button.disabled) return
+    button.disabled = true
+    const result = await onContinue(input.value.trim())
+    button.disabled = false
+
     if (result?.ok) {
       if (errorEl) errorEl.textContent = ''
       return

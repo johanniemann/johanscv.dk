@@ -55,11 +55,10 @@ In `johanscv/.env.local`:
 ```bash
 VITE_ASK_JOHAN_MODE=api
 VITE_API_BASE_URL=https://<your-render-service>.onrender.com
-VITE_SITE_ACCESS_CODE=<same_as_ASK_JOHAN_ACCESS_CODE>
 ```
 
 Frontend flow in API mode:
-- `VITE_SITE_ACCESS_CODE` unlocks the site and is sent to `POST /auth/login`
+- User-entered site access code is sent to `POST /auth/login`
 - API returns JWT
 - GeoJohan fetches maps key from `GET /api/geojohan/maps-key` with that Bearer token
 - Ask requests use `Authorization: Bearer <token>`

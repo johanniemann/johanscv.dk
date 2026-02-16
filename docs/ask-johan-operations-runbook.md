@@ -5,9 +5,9 @@ Use this when Ask Johan fails in production (`johanscv.dk` + Render API).
 ## 1) User sees "Access code is required to use Ask Johan."
 
 Checks:
-- Confirm frontend and backend access codes match:
-  - Frontend build-time: `VITE_SITE_ACCESS_CODE`
-  - API runtime: `ASK_JOHAN_ACCESS_CODE`
+- Confirm API runtime access code is set:
+  - `ASK_JOHAN_ACCESS_CODE`
+- In API mode, site access is validated server-side via `POST /auth/login`.
 - Confirm latest frontend is deployed to GitHub Pages.
 - Confirm browser local storage is refreshed:
   - remove `johanscv.askJohanAccessCode`
@@ -72,7 +72,7 @@ Use this whenever a key/code may have leaked.
 
 3. Invalidate stale sessions:
 - Rotating `JWT_SECRET` forces re-login (old JWTs become invalid).
-- Rotating `ASK_JOHAN_ACCESS_CODE` requires frontend `VITE_SITE_ACCESS_CODE` to match.
+- Rotating `ASK_JOHAN_ACCESS_CODE` invalidates previously saved access codes until users log in again.
 
 4. Verify:
 - Run `./scripts/verify.sh`.

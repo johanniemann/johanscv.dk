@@ -23,7 +23,6 @@ cp .env.local.example .env.local
 ```
 
 3. Fill in your values in `.env.local`:
-- `VITE_SITE_ACCESS_CODE` (site gate + Ask Johan access code)
 - `VITE_ASK_JOHAN_MODE` (`api` or `mock`)
 - `VITE_API_BASE_URL` (Ask Johan API URL)
 - GeoJohan maps key is served by API (`GEOJOHAN_MAPS_API_KEY` in backend env)
@@ -36,8 +35,8 @@ cp .env.local.example .env.local
   - `VITE_GEOJOHAN_ROUND1_SUMMARY_CONTEXT_DK`
   - `VITE_GEOJOHAN_ROUND1_SUMMARY_CONTEXT_EN`
   - same pattern for rounds 2 and 3
-- `VITE_SITE_ACCESS_CODE` should match `ASK_JOHAN_ACCESS_CODE` on backend when API mode is used
-- In API mode, the frontend exchanges the access code for a JWT at `POST /auth/login`, then calls Ask Johan with `Authorization: Bearer <token>`
+- In API mode, the site gate validates access code server-side via `POST /auth/login`
+- Ask Johan then uses JWT Bearer auth for `POST /api/ask-johan`
 - Restrict Google Maps key by HTTP referrer domains in Google Cloud Console.
 - Note: `VITE_*` variables are not stored in git if kept in `.env.local`, but they are compiled into client JS and are visible in the browser.
 

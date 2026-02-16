@@ -74,7 +74,6 @@ curl -s http://127.0.0.1:8787/health
 Frontend (`johanscv/.env.local`):
 - `VITE_ASK_JOHAN_MODE` (`mock` or `api`)
 - `VITE_API_BASE_URL`
-- `VITE_SITE_ACCESS_CODE`
 
 API (`ask-johan-api/.env`):
 - `OPENAI_API_KEY`

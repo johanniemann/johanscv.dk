@@ -31,7 +31,6 @@
 - Core vars:
   - `VITE_ASK_JOHAN_MODE`
   - `VITE_API_BASE_URL`
-  - `VITE_SITE_ACCESS_CODE`
 - Optional GeoJohan vars:
   - `VITE_GEOJOHAN_ROUND{N}_TITLE`
   - `VITE_GEOJOHAN_ROUND{N}_PANO_LAT`, `_PANO_LNG`, `_PANO_ID`

@@ -26,6 +26,10 @@ app.innerHTML = `
 
 const ACCESS_CODE_KEY = 'johanscv.askJohanAccessCode'
 const SITE_ACCESS_KEY = 'johanscv.siteAccessGranted'
+const API_MODE = import.meta.env.VITE_ASK_JOHAN_MODE === 'api'
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
+const API_LOGIN_PATH = '/auth/login'
+const API_AUTH_TIMEOUT_MS = 10000
 const WELCOME_EXIT_MS = 500
 const REVEAL_THRESHOLD = 0.2
 const welcomeRoot = document.querySelector('#welcome-root')
@@ -39,10 +43,14 @@ let siteBootstrapped = false
 let router = null
 let scrollHintBound = false
 
-if (hasValidSiteAccess()) {
-  bootstrapSite()
-} else {
-  renderWelcomeGate()
+void initAccessGate()
+
+async function initAccessGate() {
+  if (await hasValidSiteAccess()) {
+    bootstrapSite()
+  } else {
+    renderWelcomeGate()
+  }
 }
 
 function bootstrapSite() {
@@ -209,8 +217,9 @@ function renderWelcomeGate() {
     screen?.classList.add('is-visible')
   })
 
-  bindWelcomeGate((accessCode) => {
-    if (!isAccessCodeValid(accessCode)) {
+  bindWelcomeGate(async (accessCode) => {
+    const accessCheck = await validateSiteAccessCode(accessCode)
+    if (!accessCheck) {
       return { ok: false, message: t.welcome.passwordError }
     }
 
@@ -227,17 +236,19 @@ function renderWelcomeGate() {
   })
 }
 
-function isAccessCodeValid(accessCode) {
-  const expectedAccessCode = (import.meta.env.VITE_SITE_ACCESS_CODE || '').trim()
+async function validateSiteAccessCode(accessCode) {
   if (!accessCode) return false
-  if (!expectedAccessCode) return true
-  return accessCode === expectedAccessCode
+  if (API_MODE && API_BASE) {
+    return validateAccessCodeWithApi(accessCode)
+  }
+  return true
 }
 
-function hasValidSiteAccess() {
+async function hasValidSiteAccess() {
   const hasSiteAccess = localStorage.getItem(SITE_ACCESS_KEY) === 'true'
   const savedAccessCode = localStorage.getItem(ACCESS_CODE_KEY)?.trim() || ''
-  return hasSiteAccess && isAccessCodeValid(savedAccessCode)
+  if (!hasSiteAccess || !savedAccessCode) return false
+  return validateSiteAccessCode(savedAccessCode)
 }
 
 function getTranslations(language) {
@@ -301,4 +312,31 @@ function shouldHideScrollHint() {
   const canScroll = maxScroll > 24
   const nearBottom = window.scrollY >= maxScroll - 28
   return !siteBootstrapped || !canScroll || nearBottom
+}
+
+async function validateAccessCodeWithApi(accessCode) {
+  try {
+    const response = await fetchWithTimeout(`${API_BASE}${API_LOGIN_PATH}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ accessCode })
+    })
+    return response.ok
+  } catch {
+    return false
+  }
+}
+
+function fetchWithTimeout(url, options) {
+  const controller = new AbortController()
+  const timeoutId = window.setTimeout(() => controller.abort(), API_AUTH_TIMEOUT_MS)
+
+  return fetch(url, {
+    ...options,
+    signal: controller.signal
+  }).finally(() => {
+    window.clearTimeout(timeoutId)
+  })
 }
