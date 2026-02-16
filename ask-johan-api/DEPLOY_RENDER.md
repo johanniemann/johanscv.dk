@@ -43,6 +43,26 @@ This deploys `ask-johan-api` as a free Render Web Service using the repo's `rend
      - `ASK_JOHAN_RATE_LIMIT_WINDOW_MS` (default `60000`)
      - `ASK_JOHAN_RATE_LIMIT_MAX` (default `30`)
 
+## GeoJohan Maps key policy (recommended)
+
+Use separate Google Maps keys for production and local development:
+
+- `PROD Maps API key`
+  - Put this value in Render env var: `GEOJOHAN_MAPS_API_KEY`
+  - Website restrictions:
+    - `https://johanscv.dk/*`
+    - `https://www.johanscv.dk/*`
+  - API restrictions: `Maps JavaScript API` only
+  - Do not include localhost referrers on this key
+
+- `DEV Maps API key`
+  - Put this value in local `ask-johan-api/.env`: `GEOJOHAN_MAPS_API_KEY`
+  - Website restrictions:
+    - `http://localhost:5173/*`
+    - `http://127.0.0.1:5173/*`
+  - API restrictions: `Maps JavaScript API` only
+  - Never place this value in Render production env
+
 4. Click deploy.
 
 5. After deploy, verify health:
@@ -68,8 +88,53 @@ Then redeploy frontend:
 
 ```bash
 cd /Users/johanniemannhusbjerg/Desktop/WEBSITE/johanscv
-npm run deploy
+CUSTOM_DOMAIN=true npm run deploy
 ```
+
+## Production release checklist (before/after deploy)
+
+Use this quick checklist every time you release:
+
+### Before deploy
+
+1. Confirm secrets are only in env vars (never committed files):
+   - Render: `OPENAI_API_KEY`, `GEOJOHAN_MAPS_API_KEY` (PROD key), `JWT_SECRET`, `JOHANSCV_ACCESS_CODE`, `JOHAN_CONTEXT_B64`
+   - Local `ask-johan-api/.env`: `GEOJOHAN_MAPS_API_KEY` must be DEV key only
+2. Confirm Google Maps key restrictions:
+   - PROD key: `https://johanscv.dk/*`, `https://www.johanscv.dk/*`
+   - DEV key: `http://localhost:5173/*`, `http://127.0.0.1:5173/*`
+   - API restriction: `Maps JavaScript API` only (both keys)
+3. Run repo verification:
+
+```bash
+cd /Users/johanniemannhusbjerg/Desktop/WEBSITE
+./scripts/verify.sh
+```
+
+### Deploy
+
+1. Deploy API on Render (manual deploy from latest commit).
+2. Deploy frontend to GitHub Pages:
+
+```bash
+cd /Users/johanniemannhusbjerg/Desktop/WEBSITE/johanscv
+CUSTOM_DOMAIN=true npm run deploy
+```
+
+### After deploy
+
+1. API health:
+   - `GET https://<your-render-service>.onrender.com/health` -> `{"ok":true}`
+2. Site/domain:
+   - `https://johanscv.dk` loads
+   - `https://www.johanscv.dk` redirects to `https://johanscv.dk/`
+   - GitHub Pages `Enforce HTTPS` is enabled
+3. Access gate behavior:
+   - Wrong code -> rejected
+   - Correct code after cold start -> waits and logs in (no immediate cold-start error popup)
+4. GeoJohan/Ask Johan behavior:
+   - GeoJohan map + panorama load
+   - Ask Johan returns answer
 
 ## Notes on free uptime
 

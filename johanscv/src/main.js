@@ -30,6 +30,8 @@ const API_MODE = import.meta.env.VITE_ASK_JOHAN_MODE === 'api'
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
 const API_LOGIN_PATH = '/auth/login'
 const API_AUTH_TIMEOUT_MS = 10000
+const API_AUTH_MAX_WAIT_MS = 75000
+const API_AUTH_RETRY_DELAY_MS = 1200
 const WELCOME_EXIT_MS = 500
 const REVEAL_THRESHOLD = 0.2
 const welcomeRoot = document.querySelector('#welcome-root')
@@ -324,6 +326,26 @@ function shouldHideScrollHint() {
 }
 
 async function validateAccessCodeWithApi(accessCode) {
+  const startedAt = Date.now()
+  let lastResult = null
+
+  while (Date.now() - startedAt < API_AUTH_MAX_WAIT_MS) {
+    const result = await validateAccessCodeWithApiAttempt(accessCode)
+    if (!isTransientAccessCheckResult(result)) {
+      return result
+    }
+
+    lastResult = result
+    const elapsedMs = Date.now() - startedAt
+    const remainingMs = API_AUTH_MAX_WAIT_MS - elapsedMs
+    if (remainingMs <= 0) break
+    await delay(Math.min(API_AUTH_RETRY_DELAY_MS, remainingMs))
+  }
+
+  return lastResult || { ok: false, status: 0, reason: 'timeout' }
+}
+
+async function validateAccessCodeWithApiAttempt(accessCode) {
   try {
     const response = await fetchWithTimeout(`${API_BASE}${API_LOGIN_PATH}`, {
       method: 'POST',
@@ -345,6 +367,17 @@ async function validateAccessCodeWithApi(accessCode) {
       reason: error?.name === 'AbortError' ? 'timeout' : 'network'
     }
   }
+}
+
+function isTransientAccessCheckResult(result) {
+  const status = Number(result?.status || 0)
+  return status === 0 || status >= 500
+}
+
+function delay(ms) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms)
+  })
 }
 
 function resolveWelcomeAccessErrorMessage(t, accessCheck) {
