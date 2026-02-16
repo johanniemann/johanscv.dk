@@ -21,12 +21,17 @@ if [[ ! -f "$ENV_FILE" ]]; then
   exit 0
 fi
 
-ACCESS_CODE="$(sed -n 's/^ASK_JOHAN_ACCESS_CODE=//p' "$ENV_FILE" | head -n 1 | tr -d '\r')"
+ACCESS_CODE="$(
+  {
+    sed -n 's/^JOHANSCV_ACCESS_CODE=//p' "$ENV_FILE" | head -n 1
+    sed -n 's/^ASK_JOHAN_ACCESS_CODE=//p' "$ENV_FILE" | head -n 1
+  } | sed -n '/./{p;q;}' | tr -d '\r'
+)"
 ACCESS_CODE="${ACCESS_CODE%\"}"
 ACCESS_CODE="${ACCESS_CODE#\"}"
 
 if [[ -z "$ACCESS_CODE" ]]; then
-  echo "[verify] API smoke test skipped (ASK_JOHAN_ACCESS_CODE missing in .env)"
+  echo "[verify] API smoke test skipped (JOHANSCV_ACCESS_CODE / ASK_JOHAN_ACCESS_CODE missing in .env)"
   exit 0
 fi
 

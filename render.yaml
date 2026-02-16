@@ -39,6 +39,9 @@ services:
         value: 7d
       - key: OPENAI_API_KEY
         sync: false
+      - key: JOHANSCV_ACCESS_CODE
+        sync: false
+      # Deprecated fallback for backward compatibility. Remove after migration.
       - key: ASK_JOHAN_ACCESS_CODE
         sync: false
       - key: JWT_SECRET

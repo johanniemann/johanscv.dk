@@ -79,7 +79,8 @@ API (`ask-johan-api/.env`):
 - `OPENAI_API_KEY`
 - `OPENAI_MODEL`
 - `PORT`
-- `ASK_JOHAN_ACCESS_CODE`
+- `JOHANSCV_ACCESS_CODE` (primary)
+- `ASK_JOHAN_ACCESS_CODE` (deprecated fallback)
 - `JWT_SECRET`
 - `ASK_JOHAN_JWT_TTL`
 - `ASK_JOHAN_AUTH_COMPAT_MODE`

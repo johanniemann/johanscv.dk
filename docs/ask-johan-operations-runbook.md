@@ -6,7 +6,8 @@ Use this when Ask Johan fails in production (`johanscv.dk` + Render API).
 
 Checks:
 - Confirm API runtime access code is set:
-  - `ASK_JOHAN_ACCESS_CODE`
+  - `JOHANSCV_ACCESS_CODE` (primary)
+  - `ASK_JOHAN_ACCESS_CODE` (deprecated fallback)
 - In API mode, site access is validated server-side via `POST /auth/login`.
 - Confirm latest frontend is deployed to GitHub Pages.
 - Confirm browser local storage is refreshed:
@@ -64,7 +65,7 @@ Use this whenever a key/code may have leaked.
 1. Rotate secrets in providers first:
 - OpenAI API key (OpenAI dashboard).
 - Google Maps browser key (Google Cloud Console).
-- Render env vars: `ASK_JOHAN_ACCESS_CODE`, `JWT_SECRET`, and any context/env secrets.
+- Render env vars: `JOHANSCV_ACCESS_CODE` (and remove `ASK_JOHAN_ACCESS_CODE` after migration), `JWT_SECRET`, and any context/env secrets.
 
 2. Update runtime config:
 - Render: set new values in Environment Variables and redeploy.
@@ -72,7 +73,7 @@ Use this whenever a key/code may have leaked.
 
 3. Invalidate stale sessions:
 - Rotating `JWT_SECRET` forces re-login (old JWTs become invalid).
-- Rotating `ASK_JOHAN_ACCESS_CODE` invalidates previously saved access codes until users log in again.
+- Rotating `JOHANSCV_ACCESS_CODE` invalidates previously saved access codes until users log in again.
 
 4. Verify:
 - Run `./scripts/verify.sh`.

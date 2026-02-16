@@ -22,7 +22,8 @@ This deploys `ask-johan-api` as a free Render Web Service using the repo's `rend
 
 3. In the new service, set secret env vars:
    - `OPENAI_API_KEY` = your OpenAI key
-   - `ASK_JOHAN_ACCESS_CODE` = your private access code
+   - `JOHANSCV_ACCESS_CODE` = your private site access code
+   - `ASK_JOHAN_ACCESS_CODE` = deprecated fallback (optional during migration)
    - `JWT_SECRET` = a long random secret for signing JWTs (required when `NODE_ENV=production`)
    - `GEOJOHAN_MAPS_API_KEY` = Google Maps browser key used by GeoJohan (served via authenticated API route)
    - `JOHAN_CONTEXT_B64` = Base64-encoded private Ask Johan context (recommended so context is not in GitHub)

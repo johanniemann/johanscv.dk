@@ -26,8 +26,11 @@ const isProduction = String(process.env.NODE_ENV || '').trim().toLowerCase() ===
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const johanContext = loadJohanContext()
-const accessCode = process.env.ASK_JOHAN_ACCESS_CODE || ''
-const { jwtSecret, jwtSecretSource } = resolveJwtSecret(process.env.JWT_SECRET, accessCode, {
+const { accessCode, accessCodeSource } = resolveAccessCode(
+  process.env.JOHANSCV_ACCESS_CODE,
+  process.env.ASK_JOHAN_ACCESS_CODE
+)
+const { jwtSecret, jwtSecretSource } = resolveJwtSecret(process.env.JWT_SECRET, accessCode, accessCodeSource, {
   allowFallback: !isProduction
 })
 const allowedOrigins = parseAllowedOrigins(process.env.ALLOWED_ORIGINS || 'https://johanniemann.github.io,https://johanscv.dk')
@@ -64,6 +67,9 @@ app.listen(port, () => {
     console.warn(
       `JWT_SECRET is not set. Using ${jwtSecretSource} as temporary JWT signing secret. Set JWT_SECRET in production.`
     )
+  }
+  if (accessCodeSource === 'ASK_JOHAN_ACCESS_CODE') {
+    console.warn('ASK_JOHAN_ACCESS_CODE is deprecated. Rename it to JOHANSCV_ACCESS_CODE.')
   }
 
   console.log(`Ask Johan API running on http://127.0.0.1:${port}`)
@@ -157,7 +163,30 @@ function parseBoolean(value, fallback) {
   return fallback
 }
 
-function resolveJwtSecret(rawJwtSecret, accessCode, { allowFallback = true } = {}) {
+function resolveAccessCode(rawJohanScvAccessCode, rawLegacyAccessCode) {
+  const johanScvAccessCode = String(rawJohanScvAccessCode || '').trim()
+  if (johanScvAccessCode) {
+    return {
+      accessCode: johanScvAccessCode,
+      accessCodeSource: 'JOHANSCV_ACCESS_CODE'
+    }
+  }
+
+  const legacyAccessCode = String(rawLegacyAccessCode || '').trim()
+  if (legacyAccessCode) {
+    return {
+      accessCode: legacyAccessCode,
+      accessCodeSource: 'ASK_JOHAN_ACCESS_CODE'
+    }
+  }
+
+  return {
+    accessCode: '',
+    accessCodeSource: 'none'
+  }
+}
+
+function resolveJwtSecret(rawJwtSecret, accessCode, accessCodeSource, { allowFallback = true } = {}) {
   const jwtFromEnv = String(rawJwtSecret || '').trim()
   if (jwtFromEnv) {
     return {
@@ -174,7 +203,7 @@ function resolveJwtSecret(rawJwtSecret, accessCode, { allowFallback = true } = {
   if (normalizedAccessCode) {
     return {
       jwtSecret: normalizedAccessCode,
-      jwtSecretSource: 'ASK_JOHAN_ACCESS_CODE fallback'
+      jwtSecretSource: `${accessCodeSource} fallback`
     }
   }
 
