@@ -22,6 +22,18 @@
 - `legacy/root-src/` and root-level `public/` are legacy references.
 - Active production code lives in `johanscv/` and `ask-johan-api/`.
 
+## Architecture Notes
+
+- Frontend feature modules:
+  - `johanscv/src/features/ask-johan/`
+  - `johanscv/src/features/geojohan/`
+- API layered modules:
+  - `ask-johan-api/src/config/`
+  - `ask-johan-api/src/app/`
+  - `ask-johan-api/src/features/`
+  - `ask-johan-api/src/server/`
+  - `ask-johan-api/src/shared/`
+
 ## Secret Scanning (Local)
 
 - Preferred:

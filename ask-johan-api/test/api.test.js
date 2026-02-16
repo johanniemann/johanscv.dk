@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import request from 'supertest'
-import { createApp } from '../app.js'
+import { createApp } from '../src/app/create-app.js'
 
 test('GET /health returns ok', async () => {
   const app = createApp()

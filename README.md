@@ -19,6 +19,22 @@ Personal website stack with two active production services:
 
 `legacy/` and root `public/` are not in active deploy paths.
 
+## Internal Module Layout
+
+Frontend (`johanscv/src/`):
+1. `main.js`, `router.js`, `state.js` for app shell and route state.
+2. `features/ask-johan/AskJohanWidget.js` for Ask Johan client/auth interactions.
+3. `features/geojohan/GeoJohanPage.js` + `features/geojohan/geojohan*.js` for GeoJohan gameplay/config.
+4. `pages/` for route-level page composition (`Resume.js`, `Home.js`, etc.).
+5. `components/` for shared presentational components.
+
+API (`ask-johan-api/src/`):
+1. `config/runtime-config.js` for env parsing + context loading.
+2. `app/create-app.js` + `app/origins.js` for Express wiring and CORS origin rules.
+3. `features/auth.js`, `features/ask-johan.js`, `features/geojohan.js` for endpoint behavior.
+4. `server/start-server.js` + `server/usage-store.js` for startup and quota storage.
+5. `shared/http.js` + `shared/with-timeout.js` for cross-feature helpers.
+
 ## Active vs Legacy
 
 Active production architecture:

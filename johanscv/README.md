@@ -7,6 +7,10 @@ Personal CV website built with Vite, Vanilla JS, and Tailwind CSS.
 - Frontend app (this folder): `johanscv/`
 - Backend API (separate folder): `../ask-johan-api/`
 - Legacy prototype code exists in `../legacy/root-src/` and `../public/` but is not used by this app's scripts.
+- Frontend feature modules:
+  - Ask Johan client: `src/features/ask-johan/AskJohanWidget.js`
+  - GeoJohan gameplay: `src/features/geojohan/GeoJohanPage.js`
+  - GeoJohan env/config readers: `src/features/geojohan/geojohanEnv.js`, `src/features/geojohan/geojohanRounds.js`
 
 ## Run Locally (VS Code terminal)
 
@@ -25,6 +29,9 @@ cp .env.local.example .env.local
 3. Fill in your values in `.env.local`:
 - `VITE_ASK_JOHAN_MODE` (`api` or `mock`)
 - `VITE_API_BASE_URL` (Ask Johan API URL)
+- Optional local-only convenience:
+  - `VITE_DEV_AUTO_LOGIN=true`
+  - `VITE_DEV_ACCESS_CODE=...`
 - GeoJohan maps key is served by API (`GEOJOHAN_MAPS_API_KEY` in backend env)
 - Optional GeoJohan round config (recommended for real gameplay):
   - `VITE_GEOJOHAN_ROUND1_PANO_LAT`, `VITE_GEOJOHAN_ROUND1_PANO_LNG`
@@ -39,6 +46,11 @@ cp .env.local.example .env.local
 - Ask Johan then uses JWT Bearer auth for `POST /api/ask-johan`
 - Restrict Google Maps key by HTTP referrer domains in Google Cloud Console.
 - Note: `VITE_*` variables are not stored in git if kept in `.env.local`, but they are compiled into client JS and are visible in the browser.
+
+Production safety:
+- Production values are defined in `.env.production`.
+- Current production API base is `https://ask-johan-api.onrender.com`.
+- This ensures `npm run deploy` does not use your local `http://127.0.0.1:8787` value.
 
 4. Start frontend:
 ```bash

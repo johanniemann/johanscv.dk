@@ -1,5 +1,5 @@
-import { AskJohan, bindAskJohan } from '../components/AskJohan.js'
-import { renderGeoJohanSection, mount as mountGeoJohan } from './GeoJohan.js'
+import { AskJohan, bindAskJohan } from '../features/ask-johan/AskJohanWidget.js'
+import { renderGeoJohanSection, mount as mountGeoJohan } from '../features/geojohan/GeoJohanPage.js'
 
 export function render({ t }) {
   return `

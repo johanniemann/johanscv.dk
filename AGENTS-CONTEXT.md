@@ -18,16 +18,28 @@ Legacy (not in active CI/deploy):
 Frontend:
 1. Entry: `johanscv/src/main.js`
 2. Router: `johanscv/src/router.js`
-3. Ask Johan client: `johanscv/src/components/AskJohan.js`
-4. GeoJohan page: `johanscv/src/pages/GeoJohan.js`
-5. Base path behavior: `johanscv/vite.config.js`
-6. Dev startup behavior: `johanscv/scripts/dev-fixed.sh`
+3. Ask Johan feature: `johanscv/src/features/ask-johan/AskJohanWidget.js`
+4. GeoJohan feature: `johanscv/src/features/geojohan/GeoJohanPage.js`
+5. GeoJohan config: `johanscv/src/features/geojohan/geojohanEnv.js`, `johanscv/src/features/geojohan/geojohanRounds.js`
+6. Resume page: `johanscv/src/pages/Resume.js`
+7. Base path behavior: `johanscv/vite.config.js`
+8. Dev startup behavior: `johanscv/scripts/dev-fixed.sh`
 
 API:
-1. Bootstrap/env wiring: `ask-johan-api/index.js`
-2. App/middleware/routes: `ask-johan-api/app.js`
-3. Usage/rate-limit store: `ask-johan-api/usage-store.js`
-4. Tests: `ask-johan-api/test/api.test.js`
+1. Runtime entrypoint: `ask-johan-api/index.js`
+2. Bootstrap/orchestration: `ask-johan-api/src/server/start-server.js`
+3. Env/context loading: `ask-johan-api/src/config/runtime-config.js`
+4. App wiring + middleware: `ask-johan-api/src/app/create-app.js`
+5. Origin parsing: `ask-johan-api/src/app/origins.js`
+6. Feature handlers:
+   - `ask-johan-api/src/features/auth.js`
+   - `ask-johan-api/src/features/ask-johan.js`
+   - `ask-johan-api/src/features/geojohan.js`
+7. Usage/rate-limit store: `ask-johan-api/src/server/usage-store.js`
+8. Shared HTTP/timeout helpers:
+   - `ask-johan-api/src/shared/http.js`
+   - `ask-johan-api/src/shared/with-timeout.js`
+9. Tests: `ask-johan-api/test/api.test.js`
 
 Deploy/CI:
 1. Render blueprint: `render.yaml`

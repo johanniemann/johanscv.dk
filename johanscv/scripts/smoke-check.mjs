@@ -20,7 +20,7 @@ const checks = [
     ]
   },
   {
-    file: 'src/pages/GeoJohan.js',
+    file: 'src/features/geojohan/GeoJohanPage.js',
     contains: ['new maps.StreetViewPanorama', "document.querySelector('#geojohan-map')", 'scoreDistance(']
   },
   {

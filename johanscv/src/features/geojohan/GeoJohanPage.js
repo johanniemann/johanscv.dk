@@ -1,6 +1,6 @@
-import { getApiBearerToken } from '../components/AskJohan.js'
-import { readGeoEnvText } from '../data/geojohanEnv.js'
-import { getGeoJohanConfig } from '../data/geojohanRounds.js'
+import { getApiBearerToken } from '../ask-johan/AskJohanWidget.js'
+import { readGeoEnvText } from './geojohanEnv.js'
+import { getGeoJohanConfig } from './geojohanRounds.js'
 
 const DEFAULT_CENTER = { lat: 55.6761, lng: 12.5683 }
 const STREET_VIEW_FALLBACK_LOCATION = { lat: 55.6761, lng: 12.5683 }

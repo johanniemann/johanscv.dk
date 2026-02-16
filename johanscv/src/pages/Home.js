@@ -1,6 +1,6 @@
 import projects from '../data/projects.json'
 import { Hero } from '../components/Hero.js'
-import { AskJohan, bindAskJohan } from '../components/AskJohan.js'
+import { AskJohan, bindAskJohan } from '../features/ask-johan/AskJohanWidget.js'
 import { FileScroller, bindFileScroller } from '../components/FileScroller.js'
 
 export function render({ t, language }) {

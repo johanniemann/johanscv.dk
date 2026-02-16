@@ -7,6 +7,20 @@
   - Backend API in `ask-johan-api/` (Render web service).
   - Legacy references in `legacy/` and root `public/` are not part of active CI/deploy.
 
+## Active Code Organization
+- Frontend feature modules:
+  - `johanscv/src/features/ask-johan/`
+  - `johanscv/src/features/geojohan/`
+- Frontend app shell and shared routing:
+  - `johanscv/src/main.js`
+  - `johanscv/src/router.js`
+- API layered modules:
+  - `ask-johan-api/src/config/` (runtime/env/context loading)
+  - `ask-johan-api/src/app/` (Express app wiring + middleware)
+  - `ask-johan-api/src/features/` (auth, ask-johan, geojohan handlers)
+  - `ask-johan-api/src/server/` (bootstrap + usage store)
+  - `ask-johan-api/src/shared/` (shared HTTP/timeout helpers)
+
 ## Discovery Rule (Mandatory)
 - Do not assume structure from memory.
 - Before non-trivial edits, discover current reality dynamically:

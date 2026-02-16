@@ -15,6 +15,11 @@
 ## Active Frontend Facts
 - Entry/bootstrap is in `src/main.js`.
 - SPA routing is handled client-side (`src/router.js`), including `/playground`, `/quiz`, and `/quiz/geojohan`.
+- Feature modules:
+  - Ask Johan: `src/features/ask-johan/AskJohanWidget.js`
+  - GeoJohan: `src/features/geojohan/GeoJohanPage.js`
+  - GeoJohan config/env readers: `src/features/geojohan/geojohanEnv.js`, `src/features/geojohan/geojohanRounds.js`
+- Resume page module: `src/pages/Resume.js`.
 - Styling is custom CSS with Tailwind/PostCSS tooling; avoid introducing new UI frameworks.
 - Theme/language are state-driven via localStorage and UI toggles.
 

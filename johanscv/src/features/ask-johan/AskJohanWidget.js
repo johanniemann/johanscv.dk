@@ -1,10 +1,11 @@
-import mockAnswers from '../data/mockAnswers.json'
+import mockAnswers from '../../data/mockAnswers.json'
 
 const API_MODE = import.meta.env.VITE_ASK_JOHAN_MODE === 'api'
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
 const API_LOGIN_PATH = '/auth/login'
 const API_ASK_PATH = '/api/ask-johan'
 const ACCESS_CODE_KEY = 'johanscv.askJohanAccessCode'
+const DEV_ACCESS_CODE = import.meta.env.DEV ? String(import.meta.env.VITE_DEV_ACCESS_CODE || '').trim() : ''
 const ACCESS_CODE_REQUIRED_MESSAGE = 'Access code is required to use Ask Johan.'
 const API_TEMPORARY_UNAVAILABLE_MESSAGE =
   'Ask Johan is waking up on Render free hosting. Please try again in 10-20 seconds.'
@@ -153,6 +154,8 @@ function getMockAnswer(query) {
 function getAccessCode() {
   const saved = localStorage.getItem(ACCESS_CODE_KEY)
   if (saved && saved.trim()) return saved
+
+  if (DEV_ACCESS_CODE) return DEV_ACCESS_CODE
 
   return ''
 }

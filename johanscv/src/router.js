@@ -1,15 +1,15 @@
 import * as Home from './pages/Home.js'
 import * as Projects from './pages/Projects.js'
-import * as Files from './pages/Files.js'
+import * as Resume from './pages/Resume.js'
 import * as Contact from './pages/Contact.js'
 import * as Playground from './pages/Playground.js'
-import * as GeoJohan from './pages/GeoJohan.js'
+import * as GeoJohan from './features/geojohan/GeoJohanPage.js'
 import { PageTransition } from './components/PageTransition.js'
 
 const ROUTES = {
   '/': Home,
   '/projects': Projects,
-  '/resume': Files,
+  '/resume': Resume,
   '/contact': Contact,
   '/playground': Playground,
   '/quiz': Playground,

@@ -38,3 +38,11 @@ Optional API mode later:
 - Set env: `VITE_ASK_JOHAN_MODE=api`
 - Expected endpoint: `POST /api/ask-johan`
 - Expected response JSON: `{ "answer": "..." }`
+
+## Environment Safety (production vs local)
+
+- Local dev should use `.env.local` (example in `.env.local.example`), usually:
+  - `VITE_API_BASE_URL=http://127.0.0.1:8787`
+- Production build now uses `.env.production`:
+  - `VITE_API_BASE_URL=https://ask-johan-api.onrender.com`
+- This prevents accidental deploys that point production to `127.0.0.1`.

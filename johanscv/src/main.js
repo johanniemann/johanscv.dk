@@ -6,7 +6,7 @@ import { Footer } from './components/Footer.js'
 import { WelcomeGate, bindWelcomeGate } from './components/WelcomeGate.js'
 import { bindThemeToggle } from './components/ThemeToggle.js'
 import { bindLanguageToggle } from './components/LanguageToggle.js'
-import { warmUpAskJohanApi } from './components/AskJohan.js'
+import { warmUpAskJohanApi } from './features/ask-johan/AskJohanWidget.js'
 import { getState, setState } from './state.js'
 import { initRouter } from './router.js'
 
@@ -28,6 +28,9 @@ const ACCESS_CODE_KEY = 'johanscv.askJohanAccessCode'
 const SITE_ACCESS_KEY = 'johanscv.siteAccessGranted'
 const API_MODE = import.meta.env.VITE_ASK_JOHAN_MODE === 'api'
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
+const DEV_ACCESS_CODE = import.meta.env.DEV ? String(import.meta.env.VITE_DEV_ACCESS_CODE || '').trim() : ''
+const DEV_AUTO_LOGIN =
+  import.meta.env.DEV && import.meta.env.VITE_DEV_AUTO_LOGIN === 'true' && Boolean(DEV_ACCESS_CODE)
 const API_LOGIN_PATH = '/auth/login'
 const API_AUTH_TIMEOUT_MS = 10000
 const API_AUTH_MAX_WAIT_MS = 75000
@@ -48,6 +51,13 @@ let scrollHintBound = false
 void initAccessGate()
 
 async function initAccessGate() {
+  if (DEV_AUTO_LOGIN) {
+    localStorage.setItem(ACCESS_CODE_KEY, DEV_ACCESS_CODE)
+    localStorage.setItem(SITE_ACCESS_KEY, 'true')
+    bootstrapSite()
+    return
+  }
+
   if (await hasValidSiteAccess()) {
     bootstrapSite()
   } else {

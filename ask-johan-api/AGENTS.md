@@ -7,12 +7,22 @@
 - Do not assume endpoints or env wiring from memory.
 - Before edits, verify current reality dynamically:
   - server entrypoint,
+  - module boundaries in `src/config`, `src/app`, `src/features`, `src/server`, `src/shared`,
   - middleware/auth/rate-limit behavior,
   - env loading order,
   - tests and deploy settings.
 
 ## Active API Facts
 - Runtime: Node + Express + OpenAI Responses API.
+- Entrypoint: `index.js` -> `src/server/start-server.js`.
+- Core wiring:
+  - app + middleware: `src/app/create-app.js`
+  - runtime/env/context config: `src/config/runtime-config.js`
+  - usage store: `src/server/usage-store.js`
+- Feature handlers:
+  - auth: `src/features/auth.js`
+  - ask-johan: `src/features/ask-johan.js`
+  - geojohan maps-key: `src/features/geojohan.js`
 - Public endpoints:
   - `GET /health`
   - `GET /`
