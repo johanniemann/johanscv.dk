@@ -75,7 +75,6 @@ Frontend (`johanscv/.env.local`):
 - `VITE_ASK_JOHAN_MODE` (`mock` or `api`)
 - `VITE_API_BASE_URL`
 - `VITE_SITE_ACCESS_CODE`
-- `VITE_GOOGLE_MAPS_API_KEY` (GeoJohan map + Street View)
 
 API (`ask-johan-api/.env`):
 - `OPENAI_API_KEY`
@@ -87,6 +86,7 @@ API (`ask-johan-api/.env`):
 - `ASK_JOHAN_AUTH_COMPAT_MODE`
 - `ASK_JOHAN_AUTH_FAIL_WINDOW_MS`
 - `ASK_JOHAN_AUTH_FAIL_MAX`
+- `GEOJOHAN_MAPS_API_KEY` (GeoJohan map + Street View)
 - `ASK_JOHAN_USAGE_STORE` (`memory` or `redis`)
 - `REDIS_URL` (required only when using `redis` store)
 - `ASK_JOHAN_REDIS_KEY_PREFIX` (optional)

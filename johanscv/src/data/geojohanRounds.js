@@ -1,3 +1,5 @@
+import { readGeoEnvNumber, readGeoEnvText } from './geojohanEnv.js'
+
 const DEFAULT_ROUNDS = [
   {
     roundId: 'address',
@@ -24,8 +26,6 @@ const DEFAULT_ROUNDS = [
     answerLocation: { lat: 55.7024, lng: 12.5628 }
   }
 ]
-
-export const GEOJOHAN_MAPS_API_KEY = String(import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '').trim()
 
 export function getGeoJohanConfig() {
   let usingFallbackCoordinates = false
@@ -77,16 +77,15 @@ function readLatLng(prefix, fallback) {
 }
 
 function hasNumber(key) {
-  const parsed = Number(import.meta.env[key])
-  return Number.isFinite(parsed)
+  return readGeoEnvNumber(key) !== null
 }
 
 function readNumber(key, fallback) {
-  const parsed = Number(import.meta.env[key])
-  return Number.isFinite(parsed) ? parsed : fallback
+  const parsed = readGeoEnvNumber(key)
+  return parsed === null ? fallback : parsed
 }
 
 function readText(key, fallback) {
-  const value = String(import.meta.env[key] || '').trim()
+  const value = readGeoEnvText(key)
   return value || fallback
 }

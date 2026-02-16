@@ -163,6 +163,22 @@ function getAccessCode() {
   return ''
 }
 
+export async function getApiBearerToken() {
+  if (!API_MODE) {
+    throw new Error('Ask Johan API mode is disabled.')
+  }
+  if (!API_BASE) {
+    throw new Error('VITE_API_BASE_URL is not configured.')
+  }
+
+  const accessCode = getAccessCode()
+  if (!accessCode) {
+    throw new Error(ACCESS_CODE_REQUIRED_MESSAGE)
+  }
+
+  return ensureApiToken(accessCode)
+}
+
 async function getApiAnswer(question) {
   if (!API_BASE) {
     throw new Error('VITE_API_BASE_URL is not configured.')

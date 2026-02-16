@@ -17,6 +17,7 @@
   - `GET /health`
   - `GET /`
   - `POST /auth/login`
+  - `GET /api/geojohan/maps-key`
   - `POST /api/ask-johan`
 - Auth model:
   - primary: JWT Bearer (token from `/auth/login`),
@@ -40,6 +41,7 @@
   - `OPENAI_API_KEY`, `OPENAI_MODEL`, `PORT`
   - `ASK_JOHAN_ACCESS_CODE`, `JWT_SECRET`, `ASK_JOHAN_JWT_TTL`, `ASK_JOHAN_AUTH_COMPAT_MODE`
   - `ASK_JOHAN_AUTH_FAIL_WINDOW_MS`, `ASK_JOHAN_AUTH_FAIL_MAX`
+  - `GEOJOHAN_MAPS_API_KEY`
   - `ASK_JOHAN_DAILY_CAP`, `ASK_JOHAN_RATE_LIMIT_WINDOW_MS`, `ASK_JOHAN_RATE_LIMIT_MAX`
   - `ASK_JOHAN_TIMEOUT_MS`, `MAX_QUESTION_CHARS`
   - `ALLOWED_ORIGINS`

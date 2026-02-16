@@ -26,7 +26,7 @@ cp .env.local.example .env.local
 - `VITE_SITE_ACCESS_CODE` (site gate + Ask Johan access code)
 - `VITE_ASK_JOHAN_MODE` (`api` or `mock`)
 - `VITE_API_BASE_URL` (Ask Johan API URL)
-- `VITE_GOOGLE_MAPS_API_KEY` (required for GeoJohan Street View + map)
+- GeoJohan maps key is served by API (`GEOJOHAN_MAPS_API_KEY` in backend env)
 - Optional GeoJohan round config (recommended for real gameplay):
   - `VITE_GEOJOHAN_ROUND1_PANO_LAT`, `VITE_GEOJOHAN_ROUND1_PANO_LNG`
   - `VITE_GEOJOHAN_ROUND1_ANSWER_LAT`, `VITE_GEOJOHAN_ROUND1_ANSWER_LNG`
@@ -71,6 +71,7 @@ Fill `.env`:
 - `ASK_JOHAN_AUTH_COMPAT_MODE` (default `true` during rollout)
 - `ASK_JOHAN_DAILY_CAP` (default `100`)
 - `MAX_QUESTION_CHARS` (default `800`)
+- `GEOJOHAN_MAPS_API_KEY` (required for GeoJohan Street View + map)
 - Optional private context source:
   - `JOHAN_CONTEXT_B64` (recommended for hosted deploys)
   - `JOHAN_CONTEXT`

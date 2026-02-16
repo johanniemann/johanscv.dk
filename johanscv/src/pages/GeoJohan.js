@@ -1,4 +1,6 @@
-import { getGeoJohanConfig, GEOJOHAN_MAPS_API_KEY } from '../data/geojohanRounds.js'
+import { getApiBearerToken } from '../components/AskJohan.js'
+import { readGeoEnvText } from '../data/geojohanEnv.js'
+import { getGeoJohanConfig } from '../data/geojohanRounds.js'
 
 const DEFAULT_CENTER = { lat: 55.6761, lng: 12.5683 }
 const STREET_VIEW_FALLBACK_LOCATION = { lat: 55.6761, lng: 12.5683 }
@@ -15,6 +17,8 @@ const STREET_VIEW_RADIUS_METERS = 1500
 const VIEWPORT_SYNC_DELAYS_MS = [120, 420, 780]
 const DEFAULT_POV = { heading: 34, pitch: 5 }
 const SUMMARY_TRANSITION_MS = 320
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
+const MAPS_KEY_PATH = '/api/geojohan/maps-key'
 const ANSWER_PIN_STYLE_BY_ROUND = {
   address: { glyph: '🏠' },
   work: { glyph: '💼' },
@@ -135,13 +139,8 @@ export function mount({ t, language = 'en' }) {
     refs.configNote.textContent = t.geojohan.demoCoordinatesNote
   }
 
-  if (!GEOJOHAN_MAPS_API_KEY) {
-    refs.feedback.textContent = t.geojohan.missingKey
-    setActionMode(refs, 'hidden')
-    return
-  }
-
-  loadGoogleMapsApi(GEOJOHAN_MAPS_API_KEY)
+  resolveGeoJohanMapsApiKey()
+    .then((apiKey) => loadGoogleMapsApi(apiKey))
     .then(async (maps) => {
       if (!isMounted()) return
       state.maps = maps
@@ -150,9 +149,34 @@ export function mount({ t, language = 'en' }) {
     })
     .catch(() => {
       if (!isMounted()) return
-      refs.feedback.textContent = t.geojohan.loadError
+      refs.feedback.textContent = API_BASE ? t.geojohan.loadError : t.geojohan.missingKey
       setActionMode(refs, 'hidden')
     })
+}
+
+async function resolveGeoJohanMapsApiKey() {
+  if (!API_BASE) {
+    throw new Error('VITE_API_BASE_URL is not configured.')
+  }
+
+  const token = await getApiBearerToken()
+  const response = await fetch(`${API_BASE}${MAPS_KEY_PATH}`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  })
+
+  if (!response.ok) {
+    throw new Error(`GeoJohan maps key request failed (${response.status}).`)
+  }
+
+  const payload = await response.json()
+  const mapsApiKey = typeof payload?.mapsApiKey === 'string' ? payload.mapsApiKey.trim() : ''
+  if (!mapsApiKey) {
+    throw new Error('GeoJohan maps key is missing in response.')
+  }
+
+  return mapsApiKey
 }
 
 function getRefs() {
@@ -482,7 +506,7 @@ function resolveRoundEmoji(roundId) {
 }
 
 function readEnvText(key) {
-  return String(import.meta.env[key] || '').trim()
+  return readGeoEnvText(key)
 }
 
 function createAnswerMarkerAppearance(maps, roundId) {

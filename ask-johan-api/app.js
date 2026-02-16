@@ -30,6 +30,7 @@ export function createApp({
   authFailureWindowMs = 600_000,
   client = null,
   dailyCapMax = 100,
+  geoJohanMapsApiKey = '',
   johanContext = '',
   jwtSecret = '',
   jwtTtl = '7d',
@@ -46,6 +47,7 @@ export function createApp({
   const normalizedAccessCode = accessCode.trim()
   const hasAccessCode = Boolean(normalizedAccessCode)
   const hasJwtSecret = Boolean(jwtSecret)
+  const normalizedGeoJohanMapsApiKey = String(geoJohanMapsApiKey || '').trim()
   const requiresAuth = hasAccessCode || hasJwtSecret
   const tokenTtl = typeof jwtTtl === 'string' && jwtTtl.trim() ? jwtTtl.trim() : '7d'
   const assistantInstructions = buildAssistantInstructions(johanContext)
@@ -139,7 +141,37 @@ export function createApp({
     res.json({
       ok: true,
       service: 'ask-johan-api',
-      endpoints: ['/health', '/auth/login', '/api/ask-johan']
+      endpoints: ['/health', '/auth/login', '/api/geojohan/maps-key', '/api/ask-johan']
+    })
+  })
+
+  app.get('/api/geojohan/maps-key', async (req, res) => {
+    const requestIp = getRequestIp(req)
+    if (await isAuthFailureLimitedOrFail('maps key auth check', requestIp, res)) {
+      return
+    }
+
+    const bearerToken = getBearerToken(req)
+    if (!bearerToken) {
+      await recordAuthFailureSafe('maps key missing bearer', requestIp)
+      return sendAnswer(res, 401, AUTH_REQUIRED_MESSAGE)
+    }
+
+    const tokenPayload = verifyJwtToken(bearerToken, jwtSecret)
+    if (!tokenPayload) {
+      await recordAuthFailureSafe('maps key invalid bearer', requestIp)
+      return sendAnswer(res, 401, 'Access denied. Invalid or expired token.')
+    }
+    if (!(await clearAuthFailuresOrFail('maps key clear', requestIp, res))) {
+      return
+    }
+
+    if (!normalizedGeoJohanMapsApiKey) {
+      return sendAnswer(res, 503, 'GeoJohan maps is temporarily unavailable.')
+    }
+
+    return res.json({
+      mapsApiKey: normalizedGeoJohanMapsApiKey
     })
   })
 

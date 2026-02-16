@@ -18,6 +18,7 @@ const authFailureWindowMs = parsePositiveInt(process.env.ASK_JOHAN_AUTH_FAIL_WIN
 const authFailureMax = parsePositiveInt(process.env.ASK_JOHAN_AUTH_FAIL_MAX, 10)
 const authCompatMode = parseBoolean(process.env.ASK_JOHAN_AUTH_COMPAT_MODE, true)
 const jwtTtl = (process.env.ASK_JOHAN_JWT_TTL || '7d').trim() || '7d'
+const geoJohanMapsApiKey = String(process.env.GEOJOHAN_MAPS_API_KEY || '').trim()
 const usageStoreMode = String(process.env.ASK_JOHAN_USAGE_STORE || 'memory').trim().toLowerCase()
 const redisUrl = String(process.env.REDIS_URL || '').trim()
 const redisKeyPrefix = String(process.env.ASK_JOHAN_REDIS_KEY_PREFIX || 'ask-johan').trim() || 'ask-johan'
@@ -46,6 +47,7 @@ const app = createApp({
   authFailureWindowMs,
   client,
   dailyCapMax,
+  geoJohanMapsApiKey,
   johanContext,
   jwtSecret,
   jwtTtl,
@@ -73,6 +75,7 @@ app.listen(port, () => {
   console.log(`Ask Johan usage store: ${usageStore.mode}`)
   console.log(`Ask Johan auth compatibility mode: ${authCompatMode ? 'enabled' : 'disabled'}`)
   console.log(`Ask Johan JWT TTL: ${jwtTtl}`)
+  console.log(`GeoJohan maps key: ${geoJohanMapsApiKey ? 'configured' : 'not configured'}`)
 })
 
 function loadJohanContext() {

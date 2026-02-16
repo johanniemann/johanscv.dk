@@ -113,7 +113,7 @@ Normal Ask-flow (API mode):
 
 GeoJohan-flow:
 
-1. Frontend loader Google Maps JS API med browser-key (`VITE_GOOGLE_MAPS_API_KEY`).
+1. Frontend henter GeoJohan maps key fra API endpoint (`/api/geojohan/maps-key`) efter login.
 2. Runder + koordinater hentes fra `src/data/geojohanRounds.js` + `VITE_GEOJOHAN_*` env værdier.
 3. Bruger gætter på kort, distance/points beregnes client-side.
 

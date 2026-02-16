@@ -24,6 +24,7 @@ This deploys `ask-johan-api` as a free Render Web Service using the repo's `rend
    - `OPENAI_API_KEY` = your OpenAI key
    - `ASK_JOHAN_ACCESS_CODE` = your private access code
    - `JWT_SECRET` = a long random secret for signing JWTs (required when `NODE_ENV=production`)
+   - `GEOJOHAN_MAPS_API_KEY` = Google Maps browser key used by GeoJohan (served via authenticated API route)
    - `JOHAN_CONTEXT_B64` = Base64-encoded private Ask Johan context (recommended so context is not in GitHub)
    - Optional safety vars:
      - `ALLOWED_ORIGINS` (comma-separated exact origins)
@@ -60,6 +61,7 @@ VITE_SITE_ACCESS_CODE=<same_as_ASK_JOHAN_ACCESS_CODE>
 Frontend flow in API mode:
 - `VITE_SITE_ACCESS_CODE` unlocks the site and is sent to `POST /auth/login`
 - API returns JWT
+- GeoJohan fetches maps key from `GET /api/geojohan/maps-key` with that Bearer token
 - Ask requests use `Authorization: Bearer <token>`
 
 Then redeploy frontend:

@@ -18,7 +18,7 @@ test('GET / returns service metadata', async () => {
   assert.equal(response.status, 200)
   assert.equal(response.body.ok, true)
   assert.equal(response.body.service, 'ask-johan-api')
-  assert.deepEqual(response.body.endpoints, ['/health', '/auth/login', '/api/ask-johan'])
+  assert.deepEqual(response.body.endpoints, ['/health', '/auth/login', '/api/geojohan/maps-key', '/api/ask-johan'])
 })
 
 test('POST /api/ask-johan allows localhost dev origin', async () => {
@@ -77,6 +77,31 @@ test('POST /api/ask-johan requires auth when access code is configured', async (
 
   assert.equal(response.status, 401)
   assert.match(response.body.answer, /Authentication required/)
+})
+
+test('GET /api/geojohan/maps-key requires bearer token', async () => {
+  const app = createApp({
+    accessCode: 'secret',
+    jwtSecret: 'jwt-secret',
+    geoJohanMapsApiKey: 'maps-key'
+  })
+  const response = await request(app).get('/api/geojohan/maps-key')
+
+  assert.equal(response.status, 401)
+  assert.match(response.body.answer, /Authentication required/)
+})
+
+test('GET /api/geojohan/maps-key returns key for valid bearer token', async () => {
+  const app = createApp({
+    accessCode: 'secret',
+    jwtSecret: 'jwt-secret',
+    geoJohanMapsApiKey: 'maps-key'
+  })
+  const token = await loginAndGetToken(app)
+  const response = await request(app).get('/api/geojohan/maps-key').set('Authorization', `Bearer ${token}`)
+
+  assert.equal(response.status, 200)
+  assert.equal(response.body.mapsApiKey, 'maps-key')
 })
 
 test('POST /api/ask-johan validates content type', async () => {

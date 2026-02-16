@@ -14,6 +14,10 @@ Checks:
   - remove `johanscv.siteAccessGranted`
   - hard refresh page
 
+GeoJohan note:
+- GeoJohan maps key now comes from API endpoint `GET /api/geojohan/maps-key` (authenticated).
+- Confirm `GEOJOHAN_MAPS_API_KEY` is set in Render Environment Variables.
+
 ## 2) Repeated `401` in Render logs
 
 Checks:

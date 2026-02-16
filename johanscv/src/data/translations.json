@@ -134,8 +134,8 @@
       "pointsLabel": "Points",
       "playAgain": "Play GeoJohan again",
       "backToQuiz": "Back to quiz",
-      "missingKey": "Google Maps API key is missing. GeoJohan is disabled.",
-      "missingKeyHint": "Set VITE_GOOGLE_MAPS_API_KEY in .env.local and restart dev server.",
+      "missingKey": "GeoJohan maps key is unavailable right now.",
+      "missingKeyHint": "Set GEOJOHAN_MAPS_API_KEY in the API environment and restart the API.",
       "loadError": "Google Maps failed to load. Please try again.",
       "loadErrorHint": "Check API key restrictions, billing, and allowed referrers.",
       "demoCoordinatesNote": "Using demo coordinates. Set VITE_GEOJOHAN_ROUND*_... vars in .env.local for your real rounds."
@@ -284,8 +284,8 @@
       "pointsLabel": "Point",
       "playAgain": "Spil GeoJohan igen",
       "backToQuiz": "Tilbage til quiz",
-      "missingKey": "Google Maps API key mangler. GeoJohan er deaktiveret.",
-      "missingKeyHint": "Sæt VITE_GOOGLE_MAPS_API_KEY i .env.local og genstart dev serveren.",
+      "missingKey": "GeoJohan maps key er ikke tilgængelig lige nu.",
+      "missingKeyHint": "Sæt GEOJOHAN_MAPS_API_KEY i API-miljøet og genstart API'en.",
       "loadError": "Google Maps kunne ikke indlæses. Prøv igen.",
       "loadErrorHint": "Tjek API key-restriktioner, billing og tilladte domæner.",
       "demoCoordinatesNote": "Demo-koordinater bruges lige nu. Sæt VITE_GEOJOHAN_ROUND*_... i .env.local for rigtige runder."
