@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import request from 'supertest'
 import { createApp } from '../src/app/create-app.js'
+import { parseAllowedOrigins } from '../src/app/origins.js'
 
 test('GET /health returns ok', async () => {
   const app = createApp()
@@ -19,6 +20,12 @@ test('GET / returns service metadata', async () => {
   assert.equal(response.body.ok, true)
   assert.equal(response.body.service, 'ask-johan-api')
   assert.deepEqual(response.body.endpoints, ['/health', '/auth/login', '/api/geojohan/maps-key', '/api/ask-johan'])
+})
+
+test('parseAllowedOrigins includes full production defaults when value is empty', () => {
+  const origins = parseAllowedOrigins('')
+
+  assert.deepEqual(origins, ['https://johanniemann.github.io', 'https://johanscv.dk', 'https://www.johanscv.dk'])
 })
 
 test('POST /api/ask-johan allows localhost dev origin', async () => {

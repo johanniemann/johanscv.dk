@@ -22,6 +22,7 @@
 - Resume page module: `src/pages/Resume.js`.
 - Styling is custom CSS with Tailwind/PostCSS tooling; avoid introducing new UI frameworks.
 - Theme/language are state-driven via localStorage and UI toggles.
+- Runtime expectation is Node 20 (`../.nvmrc`, CI, and hosted environment assumptions).
 
 ## Security & Privacy Guardrails
 - Never commit `.env.local` or secrets.

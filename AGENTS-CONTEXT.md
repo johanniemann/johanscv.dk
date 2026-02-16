@@ -45,6 +45,7 @@ Deploy/CI:
 1. Render blueprint: `render.yaml`
 2. CI gate: `.github/workflows/ci.yml`
 3. Repo verification: `scripts/verify.sh`
+4. Runtime target version: Node 20 (`.nvmrc`, CI, Render).
 
 ## Data Flow And Contracts
 
@@ -82,7 +83,9 @@ Security controls in API:
 Frontend (`johanscv/.env.local`):
 1. `VITE_ASK_JOHAN_MODE`
 2. `VITE_API_BASE_URL`
-3. Optional `VITE_GEOJOHAN_ROUND{N}_*` and `VITE_GEOJOHAN_ROUND{N}_SUMMARY_*`
+3. Optional local dev convenience: `VITE_DEV_AUTO_LOGIN`, `VITE_DEV_ACCESS_CODE`
+4. Optional `VITE_GEOJOHAN_ROUND{N}_*` and `VITE_GEOJOHAN_ROUND{N}_SUMMARY_*`
+5. Production build env file: `johanscv/.env.production` (`VITE_ASK_JOHAN_MODE`, `VITE_API_BASE_URL`) and this file is intentionally tracked (non-secret only).
 
 Backend (`ask-johan-api/.env` or Render env):
 1. `OPENAI_API_KEY`, `OPENAI_MODEL`, `PORT`
@@ -139,11 +142,17 @@ Operational docs:
    - `cd johanscv && npm run lint`
    - `cd johanscv && npm run smoke`
    - `cd johanscv && npm run build`
+   - `cd johanscv && npm run check:bundle`
 
 2. API:
    - `cd ask-johan-api && npm test`
 
-3. Repo gate:
+3. Repo guardrails:
+   - `./scripts/check-node-alignment.sh`
+   - `./scripts/check-doc-sync.sh`
+   - `./scripts/scan-secrets.sh`
+
+4. Repo gate:
    - `./scripts/verify.sh`
 
 ## Common Pitfalls
@@ -159,3 +168,5 @@ Operational docs:
    - site access code in frontend storage is not a secure secret by itself; real enforcement is server-side login + JWT.
 5. Legacy confusion:
    - do not treat `legacy/` or root `public/` as active runtime code.
+6. Node version drift:
+   - local Node major should match `20` before running release verification.

@@ -1,5 +1,5 @@
 export const LOCAL_ORIGIN_RE = /^https?:\/\/(127\.0\.0\.1|localhost):\d+$/
-export const DEFAULT_ALLOWED_ORIGINS = ['https://johanniemann.github.io', 'https://johanscv.dk']
+export const DEFAULT_ALLOWED_ORIGINS = ['https://johanniemann.github.io', 'https://johanscv.dk', 'https://www.johanscv.dk']
 
 export function parseAllowedOrigins(rawOrigins) {
   if (!rawOrigins || !rawOrigins.trim()) {

@@ -14,6 +14,7 @@
 
 ## Active API Facts
 - Runtime: Node + Express + OpenAI Responses API.
+- Runtime expectation is Node 20 (`../.nvmrc`, CI, Render `NODE_VERSION`).
 - Entrypoint: `index.js` -> `src/server/start-server.js`.
 - Core wiring:
   - app + middleware: `src/app/create-app.js`

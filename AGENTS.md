@@ -30,7 +30,8 @@
   - confirm which folders are legacy vs active.
 
 ## Security Guardrails (Mandatory)
-- Never commit secrets (`.env*`, tokens, keys, private context).
+- Never commit secrets (`.env`, `.env.local`, tokens, keys, private context).
+- `johanscv/.env.production` is an allowed tracked exception and must stay non-secret.
 - Never print secret values or private context contents in logs/reports.
 - Never expose server secrets in frontend code.
 - Treat all `VITE_*` variables as public-at-runtime in browser bundles.
@@ -46,13 +47,16 @@
 ## Deployment Assumptions
 - Frontend deploy path is GitHub Pages via `johanscv` scripts.
 - API deploy path is Render via `render.yaml` (`rootDir: ask-johan-api`).
+- Runtime expectation is Node 20 (see `.nvmrc`, CI `node-version`, and `render.yaml` `NODE_VERSION`).
 - Protected API routes include:
   - `POST /api/ask-johan`
   - `GET /api/geojohan/maps-key`
   - Auth bootstrap: `POST /auth/login`
 - CI in `.github/workflows/ci.yml` is the quality gate:
-  - frontend lint/smoke/build,
-  - API tests.
+  - repo guardrails (`check-node-alignment`, `check-doc-sync`, `scan-secrets`),
+  - frontend lint/smoke/build/bundle-budget,
+  - API tests,
+  - dependency audit (`npm audit --omit=dev`).
 
 ## Working Style
 - Prefer minimal, reversible, low-risk changes.
@@ -67,8 +71,12 @@
 ## Definition Of Done
 - Run relevant commands and report pass/fail.
 - Minimum verification for cross-cutting changes:
-  - `cd johanscv && npm run lint && npm run smoke && npm run build`
+  - `cd johanscv && npm run lint && npm run smoke && npm run build && npm run check:bundle`
   - `cd ask-johan-api && npm test`
+- Guardrail checks:
+  - `./scripts/check-node-alignment.sh`
+  - `./scripts/check-doc-sync.sh`
+  - `./scripts/scan-secrets.sh`
 - For repo-wide verification, prefer:
   - `./scripts/verify.sh`
 - In final report include:
