@@ -17,12 +17,15 @@
       "point2": "Review my full Resume / CV structure.",
       "point3": "Use Ask Johan for quick context.",
       "continue": "Continue",
+      "loggingIn": "Signing you in...",
+      "warmingUp": "The service may be waking up after inactivity on Render free plan. This can take up to 20-30 seconds.",
       "passwordLabel": "Site access code",
       "passwordPlaceholder": "Enter access code",
       "passwordError": "Invalid access code. Please try again.",
       "passwordRateLimited": "Too many login attempts. Please wait a few minutes and try again.",
       "passwordForbidden": "This site origin is not allowed right now. Please contact Johan.",
       "passwordUnavailable": "Authentication service is temporarily unavailable. Please try again shortly.",
+      "passwordColdStart": "The service may still be waking up. Please wait a little and try again.",
       "passwordNetwork": "Could not reach authentication service. Check your connection and try again."
     },
     "ask": {
@@ -172,12 +175,15 @@
       "point2": "Gennemgå mit fulde Resume / CV.",
       "point3": "Brug Ask Johan for hurtig kontekst.",
       "continue": "Fortsæt",
+      "loggingIn": "Logger ind...",
+      "warmingUp": "Servicen kan være ved at vågne efter inaktivitet på Render free plan. Det kan tage op til 20-30 sekunder.",
       "passwordLabel": "Adgangskode til siden",
       "passwordPlaceholder": "Indtast adgangskode",
       "passwordError": "Ugyldig adgangskode. Prøv igen.",
       "passwordRateLimited": "For mange loginforsøg. Vent et par minutter og prøv igen.",
       "passwordForbidden": "Dette domæne er ikke tilladt lige nu. Kontakt Johan.",
       "passwordUnavailable": "Login-servicen er midlertidigt utilgængelig. Prøv igen om lidt.",
+      "passwordColdStart": "Servicen kan stadig være ved at vågne. Vent lidt og prøv igen.",
       "passwordNetwork": "Kunne ikke nå login-servicen. Tjek din forbindelse og prøv igen."
     },
     "ask": {

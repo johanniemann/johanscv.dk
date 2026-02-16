@@ -233,7 +233,7 @@ function renderWelcomeGate() {
       document.body.classList.remove('welcome-active')
     }, WELCOME_EXIT_MS)
     return { ok: true }
-  })
+  }, { t, apiMode: API_MODE && Boolean(API_BASE) })
 }
 
 async function validateSiteAccessCode(accessCode) {
@@ -338,16 +338,20 @@ async function validateAccessCodeWithApi(accessCode) {
       status: response.status,
       answer: typeof payload?.answer === 'string' ? payload.answer.trim() : ''
     }
-  } catch {
+  } catch (error) {
     return {
       ok: false,
-      status: 0
+      status: 0,
+      reason: error?.name === 'AbortError' ? 'timeout' : 'network'
     }
   }
 }
 
 function resolveWelcomeAccessErrorMessage(t, accessCheck) {
   const status = Number(accessCheck?.status || 0)
+  if (status === 0 && accessCheck?.reason === 'timeout') {
+    return t.welcome.passwordColdStart || t.welcome.passwordNetwork || t.welcome.passwordError
+  }
   if (status === 401 || status === 400) return t.welcome.passwordError
   if (status === 429) return t.welcome.passwordRateLimited || t.welcome.passwordError
   if (status === 403) return t.welcome.passwordForbidden || t.welcome.passwordError
