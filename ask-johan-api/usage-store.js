@@ -22,6 +22,7 @@ export function createUsageStore({
 function createMemoryUsageStore() {
   const authFailureStore = new Map()
   const dailyUsageStore = new Map()
+  const MAX_IN_MEMORY_KEYS = 2000
 
   return {
     mode: 'memory',
@@ -43,11 +44,18 @@ function createMemoryUsageStore() {
       const entry = authFailureStore.get(key)
       if (!entry || now - entry.windowStart > windowMs) {
         authFailureStore.set(key, { windowStart: now, count: 1 })
-        return
+      } else {
+        entry.count += 1
+        authFailureStore.set(key, entry)
       }
 
-      entry.count += 1
-      authFailureStore.set(key, entry)
+      if (authFailureStore.size > MAX_IN_MEMORY_KEYS) {
+        for (const [storedKey, storedEntry] of authFailureStore.entries()) {
+          if (now - storedEntry.windowStart > windowMs) {
+            authFailureStore.delete(storedKey)
+          }
+        }
+      }
     },
     async clearAuthFailures(key) {
       authFailureStore.delete(key)
@@ -69,7 +77,7 @@ function createMemoryUsageStore() {
 
       entry.count += 1
       dailyUsageStore.set(key, entry)
-      if (dailyUsageStore.size > 2000) {
+      if (dailyUsageStore.size > MAX_IN_MEMORY_KEYS) {
         for (const [storedKey, storedEntry] of dailyUsageStore.entries()) {
           if (storedEntry.day !== today) {
             dailyUsageStore.delete(storedKey)

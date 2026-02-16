@@ -9,6 +9,12 @@ HEALTH_URL="http://127.0.0.1:${SMOKE_PORT}/health"
 LOGIN_URL="http://127.0.0.1:${SMOKE_PORT}/auth/login"
 ASK_URL="http://127.0.0.1:${SMOKE_PORT}/api/ask-johan"
 
+echo "[verify] Frontend lint"
+(cd "$FRONTEND_DIR" && npm run lint)
+
+echo "[verify] Frontend smoke"
+(cd "$FRONTEND_DIR" && npm run smoke)
+
 echo "[verify] Frontend build"
 (cd "$FRONTEND_DIR" && npm run build)
 

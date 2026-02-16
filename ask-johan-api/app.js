@@ -146,6 +146,7 @@ export function createApp({
   })
 
   app.get('/api/geojohan/maps-key', async (req, res) => {
+    setNoStore(res)
     const requestIp = getRequestIp(req)
     if (await isAuthFailureLimitedOrFail('maps key auth check', requestIp, res)) {
       return
@@ -186,6 +187,7 @@ export function createApp({
   })
 
   app.post('/auth/login', async (req, res) => {
+    setNoStore(res)
     const requestIp = getRequestIp(req)
     if (await isAuthFailureLimitedOrFail('auth login check', requestIp, res)) {
       return
@@ -219,6 +221,7 @@ export function createApp({
   })
 
   app.post('/api/ask-johan', askLimiter, async (req, res) => {
+    setNoStore(res)
     const requestIp = getRequestIp(req)
 
     if (requiresAuth) {
@@ -413,6 +416,10 @@ function isSensitiveContextRequest(question) {
 
 function sendAnswer(res, status, answer) {
   return res.status(status).json({ answer })
+}
+
+function setNoStore(res) {
+  res.setHeader('Cache-Control', 'no-store')
 }
 
 async function withTimeout(promise, timeoutMs) {

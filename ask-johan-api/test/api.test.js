@@ -64,6 +64,7 @@ test('POST /auth/login returns bearer token on success', async () => {
   assert.equal(response.status, 200)
   assert.equal(typeof response.body.token, 'string')
   assert.equal(response.body.tokenType, 'Bearer')
+  assert.equal(response.headers['cache-control'], 'no-store')
 })
 
 test('POST /api/ask-johan requires auth when access code is configured', async () => {
@@ -102,6 +103,7 @@ test('GET /api/geojohan/maps-key returns key for valid bearer token', async () =
 
   assert.equal(response.status, 200)
   assert.equal(response.body.mapsApiKey, 'maps-key')
+  assert.equal(response.headers['cache-control'], 'no-store')
 })
 
 test('POST /api/ask-johan validates content type', async () => {
