@@ -20,11 +20,13 @@
 
 ## Security & Privacy Guardrails
 - Never commit `.env.local` or secrets.
+- Never print secret values/private context in logs or summaries.
 - Treat all `VITE_*` vars as public in browser bundles.
 - Do not claim client-side env data is secret.
 - Keep Ask Johan client auth flow compatible with API expectations:
   - login via `/auth/login`,
-  - bearer token on `/api/ask-johan`.
+  - bearer token on `/api/ask-johan`,
+  - bearer token on `/api/geojohan/maps-key`.
 
 ## Environment Variables (Frontend)
 - Source of truth: `.env.local.example` + runtime code.

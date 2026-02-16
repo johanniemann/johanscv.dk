@@ -17,6 +17,7 @@
 
 ## Security Guardrails (Mandatory)
 - Never commit secrets (`.env*`, tokens, keys, private context).
+- Never print secret values or private context contents in logs/reports.
 - Never expose server secrets in frontend code.
 - Treat all `VITE_*` variables as public-at-runtime in browser bundles.
 - Ask Johan context protection must stay enabled:
@@ -31,6 +32,10 @@
 ## Deployment Assumptions
 - Frontend deploy path is GitHub Pages via `johanscv` scripts.
 - API deploy path is Render via `render.yaml` (`rootDir: ask-johan-api`).
+- Protected API routes include:
+  - `POST /api/ask-johan`
+  - `GET /api/geojohan/maps-key`
+  - Auth bootstrap: `POST /auth/login`
 - CI in `.github/workflows/ci.yml` is the quality gate:
   - frontend lint/smoke/build,
   - API tests.

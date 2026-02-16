@@ -1,110 +1,131 @@
 # WEBSITE Monorepo
 
-Personal website stack for Johan with a static frontend and a separate Ask Johan API.
+Personal website stack with two active production services:
+- frontend SPA in `johanscv/` (GitHub Pages),
+- backend API in `ask-johan-api/` (Render).
 
-## What This Repo Contains
+## Repository Structure
 
 | Path | Purpose | Status |
 | --- | --- | --- |
-| `johanscv/` | Active frontend SPA (Vite + Vanilla JS + Tailwind), deployed to GitHub Pages | Active |
-| `ask-johan-api/` | Active backend API (Node/Express/OpenAI), deployed to Render | Active |
-| `legacy/root-src/` | Old prototype frontend source tree moved from repo root | Legacy (not used by CI/deploy) |
-| `public/` | Old prototype public folder at repo root | Legacy (not used by CI/deploy) |
-| `.github/workflows/ci.yml` | CI pipeline: frontend build + backend tests | Active |
-| `render.yaml` | Render blueprint for `ask-johan-api` | Active |
+| `johanscv/` | Frontend SPA (Vite + Vanilla JS + Tailwind tooling) | Active |
+| `ask-johan-api/` | Ask Johan + GeoJohan API (Node/Express/OpenAI) | Active |
+| `.github/workflows/ci.yml` | CI quality gate (frontend lint/smoke/build + API tests) | Active |
+| `render.yaml` | Render blueprint (`rootDir: ask-johan-api`) | Active |
+| `legacy/root-src/` | Previous frontend prototype source | Legacy |
+| `public/` | Previous root-level public folder (now empty legacy placeholder) | Legacy |
+| `docs/` | Operational docs/runbooks | Active |
+| `scripts/verify.sh` | Repo-level verify script | Active |
 
-Notes:
-- No standalone `quizsite/` app directory is currently present in this repository.
-- Legacy assets are documented in `legacy/README.md`.
+`legacy/` and root `public/` are not in active deploy paths.
 
-## Runtime & Deployment Model
+## Active vs Legacy
 
-1. Frontend:
-   - Folder: `johanscv/`
-   - Deploy target: GitHub Pages (`gh-pages` branch)
-   - Config: `johanscv/vite.config.js`, `johanscv/DEPLOYMENT.md`
+Active production architecture:
+1. `johanscv/` deploys to GitHub Pages.
+2. `ask-johan-api/` deploys to Render.
 
-2. API:
-   - Folder: `ask-johan-api/`
-   - Deploy target: Render web service
-   - Config: `render.yaml`, `ask-johan-api/DEPLOY_RENDER.md`
+Legacy references:
+1. `legacy/root-src/`
+2. root `public/`
+
+## Runtime Model
+
+Browser flow in API mode:
+1. User enters site access code in frontend Welcome gate.
+2. Frontend calls `POST /auth/login`.
+3. API returns JWT token.
+4. Frontend calls:
+   - `POST /api/ask-johan` with `Authorization: Bearer <token>`
+   - `GET /api/geojohan/maps-key` with `Authorization: Bearer <token>`
+
+## API Contract Snapshot
+
+1. `POST /auth/login`
+   - request: `{ "accessCode": "..." }`
+   - success: `{ "token": "...", "tokenType": "Bearer", "expiresIn": "...", "legacyAccessCodeAccepted": boolean }`
+   - error: `{ "answer": "..." }`
+2. `POST /api/ask-johan`
+   - request: `{ "question": "..." }`
+   - success: `{ "answer": "..." }`
+   - error: `{ "answer": "..." }`
+3. `GET /api/geojohan/maps-key`
+   - success: `{ "mapsApiKey": "..." }`
+   - error: `{ "answer": "..." }`
 
 ## Local Development
 
-Recommended Node version: `20.x` (matches CI and Render).
+Expected Node version: `20.x` (CI + Render use Node 20).
 
-### Frontend
+### Frontend (`johanscv/`)
 
 ```bash
 cd johanscv
-npm install
-cp .env.local.example .env.local
+npm ci
+cp .env.local.example .env.local   # only if missing
 npm run dev
 ```
 
-Default local URL (`npm run dev`):
+Default local URL:
 - `http://localhost:5173/`
 
-Optional GitHub Pages base emulation locally:
+GitHub Pages base-path emulation locally:
 
 ```bash
 cd johanscv
 CUSTOM_DOMAIN=false npm run dev
 ```
 
+Emulated URL:
 - `http://localhost:5173/johanscv.dk/`
 
-### API
+### API (`ask-johan-api/`)
 
 ```bash
 cd ask-johan-api
-npm install
-cp .env.example .env
+npm ci
+cp .env.example .env   # only if missing
 npm run dev
 ```
 
-Health check:
+Health:
 
 ```bash
 curl -s http://127.0.0.1:8787/health
 ```
 
-## Environment Variables
+## Environment Variables (Names Only)
 
 Frontend (`johanscv/.env.local`):
-- `VITE_ASK_JOHAN_MODE` (`mock` or `api`)
+- `VITE_ASK_JOHAN_MODE`
 - `VITE_API_BASE_URL`
+- optional GeoJohan round/summary vars:
+  - `VITE_GEOJOHAN_ROUND{N}_TITLE`
+  - `VITE_GEOJOHAN_ROUND{N}_PANO_LAT`, `VITE_GEOJOHAN_ROUND{N}_PANO_LNG`, `VITE_GEOJOHAN_ROUND{N}_PANO_ID`
+  - `VITE_GEOJOHAN_ROUND{N}_POV_HEADING`, `VITE_GEOJOHAN_ROUND{N}_POV_PITCH`
+  - `VITE_GEOJOHAN_ROUND{N}_ANSWER_LAT`, `VITE_GEOJOHAN_ROUND{N}_ANSWER_LNG`
+  - `VITE_GEOJOHAN_ROUND{N}_SUMMARY_ADDRESS`
+  - `VITE_GEOJOHAN_ROUND{N}_SUMMARY_CONTEXT_DK`, `VITE_GEOJOHAN_ROUND{N}_SUMMARY_CONTEXT_EN`
 
 API (`ask-johan-api/.env`):
-- `OPENAI_API_KEY`
-- `OPENAI_MODEL`
-- `PORT`
-- `JOHANSCV_ACCESS_CODE` (primary)
-- `ASK_JOHAN_ACCESS_CODE` (deprecated fallback)
-- `JWT_SECRET`
-- `ASK_JOHAN_JWT_TTL`
-- `ASK_JOHAN_AUTH_COMPAT_MODE`
-- `ASK_JOHAN_AUTH_FAIL_WINDOW_MS`
-- `ASK_JOHAN_AUTH_FAIL_MAX`
-- `GEOJOHAN_MAPS_API_KEY` (GeoJohan map + Street View)
-- `ASK_JOHAN_USAGE_STORE` (`memory` or `redis`)
-- `REDIS_URL` (required only when using `redis` store)
-- `ASK_JOHAN_REDIS_KEY_PREFIX` (optional)
-- `MAX_QUESTION_CHARS`
-- `ASK_JOHAN_DAILY_CAP`
+- `OPENAI_API_KEY`, `OPENAI_MODEL`, `PORT`
+- `JOHANSCV_ACCESS_CODE` (primary), `ASK_JOHAN_ACCESS_CODE` (deprecated fallback)
+- `JWT_SECRET`, `ASK_JOHAN_JWT_TTL`, `ASK_JOHAN_AUTH_COMPAT_MODE`
+- `ASK_JOHAN_AUTH_FAIL_WINDOW_MS`, `ASK_JOHAN_AUTH_FAIL_MAX`
+- `GEOJOHAN_MAPS_API_KEY`
+- `ASK_JOHAN_USAGE_STORE`, `REDIS_URL`, `ASK_JOHAN_REDIS_KEY_PREFIX`
+- `MAX_QUESTION_CHARS`, `ASK_JOHAN_DAILY_CAP`
 - `ALLOWED_ORIGINS`
-- `ASK_JOHAN_TIMEOUT_MS`
-- `ASK_JOHAN_RATE_LIMIT_WINDOW_MS`
-- `ASK_JOHAN_RATE_LIMIT_MAX`
-- One context source:
-  - `JOHAN_CONTEXT_B64` (recommended)
-  - `JOHAN_CONTEXT`
-  - `JOHAN_CONTEXT_FILE`
+- `ASK_JOHAN_TIMEOUT_MS`, `ASK_JOHAN_RATE_LIMIT_WINDOW_MS`, `ASK_JOHAN_RATE_LIMIT_MAX`
+- context sources: `JOHAN_CONTEXT_B64`, `JOHAN_CONTEXT`, `JOHAN_CONTEXT_FILE`
 
-Security note:
-- Never commit `.env*`, access codes, JWT secrets, OpenAI keys, or private context files.
+## Security Notes
 
-## Build & Verification
+- Never commit `.env*`, tokens, access codes, JWT secrets, OpenAI keys, or private context files.
+- Never print private context verbatim.
+- Treat all `VITE_*` variables as public in browser bundles.
+
+## Verification
 
 Frontend:
 
@@ -115,14 +136,14 @@ npm run smoke
 npm run build
 ```
 
-API tests:
+API:
 
 ```bash
 cd ask-johan-api
 npm test
 ```
 
-One-command verify (repo root):
+Repo-level:
 
 ```bash
 ./scripts/verify.sh
@@ -130,20 +151,20 @@ One-command verify (repo root):
 
 ## Secret Scan Before Push
 
-Preferred (if installed locally):
+Preferred:
 
 ```bash
 gitleaks detect --no-git --source . --redact
 ```
 
-Fallback (quick local heuristic scan):
+Fallback:
 
 ```bash
-rg -n --hidden --glob '!.git' '(?i)(api[_-]?key|secret|token|password|sk-[A-Za-z0-9]{20,}|-----BEGIN (RSA|EC|OPENSSH) PRIVATE KEY-----)'
+rg --hidden --glob '!.git' --files-with-matches '(?i)(api[_-]?key|secret|token|password|sk-[A-Za-z0-9]{20,}|-----BEGIN (RSA|EC|OPENSSH) PRIVATE KEY-----)' .
 ```
 
-## Deployment Quick Links
+## Deployment Docs
 
-- Frontend deploy instructions: `johanscv/DEPLOYMENT.md`
-- API deploy instructions: `ask-johan-api/DEPLOY_RENDER.md`
+- Frontend: `johanscv/DEPLOYMENT.md`
+- API: `ask-johan-api/DEPLOY_RENDER.md`
 - Operations runbook: `docs/ask-johan-operations-runbook.md`

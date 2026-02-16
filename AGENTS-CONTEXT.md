@@ -1,233 +1,149 @@
 # AGENTS-CONTEXT.md
 
-## Formål Med Denne Fil
-Denne fil giver AI-agenter et samlet overblik over hele projektet: hvad det er, hvorfor det er bygget sådan, hvordan det virker, hvem det er til, og hvordan man ændrer det sikkert uden at bryde produktion.
+## Purpose
+Single source of truth for AI agents working in this repo. Keep this file concise and current with deployed reality.
 
-Denne kontekst er skrevet ud fra den aktuelle repo-struktur og skal opdateres, når arkitektur eller deploy-flow ændres.
+## Active Architecture
 
-## Kort Projektbeskrivelse
-`johanscv.dk` er et personligt portfolio-site for Johan med to aktive dele:
+Services:
+1. Frontend SPA in `johanscv/` (Vite + Vanilla JS + Tailwind tooling), deployed to GitHub Pages.
+2. Backend API in `ask-johan-api/` (Node + Express + OpenAI), deployed to Render.
 
-1. Frontend (`johanscv/`):
-- Statisk SPA (Vite + Vanilla JS + Tailwind CSS styles).
-- Viser CV/projekter/kontakt/filer.
-- Indeholder:
-  - `Ask Johan` UI (chat-lignende interface).
-  - `GeoJohan` mini-game (Street View + map guessing).
+Legacy (not in active CI/deploy):
+1. `legacy/root-src/`
+2. root `public/`
 
-2. Backend (`ask-johan-api/`):
-- Node/Express API, deployet separat.
-- Håndterer autentificering, rate limits, daily cap, context-baserede svar via OpenAI.
+## Source-Of-Truth Files
 
-## Hvad Projektet Skal Bruges Til
-- Præsentere Johan professionelt (portfolio + CV + projekter).
-- Give besøgende en hurtig interaktiv måde at lære Johan at kende:
-  - via `Ask Johan` (AI-assistent med beskyttet kontekst),
-  - via `GeoJohan` (engagerende, personlig mini-oplevelse).
-- Understøtte både dansk og engelsk brugeroplevelse.
+Frontend:
+1. Entry: `johanscv/src/main.js`
+2. Router: `johanscv/src/router.js`
+3. Ask Johan client: `johanscv/src/components/AskJohan.js`
+4. GeoJohan page: `johanscv/src/pages/GeoJohan.js`
+5. Base path behavior: `johanscv/vite.config.js`
+6. Dev startup behavior: `johanscv/scripts/dev-fixed.sh`
 
-## Hvem Er Målgruppen
-- Recruiters/arbejdsgivere.
-- Samarbejdspartnere/netværk.
-- Venner/familie, som får adgang via site access code.
-- Johan selv (drift, opdateringer, indholdsvedligehold).
+API:
+1. Bootstrap/env wiring: `ask-johan-api/index.js`
+2. App/middleware/routes: `ask-johan-api/app.js`
+3. Usage/rate-limit store: `ask-johan-api/usage-store.js`
+4. Tests: `ask-johan-api/test/api.test.js`
 
-## Hvorfor Arkitekturen Er Delt
-Projektet er bevidst delt i statisk frontend + separat API:
+Deploy/CI:
+1. Render blueprint: `render.yaml`
+2. CI gate: `.github/workflows/ci.yml`
+3. Repo verification: `scripts/verify.sh`
 
-- Frontend på GitHub Pages er billigt, simpelt og stabilt for statisk indhold.
-- API på Render holder hemmeligheder server-side (OpenAI key, JWT signing, privat kontekst).
-- Sikkerhedslogik (auth, limits, CORS, prompt-guardrails) ligger i backend, ikke i browserkode.
-- Hurtig iteration: frontend kan deployes uafhængigt af API.
+## Data Flow And Contracts
 
-## Aktiv Arkitektur (As-Is)
+Auth flow:
+1. Frontend gate collects access code.
+2. Frontend calls `POST /auth/login` with `{ accessCode }`.
+3. API returns JWT bearer token.
 
-### Frontend
-Placering: `johanscv/`
+Protected calls:
+1. `POST /api/ask-johan` with `Authorization: Bearer <token>`, body `{ question }`.
+2. `GET /api/geojohan/maps-key` with `Authorization: Bearer <token>`.
 
-Teknologi:
-- Vite (`johanscv/vite.config.js`)
-- Vanilla JS moduler
-- CSS + Tailwind tooling (ingen React/Vue runtime)
+Quick contract reference:
+1. `POST /auth/login`
+   - request: `{ "accessCode": "..." }`
+   - success: `{ "token": "...", "tokenType": "Bearer", "expiresIn": "7d", "legacyAccessCodeAccepted": boolean }`
+   - error: `{ "answer": "..." }`
+2. `POST /api/ask-johan`
+   - request: `{ "question": "..." }`
+   - success: `{ "answer": "..." }`
+   - error: `{ "answer": "..." }`
+3. `GET /api/geojohan/maps-key`
+   - success: `{ "mapsApiKey": "..." }`
+   - error: `{ "answer": "..." }`
 
-Entrypoints:
-- `johanscv/src/main.js`
-- `johanscv/src/router.js`
+Security controls in API:
+1. Strict CORS allowlist (`ALLOWED_ORIGINS`) plus localhost dev origin support.
+2. Failed-auth throttling (`ASK_JOHAN_AUTH_FAIL_*`).
+3. Per-IP rate limit (`ASK_JOHAN_RATE_LIMIT_*`).
+4. Per-IP daily cap (`ASK_JOHAN_DAILY_CAP`).
+5. Prompt/context exfiltration refusal patterns.
 
-Ruter:
-- `/` home
-- `/projects`
-- `/resume`
-- `/contact`
-- `/playground`
-- `/quiz` (alias til playground)
-- `/quiz/geojohan`
-
-Vigtige frontend-komponenter:
-- `src/components/AskJohan.js`
-- `src/pages/GeoJohan.js`
-- `src/components/WelcomeGate.js`
-- `src/components/Navbar.js`, `Footer.js`
-- `src/data/translations.json` (DK/EN tekst)
-
-State og UI-mønster:
-- Global state i `src/state.js` (tema, sprog, route).
-- Routing via History API i `src/router.js`.
-- Page transitions og section reveal-animationer i CSS/komponenter.
-
-### Backend
-Placering: `ask-johan-api/`
-
-Teknologi:
-- Node 20
-- Express
-- OpenAI SDK (Responses API)
-- JWT (`jsonwebtoken`)
-- Helmet, CORS, express-rate-limit
-- In-memory eller Redis usage store
-
-Entrypoints:
-- `ask-johan-api/index.js` (bootstrap + env wiring)
-- `ask-johan-api/app.js` (app factory + middleware + routes)
-
-Endpoints:
-- `GET /health`
-- `GET /`
-- `POST /auth/login`
-- `POST /api/ask-johan`
-
-Usage store:
-- `ask-johan-api/usage-store.js`
-- Mode: `memory` eller `redis`
-
-## Request/Data Flow
-Normal Ask-flow (API mode):
-
-1. Bruger åbner frontend og unlocker site (WelcomeGate).
-2. Frontend sender access code til `POST /auth/login`.
-3. API returnerer JWT.
-4. Frontend kalder `POST /api/ask-johan` med `Authorization: Bearer <token>`.
-5. API validerer auth, content-type, input-længde, rate-limit og daily cap.
-6. API sender prompt + kontekst til OpenAI.
-7. API returnerer `{ answer }`.
-
-GeoJohan-flow:
-
-1. Frontend henter GeoJohan maps key fra API endpoint (`/api/geojohan/maps-key`) efter login.
-2. Runder + koordinater hentes fra `src/data/geojohanRounds.js` + `VITE_GEOJOHAN_*` env værdier.
-3. Bruger gætter på kort, distance/points beregnes client-side.
-
-## Sikkerhedsmodel (Kritisk)
-
-### Backend-sikkerhed
-- JWT-baseret auth for protected endpoint.
-- Legacy `x-access-code` kan toggles via `ASK_JOHAN_AUTH_COMPAT_MODE`.
-- Strikt CORS allowlist via `ALLOWED_ORIGINS` + localhost-dev undtagelse.
-- Rate-limit per IP.
-- Daily cap per IP.
-- Strammere throttling på fejlede auth-forsøg.
-- Input sanitization + max længde.
-- Prompt-injection/context-exfiltration guardrails i `app.js`.
-
-### Kontekstbeskyttelse
-- Privat kontekst må aldrig deles verbatim.
-- API-instruktioner siger eksplicit: opsummer, ikke afslør rå intern tekst.
-- Direkte forsøg på prompt/context dump afvises.
-
-### Frontend- og nøglehåndtering
-- Alt `VITE_*` er offentligt i browser-bundle.
-- Google Maps browser-key er ikke hemmelig; den skal beskyttes med referrer/API restrictions i Google Cloud.
-- OpenAI keys/JWT secret/access code til backend må aldrig i frontend.
-
-## Miljøvariabler (Koncepter)
+## Environment Variables (Names Only)
 
 Frontend (`johanscv/.env.local`):
-- Mode/base URL/access code.
-- Google Maps key.
-- GeoJohan round data + summary tekster.
+1. `VITE_ASK_JOHAN_MODE`
+2. `VITE_API_BASE_URL`
+3. Optional `VITE_GEOJOHAN_ROUND{N}_*` and `VITE_GEOJOHAN_ROUND{N}_SUMMARY_*`
 
-Backend (`ask-johan-api/.env` / Render env vars):
-- OpenAI, auth, JWT, limits, CORS.
-- Context source (`JOHAN_CONTEXT_B64` anbefalet i hosted miljø).
-- Optional Redis config.
+Backend (`ask-johan-api/.env` or Render env):
+1. `OPENAI_API_KEY`, `OPENAI_MODEL`, `PORT`
+2. `JOHANSCV_ACCESS_CODE` (primary), `ASK_JOHAN_ACCESS_CODE` (deprecated fallback)
+3. `JWT_SECRET`, `ASK_JOHAN_JWT_TTL`, `ASK_JOHAN_AUTH_COMPAT_MODE`
+4. `ASK_JOHAN_AUTH_FAIL_WINDOW_MS`, `ASK_JOHAN_AUTH_FAIL_MAX`
+5. `GEOJOHAN_MAPS_API_KEY`
+6. `ASK_JOHAN_DAILY_CAP`, `ASK_JOHAN_RATE_LIMIT_WINDOW_MS`, `ASK_JOHAN_RATE_LIMIT_MAX`
+7. `ASK_JOHAN_TIMEOUT_MS`, `MAX_QUESTION_CHARS`
+8. `ALLOWED_ORIGINS`
+9. `ASK_JOHAN_USAGE_STORE`, `REDIS_URL`, `ASK_JOHAN_REDIS_KEY_PREFIX`
+10. Context source priority:
+   - `JOHAN_CONTEXT_B64`
+   - `JOHAN_CONTEXT`
+   - `JOHAN_CONTEXT_FILE`
+   - local `johan-context.private.md`
+   - fallback `johan-context.md`
 
-Se de konkrete lister i:
-- `README.md`
-- `johanscv/README.md`
-- `ask-johan-api/.env.example`
-- `johanscv/.env.local.example`
+## Non-Negotiable Safety Rules
 
-## Deploy-Model
+1. Never reveal private context verbatim (especially `johan-context.private.md`).
+2. Never leak secrets/tokens/access codes in outputs/logs/docs.
+3. Never move server secrets into frontend code.
+4. Treat all `VITE_*` values as public at runtime.
+5. Keep CORS/auth/throttling/rate-limit/context-protection enabled.
 
-Frontend:
-- Deploy via `cd johanscv && npm run deploy`
-- Publicering til `gh-pages` branch (GitHub Pages).
+Operational docs:
+1. Deploy/API setup: `ask-johan-api/DEPLOY_RENDER.md`
+2. Incident/runbook/key rotation/rate-limit tuning: `docs/ask-johan-operations-runbook.md`
 
-Backend:
-- Deploy via Render blueprint (`render.yaml`, `rootDir: ask-johan-api`).
-- Runtime env vars sættes i Render dashboard.
+## Local Run Checklist
 
-CI:
-- `.github/workflows/ci.yml`
-- Frontend: `lint + smoke + build`
-- API: `npm test`
+1. API:
+   - `cd ask-johan-api`
+   - `cp .env.example .env` (only if missing)
+   - `npm ci`
+   - `npm run dev`
+   - health: `curl -s http://127.0.0.1:8787/health`
 
-## Lokal Kørsel (Praktisk)
-- Frontend standard (root-sti): `cd johanscv && npm run dev`
-  - URL: `http://localhost:5173/`
-- Frontend GitHub Pages base-sti lokalt: `cd johanscv && CUSTOM_DOMAIN=false npm run dev`
-  - URL: `http://localhost:5173/johanscv.dk/`
-- API: `cd ask-johan-api && npm run dev`
-  - Health: `http://127.0.0.1:8787/health`
+2. Frontend (root URL local):
+   - `cd johanscv`
+   - `cp .env.local.example .env.local` (only if missing)
+   - `npm ci`
+   - `npm run dev`
+   - open `http://localhost:5173/`
 
-## Aktiv vs Legacy
-Aktive områder:
-- `johanscv/`
-- `ask-johan-api/`
-- `.github/workflows/ci.yml`
-- `render.yaml`
+3. GitHub Pages base-path emulation local:
+   - `cd johanscv && CUSTOM_DOMAIN=false npm run dev`
+   - open `http://localhost:5173/johanscv.dk/`
 
-Legacy/ikke-produktionskritisk:
-- `legacy/root-src/`
-- root `public/`
+## Verification Checklist
 
-Bemærk:
-- Root build artifacts (`/assets`, `/index.html`) skal ikke committes.
+1. Frontend:
+   - `cd johanscv && npm run lint`
+   - `cd johanscv && npm run smoke`
+   - `cd johanscv && npm run build`
 
-## Designintention (UI/UX)
-- Clean, moderne, rolig portfolio-stil.
-- Subtile animationer fremfor tunge effekter.
-- Høj læsbarhed og professionel tone.
-- Konsistent look mellem Ask Johan og GeoJohan.
-- Mobil + desktop skal begge fungere.
+2. API:
+   - `cd ask-johan-api && npm test`
 
-## Drift Og Verifikation
-Standard verifikation før større ændringer:
+3. Repo gate:
+   - `./scripts/verify.sh`
 
-Frontend:
-- `cd johanscv && npm run lint`
-- `cd johanscv && npm run smoke`
-- `cd johanscv && npm run build`
+## Common Pitfalls
 
-Backend:
-- `cd ask-johan-api && npm test`
-
-Repo samlet:
-- `./scripts/verify.sh`
-
-## Agent-Arbejdsregler (Projekt-Specifik)
-- Antag ikke struktur fra hukommelse; læs filer først.
-- Lav små, reversible ændringer.
-- Bevar API-kontrakter medmindre der er eksplicit krav om ændring.
-- Dokumentér env/deploy-effekt når adfærd ændres.
-- Kør relevante checks før du erklærer noget “færdigt”.
-- Commit/push/deploy kun med eksplicit brugeraccept.
-- Aldrig committe hemmeligheder, tokens, `.env` eller private kontekstfiler.
-
-## Hvornår Denne Fil Skal Opdateres
-Opdater filen når mindst ét af disse ændres:
-- Route-struktur eller app entrypoints.
-- Auth/CORS/rate-limit/security-model.
-- Env vars (nye, fjernede eller ændret betydning).
-- Deploy-flow (GitHub Pages/Render/CI).
-- Aktiv/legacy mappegrænse.
+1. Base path mismatch:
+   - Production GitHub Pages uses `/johanscv.dk/`.
+   - Local default should be `/` via `npm run dev`.
+2. CORS mismatch:
+   - `ALLOWED_ORIGINS` must include exact production origins.
+3. Env precedence confusion:
+   - API context uses `JOHAN_CONTEXT_B64` first; file fallback is last.
+4. Security assumption error:
+   - site access code in frontend storage is not a secure secret by itself; real enforcement is server-side login + JWT.
+5. Legacy confusion:
+   - do not treat `legacy/` or root `public/` as active runtime code.
