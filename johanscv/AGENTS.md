@@ -49,6 +49,7 @@
   - `npm run smoke`
   - `npm run build`
 - If runtime behavior changed, also run `npm run dev` smoke and report local URL.
+- Never commit/push without explicit Johan approval.
 - Final summary must list:
   - changed files,
   - commands + pass/fail,

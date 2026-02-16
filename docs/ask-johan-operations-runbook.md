@@ -52,3 +52,24 @@ From repo root:
 ```
 
 This runs frontend build, API tests, and an API smoke flow (`/health` + `/auth/login` + protected ask).
+
+## 6) Secret rotation playbook (high level)
+
+Use this whenever a key/code may have leaked.
+
+1. Rotate secrets in providers first:
+- OpenAI API key (OpenAI dashboard).
+- Google Maps browser key (Google Cloud Console).
+- Render env vars: `ASK_JOHAN_ACCESS_CODE`, `JWT_SECRET`, and any context/env secrets.
+
+2. Update runtime config:
+- Render: set new values in Environment Variables and redeploy.
+- Local dev: update `.env` / `.env.local` (never commit these files).
+
+3. Invalidate stale sessions:
+- Rotating `JWT_SECRET` forces re-login (old JWTs become invalid).
+- Rotating `ASK_JOHAN_ACCESS_CODE` requires frontend `VITE_SITE_ACCESS_CODE` to match.
+
+4. Verify:
+- Run `./scripts/verify.sh`.
+- Confirm `/auth/login` works and protected ask endpoint returns `200`.

@@ -47,8 +47,8 @@ npm run dev
 ```
 
 5. Open:
-   - `http://localhost:5173/johanscv.dk/` (default base path)
-   - or, if started with `CUSTOM_DOMAIN=true npm run dev`, open `http://localhost:5173/`
+   - `http://localhost:5173/` (default)
+   - or, if started with `CUSTOM_DOMAIN=false npm run dev`, open `http://localhost:5173/johanscv.dk/`
    - GeoJohan route: `/quiz/geojohan` (from Quiz landing on `/quiz` or `/playground`)
 
 ### 2) Backend setup (Ask Johan API)

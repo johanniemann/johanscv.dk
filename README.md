@@ -31,6 +31,8 @@ Notes:
 
 ## Local Development
 
+Recommended Node version: `20.x` (matches CI and Render).
+
 ### Frontend
 
 ```bash
@@ -40,7 +42,16 @@ cp .env.local.example .env.local
 npm run dev
 ```
 
-Default local URL with current base path:
+Default local URL (`npm run dev`):
+- `http://localhost:5173/`
+
+Optional GitHub Pages base emulation locally:
+
+```bash
+cd johanscv
+CUSTOM_DOMAIN=false npm run dev
+```
+
 - `http://localhost:5173/johanscv.dk/`
 
 ### API
@@ -89,6 +100,9 @@ API (`ask-johan-api/.env`):
   - `JOHAN_CONTEXT_B64` (recommended)
   - `JOHAN_CONTEXT`
   - `JOHAN_CONTEXT_FILE`
+
+Security note:
+- Never commit `.env*`, access codes, JWT secrets, OpenAI keys, or private context files.
 
 ## Build & Verification
 

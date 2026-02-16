@@ -59,6 +59,7 @@
   - `/health`
   - `/auth/login`
   - protected `POST /api/ask-johan`
+- Never commit/push without explicit Johan approval.
 - Final summary must include:
   - changed files,
   - commands + pass/fail,

@@ -3,6 +3,9 @@ set -euo pipefail
 
 PORT=5173
 HOST=127.0.0.1
+# Keep local dev at root URL by default (http://localhost:5173/).
+# Override with CUSTOM_DOMAIN=false to emulate GitHub Pages base path locally.
+export CUSTOM_DOMAIN="${CUSTOM_DOMAIN:-true}"
 
 pids="$(lsof -ti "tcp:${PORT}" -sTCP:LISTEN 2>/dev/null || true)"
 if [[ -n "${pids}" ]]; then

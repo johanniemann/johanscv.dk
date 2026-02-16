@@ -172,6 +172,14 @@ CI:
 - Frontend: `lint + smoke + build`
 - API: `npm test`
 
+## Lokal Kørsel (Praktisk)
+- Frontend standard (root-sti): `cd johanscv && npm run dev`
+  - URL: `http://localhost:5173/`
+- Frontend GitHub Pages base-sti lokalt: `cd johanscv && CUSTOM_DOMAIN=false npm run dev`
+  - URL: `http://localhost:5173/johanscv.dk/`
+- API: `cd ask-johan-api && npm run dev`
+  - Health: `http://127.0.0.1:8787/health`
+
 ## Aktiv vs Legacy
 Aktive områder:
 - `johanscv/`
@@ -213,7 +221,7 @@ Repo samlet:
 - Bevar API-kontrakter medmindre der er eksplicit krav om ændring.
 - Dokumentér env/deploy-effekt når adfærd ændres.
 - Kør relevante checks før du erklærer noget “færdigt”.
-- Push/deploy kun med eksplicit brugeraccept.
+- Commit/push/deploy kun med eksplicit brugeraccept.
 - Aldrig committe hemmeligheder, tokens, `.env` eller private kontekstfiler.
 
 ## Hvornår Denne Fil Skal Opdateres
@@ -223,4 +231,3 @@ Opdater filen når mindst ét af disse ændres:
 - Env vars (nye, fjernede eller ændret betydning).
 - Deploy-flow (GitHub Pages/Render/CI).
 - Aktiv/legacy mappegrænse.
-

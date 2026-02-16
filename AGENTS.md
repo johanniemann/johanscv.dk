@@ -41,6 +41,10 @@
 - Keep UX/design language consistent with current site.
 - If uncertain, inspect files and state uncertainty explicitly.
 
+## Git Rule (Mandatory)
+- Never commit or push without explicit Johan approval in the current thread.
+- Keep diffs small and logically grouped so they are easy to review.
+
 ## Definition Of Done
 - Run relevant commands and report pass/fail.
 - Minimum verification for cross-cutting changes:
