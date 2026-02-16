@@ -8,6 +8,26 @@ SMOKE_PORT="${ASK_JOHAN_VERIFY_PORT:-8788}"
 HEALTH_URL="http://127.0.0.1:${SMOKE_PORT}/health"
 LOGIN_URL="http://127.0.0.1:${SMOKE_PORT}/auth/login"
 ASK_URL="http://127.0.0.1:${SMOKE_PORT}/api/ask-johan"
+EXPECTED_NODE_MAJOR=20
+
+NODE_VERSION_RAW="$(node -v 2>/dev/null || true)"
+if [[ "$NODE_VERSION_RAW" =~ ^v([0-9]+)\. ]]; then
+  NODE_MAJOR="${BASH_REMATCH[1]}"
+  if [[ "$NODE_MAJOR" != "$EXPECTED_NODE_MAJOR" ]]; then
+    echo "[verify] Warning: running Node ${NODE_VERSION_RAW}. Expected major ${EXPECTED_NODE_MAJOR} (see .nvmrc/CI/Render)."
+  fi
+else
+  echo "[verify] Warning: unable to detect Node version."
+fi
+
+echo "[verify] Guardrail: Node/runtime alignment"
+"$ROOT_DIR/scripts/check-node-alignment.sh"
+
+echo "[verify] Guardrail: docs sync"
+"$ROOT_DIR/scripts/check-doc-sync.sh"
+
+echo "[verify] Guardrail: secret scan (tracked files)"
+"$ROOT_DIR/scripts/scan-secrets.sh"
 
 echo "[verify] Frontend lint"
 (cd "$FRONTEND_DIR" && npm run lint)
@@ -17,6 +37,9 @@ echo "[verify] Frontend smoke"
 
 echo "[verify] Frontend build"
 (cd "$FRONTEND_DIR" && npm run build)
+
+echo "[verify] Frontend bundle budget"
+(cd "$FRONTEND_DIR" && npm run check:bundle)
 
 echo "[verify] API tests"
 (cd "$API_DIR" && npm test)
@@ -83,7 +106,6 @@ LOGIN_STATUS="$(
 
 if [[ "$LOGIN_STATUS" != "200" ]]; then
   echo "[verify] Smoke failed: /auth/login returned $LOGIN_STATUS"
-  cat "$TMP_DIR/login.json" || true
   exit 1
 fi
 
@@ -102,7 +124,6 @@ TOKEN="$(
 
 if [[ -z "$TOKEN" ]]; then
   echo "[verify] Smoke failed: /auth/login did not return token"
-  cat "$TMP_DIR/login.json" || true
   exit 1
 fi
 
@@ -116,7 +137,6 @@ ASK_STATUS="$(
 
 if [[ "$ASK_STATUS" != "200" ]]; then
   echo "[verify] Smoke failed: protected ask returned $ASK_STATUS"
-  cat "$TMP_DIR/ask.json" || true
   exit 1
 fi
 

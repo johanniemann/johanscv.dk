@@ -18,7 +18,7 @@ Personal CV website built with Vite, Vanilla JS, and Tailwind CSS.
 
 1. Install dependencies:
 ```bash
-npm install
+npm ci
 ```
 
 2. Create local env file:
@@ -68,7 +68,7 @@ In a second terminal:
 
 ```bash
 cd ../ask-johan-api
-npm install
+npm ci
 cp .env.example .env
 ```
 
@@ -92,7 +92,7 @@ Fill `.env`:
 Start API:
 
 ```bash
-npm run start
+npm run dev
 ```
 
 Health check:
@@ -105,6 +105,15 @@ curl -s http://127.0.0.1:8787/health
 
 ```bash
 npm run build
+npm run check:bundle
+```
+
+Node runtime alignment:
+- expected major: `20` (`../.nvmrc`, CI, Render).
+- if needed, run:
+
+```bash
+nvm use 20
 ```
 
 Optional local preview:

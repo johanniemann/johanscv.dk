@@ -3,14 +3,21 @@
 ## Development Workflow
 
 1. Make focused changes in the relevant app folder (`johanscv/` or `ask-johan-api/`).
-2. Verify locally before opening a PR:
+2. Align local runtime to Node 20 before release verification:
+   - `nvm use 20`
+3. Verify locally before opening a PR:
    - Fast path: `./scripts/verify.sh`
    - Manual split:
-     - Frontend: `cd johanscv && npm run lint && npm run smoke && npm run build`
+     - Frontend: `cd johanscv && npm run lint && npm run smoke && npm run build && npm run check:bundle`
      - API: `cd ask-johan-api && npm test`
-3. Keep secrets out of Git:
+   - Guardrails:
+     - `./scripts/check-node-alignment.sh`
+     - `./scripts/check-doc-sync.sh`
+     - `./scripts/scan-secrets.sh`
+4. Keep secrets out of Git:
    - Use `.env` files locally
    - Use Render/GitHub secret settings for hosted values
+   - Exception: `johanscv/.env.production` is tracked and must contain only non-secret public frontend values
 
 ## Commit Scope
 
@@ -36,7 +43,7 @@
 
 ## Secret Scanning (Local)
 
-- Preferred:
+- Default:
+  - `./scripts/scan-secrets.sh`
+- Optional stronger local scan (if gitleaks is installed):
   - `gitleaks detect --no-git --source . --redact`
-- Fallback:
-  - `rg -n --hidden --glob '!.git' '(?i)(api[_-]?key|secret|token|password|sk-[A-Za-z0-9]{20,}|-----BEGIN (RSA|EC|OPENSSH) PRIVATE KEY-----)'`

@@ -10,10 +10,10 @@ Personal website stack with two active production services:
 | --- | --- | --- |
 | `johanscv/` | Frontend SPA (Vite + Vanilla JS + Tailwind tooling) | Active |
 | `ask-johan-api/` | Ask Johan + GeoJohan API (Node/Express/OpenAI) | Active |
-| `.github/workflows/ci.yml` | CI quality gate (frontend lint/smoke/build + API tests) | Active |
+| `.github/workflows/ci.yml` | CI quality gate (repo guardrails + frontend lint/smoke/build/budget + API tests + dependency audit) | Active |
 | `render.yaml` | Render blueprint (`rootDir: ask-johan-api`) | Active |
 | `legacy/root-src/` | Previous frontend prototype source | Legacy |
-| `public/` | Previous root-level public folder (now empty legacy placeholder) | Legacy |
+| `public/` | Previous root-level static assets (legacy reference files) | Legacy |
 | `docs/` | Operational docs/runbooks | Active |
 | `scripts/verify.sh` | Repo-level verify script | Active |
 
@@ -73,6 +73,12 @@ Browser flow in API mode:
 
 Expected Node version: `20.x` (CI + Render use Node 20).
 
+If your local machine is on a different major version, switch before verification:
+
+```bash
+nvm use 20
+```
+
 ### Frontend (`johanscv/`)
 
 ```bash
@@ -115,6 +121,9 @@ curl -s http://127.0.0.1:8787/health
 Frontend (`johanscv/.env.local`):
 - `VITE_ASK_JOHAN_MODE`
 - `VITE_API_BASE_URL`
+- optional local dev convenience:
+  - `VITE_DEV_AUTO_LOGIN`
+  - `VITE_DEV_ACCESS_CODE`
 - optional GeoJohan round/summary vars:
   - `VITE_GEOJOHAN_ROUND{N}_TITLE`
   - `VITE_GEOJOHAN_ROUND{N}_PANO_LAT`, `VITE_GEOJOHAN_ROUND{N}_PANO_LNG`, `VITE_GEOJOHAN_ROUND{N}_PANO_ID`
@@ -135,9 +144,14 @@ API (`ask-johan-api/.env`):
 - `ASK_JOHAN_TIMEOUT_MS`, `ASK_JOHAN_RATE_LIMIT_WINDOW_MS`, `ASK_JOHAN_RATE_LIMIT_MAX`
 - context sources: `JOHAN_CONTEXT_B64`, `JOHAN_CONTEXT`, `JOHAN_CONTEXT_FILE`
 
+Frontend production build config (`johanscv/.env.production`):
+- `VITE_ASK_JOHAN_MODE`
+- `VITE_API_BASE_URL`
+
 ## Security Notes
 
-- Never commit `.env*`, tokens, access codes, JWT secrets, OpenAI keys, or private context files.
+- Never commit secret env files (`.env`, `.env.local`, API private context files), tokens, access codes, JWT secrets, or OpenAI keys.
+- `johanscv/.env.production` is intentionally tracked and must only contain non-secret public frontend build values.
 - Never print private context verbatim.
 - Treat all `VITE_*` variables as public in browser bundles.
 
@@ -150,6 +164,7 @@ cd johanscv
 npm run lint
 npm run smoke
 npm run build
+npm run check:bundle
 ```
 
 API:
@@ -162,6 +177,9 @@ npm test
 Repo-level:
 
 ```bash
+./scripts/check-node-alignment.sh
+./scripts/check-doc-sync.sh
+./scripts/scan-secrets.sh
 ./scripts/verify.sh
 ```
 
@@ -172,6 +190,10 @@ Preferred:
 ```bash
 gitleaks detect --no-git --source . --redact
 ```
+
+Note:
+- local `.env` files can appear as findings when scanning the whole working tree.
+- do not commit `.env` files; scan staged files before push when in doubt.
 
 Fallback:
 

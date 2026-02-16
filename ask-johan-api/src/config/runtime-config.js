@@ -29,7 +29,9 @@ export function readRuntimeConfig(env = process.env) {
   const { jwtSecret, jwtSecretSource } = resolveJwtSecret(env.JWT_SECRET, accessCode, accessCodeSource, {
     allowFallback: !isProduction
   })
-  const allowedOrigins = parseAllowedOrigins(env.ALLOWED_ORIGINS || 'https://johanniemann.github.io,https://johanscv.dk')
+  const allowedOrigins = parseAllowedOrigins(
+    env.ALLOWED_ORIGINS || 'https://johanniemann.github.io,https://johanscv.dk,https://www.johanscv.dk'
+  )
   const apiKey = env.OPENAI_API_KEY
 
   return {

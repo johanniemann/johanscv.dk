@@ -3,6 +3,7 @@
 ## GitHub Pages (active)
 
 Site URL:
+- `https://johanscv.dk/`
 - `https://johanniemann.github.io/johanscv.dk/`
 
 Deploy command:
@@ -18,15 +19,16 @@ Build behavior:
 1. Push your latest code to GitHub.
 2. Run deploy from `johanscv/`:
    - `cd /Users/johanniemannhusbjerg/Desktop/WEBSITE/johanscv`
-   - `npm run deploy`
-3. For custom domain builds:
    - `CUSTOM_DOMAIN=true npm run deploy`
+3. For GitHub Pages base-path testing build (non-custom-domain):
+   - `CUSTOM_DOMAIN=false npm run build`
 4. In GitHub repo settings:
    - `Settings -> Pages`
    - Source: `Deploy from a branch`
    - Branch: `gh-pages`
    - Folder: `/ (root)`
 5. Open:
+   - `https://johanscv.dk/`
    - `https://johanniemann.github.io/johanscv.dk/`
 
 ## Ask Johan Mode
