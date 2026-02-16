@@ -19,7 +19,11 @@
       "continue": "Continue",
       "passwordLabel": "Site access code",
       "passwordPlaceholder": "Enter access code",
-      "passwordError": "Invalid access code. Please try again."
+      "passwordError": "Invalid access code. Please try again.",
+      "passwordRateLimited": "Too many login attempts. Please wait a few minutes and try again.",
+      "passwordForbidden": "This site origin is not allowed right now. Please contact Johan.",
+      "passwordUnavailable": "Authentication service is temporarily unavailable. Please try again shortly.",
+      "passwordNetwork": "Could not reach authentication service. Check your connection and try again."
     },
     "ask": {
       "title": "Ask Johan",
@@ -169,7 +173,11 @@
       "continue": "Fortsæt",
       "passwordLabel": "Adgangskode til siden",
       "passwordPlaceholder": "Indtast adgangskode",
-      "passwordError": "Ugyldig adgangskode. Prøv igen."
+      "passwordError": "Ugyldig adgangskode. Prøv igen.",
+      "passwordRateLimited": "For mange loginforsøg. Vent et par minutter og prøv igen.",
+      "passwordForbidden": "Dette domæne er ikke tilladt lige nu. Kontakt Johan.",
+      "passwordUnavailable": "Login-servicen er midlertidigt utilgængelig. Prøv igen om lidt.",
+      "passwordNetwork": "Kunne ikke nå login-servicen. Tjek din forbindelse og prøv igen."
     },
     "ask": {
       "title": "Spørg Johan",

@@ -219,8 +219,8 @@ function renderWelcomeGate() {
 
   bindWelcomeGate(async (accessCode) => {
     const accessCheck = await validateSiteAccessCode(accessCode)
-    if (!accessCheck) {
-      return { ok: false, message: t.welcome.passwordError }
+    if (!accessCheck?.ok) {
+      return { ok: false, message: resolveWelcomeAccessErrorMessage(t, accessCheck) }
     }
 
     localStorage.setItem(ACCESS_CODE_KEY, accessCode)
@@ -237,18 +237,27 @@ function renderWelcomeGate() {
 }
 
 async function validateSiteAccessCode(accessCode) {
-  if (!accessCode) return false
+  if (!accessCode) {
+    return {
+      ok: false,
+      status: 400
+    }
+  }
   if (API_MODE && API_BASE) {
     return validateAccessCodeWithApi(accessCode)
   }
-  return true
+  return {
+    ok: true,
+    status: 200
+  }
 }
 
 async function hasValidSiteAccess() {
   const hasSiteAccess = localStorage.getItem(SITE_ACCESS_KEY) === 'true'
   const savedAccessCode = localStorage.getItem(ACCESS_CODE_KEY)?.trim() || ''
   if (!hasSiteAccess || !savedAccessCode) return false
-  return validateSiteAccessCode(savedAccessCode)
+  const accessCheck = await validateSiteAccessCode(savedAccessCode)
+  return Boolean(accessCheck?.ok)
 }
 
 function getTranslations(language) {
@@ -323,10 +332,28 @@ async function validateAccessCodeWithApi(accessCode) {
       },
       body: JSON.stringify({ accessCode })
     })
-    return response.ok
+    const payload = await parseJsonSafely(response)
+    return {
+      ok: response.ok,
+      status: response.status,
+      answer: typeof payload?.answer === 'string' ? payload.answer.trim() : ''
+    }
   } catch {
-    return false
+    return {
+      ok: false,
+      status: 0
+    }
   }
+}
+
+function resolveWelcomeAccessErrorMessage(t, accessCheck) {
+  const status = Number(accessCheck?.status || 0)
+  if (status === 401 || status === 400) return t.welcome.passwordError
+  if (status === 429) return t.welcome.passwordRateLimited || t.welcome.passwordError
+  if (status === 403) return t.welcome.passwordForbidden || t.welcome.passwordError
+  if (status >= 500) return t.welcome.passwordUnavailable || t.welcome.passwordError
+  if (status === 0) return t.welcome.passwordNetwork || t.welcome.passwordError
+  return t.welcome.passwordError
 }
 
 function fetchWithTimeout(url, options) {
@@ -339,4 +366,12 @@ function fetchWithTimeout(url, options) {
   }).finally(() => {
     window.clearTimeout(timeoutId)
   })
+}
+
+async function parseJsonSafely(response) {
+  try {
+    return await response.json()
+  } catch {
+    return null
+  }
 }
