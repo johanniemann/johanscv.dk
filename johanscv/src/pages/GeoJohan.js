@@ -416,6 +416,7 @@ function showSummary(state, refs, t, language) {
   setActionMode(refs, 'hidden')
   setReviewingState(refs, false)
   const maxScore = state.rounds.length * SCORE_CURVE[0].points
+  const summaryDistanceLabel = t.geojohan.distanceFromGuessLabel || t.geojohan.distanceLabel
   refs.total.textContent = `${t.geojohan.totalScoreLabel}: ${state.totalScore}/${maxScore}`
   refs.summaryList.innerHTML = state.roundResults
     .map((result) => {
@@ -426,7 +427,7 @@ function showSummary(state, refs, t, language) {
           <h4 class="project-title">${roundEmoji ? `${roundEmoji} ` : ''}${result.title}</h4>
           ${locationInfo?.address ? `<p class="project-summary geojohan-summary-address">${locationInfo.address}</p>` : ''}
           ${locationInfo?.context ? `<p class="project-summary geojohan-summary-context">${locationInfo.context}</p>` : ''}
-          <p class="project-summary">${t.geojohan.distanceLabel}: ${formatDistanceKm(result.distanceKm)}</p>
+          <p class="project-summary">${summaryDistanceLabel}: ${formatDistanceKm(result.distanceKm)}</p>
           <p class="project-summary">${t.geojohan.pointsLabel}: ${result.points}</p>
         </article>
       `
