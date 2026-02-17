@@ -161,7 +161,7 @@
     "footer": {
       "builtWith": "Built with Vite, Tailwind, and Vanilla JavaScript.",
       "rights": "All rights reserved.",
-      "playground": "Experimental Playground",
+      "playground": "Playground",
       "infoButtonAria": "Open website build information",
       "infoKicker": "Behind the build",
       "infoTitle": "How this site is built",
@@ -339,7 +339,7 @@
     "footer": {
       "builtWith": "Bygget med Vite, Tailwind og Vanilla JavaScript.",
       "rights": "Alle rettigheder forbeholdes.",
-      "playground": "Eksperimentelt Playground",
+      "playground": "Playground",
       "infoButtonAria": "Åbn information om hvordan websitet er bygget",
       "infoKicker": "Bag kulissen",
       "infoTitle": "Sådan er sitet bygget",
