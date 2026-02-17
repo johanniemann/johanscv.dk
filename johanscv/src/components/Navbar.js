@@ -20,6 +20,12 @@ export function Navbar({ route, t }) {
 function navLink(path, label, currentRoute, extraClass = '') {
   const key = path === '/' ? 'home' : path.slice(1)
   const baseClass = `nav-link nav-link-${key} ${extraClass}`.trim()
-  const active = currentRoute === path ? `${baseClass} active` : baseClass
+  const active = isNavActiveRoute(path, currentRoute) ? `${baseClass} active` : baseClass
   return `<a class="${active}" href="${path}" data-link>${label}</a>`
+}
+
+function isNavActiveRoute(linkPath, currentRoute) {
+  if (!linkPath || !currentRoute) return false
+  if (linkPath === '/') return currentRoute === '/'
+  return currentRoute === linkPath || currentRoute.startsWith(`${linkPath}/`)
 }

@@ -56,8 +56,8 @@ export function render({ t, language }) {
           </article>
           <article class="qual-card">
             <h4 class="qual-title">${t.resume.personalQualities}</h4>
-            <ul class="qual-list">
-              ${data.qualifications.personal.map(listItem).join('')}
+            <ul class="qual-list qual-list-personal">
+              ${data.qualifications.personal.map(personalQualityItem).join('')}
             </ul>
           </article>
         </div>
@@ -99,4 +99,34 @@ function voluntaryItem(item) {
 
 function listItem(item) {
   return `<li>${item}</li>`
+}
+
+function personalQualityItem(item) {
+  const { title, detail } = splitPersonalQuality(item)
+
+  if (!detail) {
+    return `
+      <li class="qual-personal-item">
+        <span class="qual-personal-label">${title}</span>
+      </li>
+    `
+  }
+
+  return `
+    <li class="qual-personal-item">
+      <span class="qual-personal-label">${title}</span>
+      <span class="qual-personal-detail">${detail}</span>
+    </li>
+  `
+}
+
+function splitPersonalQuality(item) {
+  const normalizedItem = String(item ?? '').trim()
+  const match = normalizedItem.match(/^(.+?)\s+-\s+(.+)$/)
+
+  if (!match) {
+    return { title: normalizedItem, detail: '' }
+  }
+
+  return { title: match[1], detail: match[2] }
 }

@@ -2,7 +2,7 @@ import './styles/globals.css'
 import './styles/animations.css'
 import translations from './data/translations.json'
 import { Navbar } from './components/Navbar.js'
-import { Footer } from './components/Footer.js'
+import { Footer, bindFooterInfoPopup } from './components/Footer.js'
 import { WelcomeGate, bindWelcomeGate } from './components/WelcomeGate.js'
 import { bindThemeToggle } from './components/ThemeToggle.js'
 import { bindLanguageToggle } from './components/LanguageToggle.js'
@@ -37,6 +37,8 @@ const API_AUTH_MAX_WAIT_MS = 75000
 const API_AUTH_RETRY_DELAY_MS = 1200
 const WELCOME_EXIT_MS = 500
 const REVEAL_THRESHOLD = 0.2
+const FOOTER_SHIFT_ANIMATION_MS = 340
+const FOOTER_SHIFT_MAX_DELTA_PX = 120
 const welcomeRoot = document.querySelector('#welcome-root')
 const navRoot = document.querySelector('#nav-root')
 const pageRoot = document.querySelector('#page-root')
@@ -47,6 +49,10 @@ let navScrollInitialized = false
 let siteBootstrapped = false
 let router = null
 let scrollHintBound = false
+let footerPositionObserver = null
+let footerPositionAnimationFrame = 0
+let footerTransitionResetTimer = null
+let lastFooterTop = null
 
 void initAccessGate()
 
@@ -76,13 +82,14 @@ function bootstrapSite() {
       renderRoute()
       initNavbarScrollBehavior()
     },
-    pageContext: () => {
+    pageContext: (route) => {
       const state = getState()
       const t = getTranslations(state.language)
 
       return {
         t,
-        language: state.language
+        language: state.language,
+        route
       }
     },
     onRouteChange: (route) => {
@@ -95,6 +102,7 @@ function bootstrapSite() {
 
   renderNav()
   renderFooter()
+  initFooterPositionSmoothing()
   renderScrollHint()
   bindScrollHint()
   updateActiveNav(getState().route)
@@ -114,6 +122,13 @@ function renderNav() {
 }
 
 function renderFooter() {
+  window.clearTimeout(footerTransitionResetTimer)
+  resetFooterMotionStyles()
+  const previousFooterTop = footerRoot.getBoundingClientRect().top
+  if (Number.isFinite(previousFooterTop)) {
+    lastFooterTop = previousFooterTop
+  }
+
   const state = getState()
   const t = getTranslations(state.language)
   footerRoot.innerHTML = Footer({
@@ -136,6 +151,9 @@ function renderFooter() {
     updateScrollHintVisibility()
     router?.refresh()
   })
+
+  bindFooterInfoPopup()
+  scheduleFooterPositionAnimation()
 }
 
 function initRevealObserver() {
@@ -214,8 +232,78 @@ function updateActiveNav(route) {
   const links = document.querySelectorAll('.nav-link')
   links.forEach((link) => {
     const href = link.getAttribute('href')
-    link.classList.toggle('active', href === route)
+    link.classList.toggle('active', isNavActiveRoute(href, route))
   })
+}
+
+function isNavActiveRoute(linkPath, currentRoute) {
+  if (!linkPath || !currentRoute) return false
+  if (linkPath === '/') return currentRoute === '/'
+  return currentRoute === linkPath || currentRoute.startsWith(`${linkPath}/`)
+}
+
+function initFooterPositionSmoothing() {
+  if (footerPositionObserver || typeof ResizeObserver === 'undefined') return
+
+  lastFooterTop = footerRoot.getBoundingClientRect().top
+  footerPositionObserver = new ResizeObserver(() => {
+    scheduleFooterPositionAnimation()
+  })
+
+  footerPositionObserver.observe(pageRoot)
+  window.addEventListener('resize', scheduleFooterPositionAnimation, { passive: true })
+}
+
+function scheduleFooterPositionAnimation() {
+  if (footerPositionAnimationFrame) {
+    window.cancelAnimationFrame(footerPositionAnimationFrame)
+  }
+
+  footerPositionAnimationFrame = window.requestAnimationFrame(() => {
+    footerPositionAnimationFrame = 0
+    animateFooterPositionIfMoved()
+  })
+}
+
+function animateFooterPositionIfMoved() {
+  const nextTop = footerRoot.getBoundingClientRect().top
+  if (!Number.isFinite(nextTop)) return
+
+  if (lastFooterTop === null) {
+    lastFooterTop = nextTop
+    return
+  }
+
+  const deltaY = lastFooterTop - nextTop
+  lastFooterTop = nextTop
+  if (Math.abs(deltaY) < 1) {
+    resetFooterMotionStyles()
+    return
+  }
+  if (Math.abs(deltaY) > FOOTER_SHIFT_MAX_DELTA_PX) {
+    resetFooterMotionStyles()
+    return
+  }
+
+  window.clearTimeout(footerTransitionResetTimer)
+  footerRoot.style.transition = 'none'
+  footerRoot.style.transform = `translateY(${deltaY}px)`
+  footerRoot.style.willChange = 'transform'
+
+  void footerRoot.offsetHeight
+
+  window.requestAnimationFrame(() => {
+    footerRoot.style.transition = `transform ${FOOTER_SHIFT_ANIMATION_MS}ms var(--ease-standard)`
+    footerRoot.style.transform = 'translateY(0)'
+
+    footerTransitionResetTimer = window.setTimeout(resetFooterMotionStyles, FOOTER_SHIFT_ANIMATION_MS + 50)
+  })
+}
+
+function resetFooterMotionStyles() {
+  footerRoot.style.transition = ''
+  footerRoot.style.transform = ''
+  footerRoot.style.willChange = ''
 }
 
 function renderWelcomeGate() {

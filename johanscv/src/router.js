@@ -18,6 +18,7 @@ const ROUTES = {
 
 const BASE = import.meta.env.BASE_URL
 const MAJOR_DURATION_MS = 500
+const PROJECT_DETAIL_PREFIX = '/projects/'
 const ROUTE_REDIRECTS = {
   '/files': '/resume'
 }
@@ -41,7 +42,7 @@ export function initRouter({ mountEl, renderFrame, pageContext, onRouteChange })
   const renderCurrent = () => {
     const rawPath = appPathFromLocation()
     const path = ROUTE_REDIRECTS[rawPath] || rawPath
-    const page = ROUTES[path] || ROUTES['/']
+    const page = resolveRoute(path)
     const context = pageContext(path)
 
     if (rawPath !== path) {
@@ -104,4 +105,14 @@ export function initRouter({ mountEl, renderFrame, pageContext, onRouteChange })
 export function navigate(path, callback) {
   history.pushState({}, '', withBase(path))
   callback()
+}
+
+function resolveRoute(path) {
+  if (ROUTES[path]) return ROUTES[path]
+
+  if (path.startsWith(PROJECT_DETAIL_PREFIX) && path.length > PROJECT_DETAIL_PREFIX.length) {
+    return Projects
+  }
+
+  return ROUTES['/']
 }

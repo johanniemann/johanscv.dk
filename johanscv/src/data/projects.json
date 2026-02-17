@@ -9,6 +9,18 @@
       "en": "Designed a lightweight Vanilla JS SPA with explicit routing, transition orchestration, and durable state boundaries.",
       "dk": "Designede en letvægts Vanilla JS SPA med tydelig routing, overgangsorkestrering og robuste state-grænser."
     },
+    "details": {
+      "en": [
+        "This project established the technical foundation for the website as a lightweight single-page application with clear boundaries between pages, shared UI, and state.",
+        "I focused on explicit client-side routing, predictable rendering flow, and clean separation between feature modules so updates can be made quickly without creating side effects.",
+        "The result is a maintainable architecture where navigation, page transitions, and component behavior stay consistent as the site grows."
+      ],
+      "dk": [
+        "Dette projekt lagde det tekniske fundament for websitet som en letvægts single-page applikation med tydelige grænser mellem sider, fælles UI og state.",
+        "Jeg havde fokus på eksplicit client-side routing, forudsigeligt render-flow og klar opdeling mellem feature-moduler, så ændringer kan laves hurtigt uden uønskede sideeffekter.",
+        "Resultatet er en vedligeholdbar arkitektur, hvor navigation, sideovergange og komponentadfærd forbliver konsistent, efterhånden som sitet udvikles."
+      ]
+    },
     "tags": ["Vite", "Vanilla JS", "Routing"]
   },
   {
@@ -21,6 +33,18 @@
       "en": "Built a restrained visual language with theme tokens, glass surfaces, motion hierarchy, and responsive rhythm.",
       "dk": "Byggede et afdæmpet visuelt sprog med tematiske tokens, glasflader, motion-hierarki og responsiv rytme."
     },
+    "details": {
+      "en": [
+        "This project defined a consistent UI language across the site, including typography, spacing, cards, controls, and motion behavior.",
+        "I implemented shared design tokens and reusable CSS patterns for light and dark themes, so visual decisions remain coherent across pages and features.",
+        "The primary outcome is a more intentional interface with better readability, consistent interaction feedback, and smoother responsive behavior on both desktop and mobile."
+      ],
+      "dk": [
+        "Dette projekt definerede et konsistent UI-sprog på tværs af sitet, herunder typografi, spacing, kort, controls og motion-adfærd.",
+        "Jeg implementerede fælles design-tokens og genbrugelige CSS-mønstre til light/dark theme, så visuelle beslutninger forbliver sammenhængende på tværs af sider og features.",
+        "Det primære resultat er et mere intentionelt interface med bedre læsbarhed, ensartet interaktionsfeedback og mere stabil responsiv adfærd på både desktop og mobil."
+      ]
+    },
     "tags": ["Tailwind", "Theming", "UX Motion"]
   },
   {
@@ -32,6 +56,18 @@
     "summary": {
       "en": "Configured stable project-page deployment with base-path-safe assets and SPA fallback for deep links.",
       "dk": "Konfigurerede stabil project-pages deployment med base-path-sikre assets og SPA fallback til deep links."
+    },
+    "details": {
+      "en": [
+        "This project focused on making deployment reliable for GitHub Pages while preserving the expected SPA navigation behavior.",
+        "I aligned build configuration, asset paths, and fallback routing so direct access to nested routes works instead of breaking on refresh or shared links.",
+        "The result is a more robust release flow where local development, CI checks, and production hosting behave consistently."
+      ],
+      "dk": [
+        "Dette projekt havde fokus på at gøre deployment stabil på GitHub Pages, samtidig med at den forventede SPA-navigation blev bevaret.",
+        "Jeg afstemte build-konfiguration, asset-paths og fallback-routing, så direkte adgang til undersider virker i stedet for at fejle ved refresh eller delte links.",
+        "Resultatet er et mere robust release-flow, hvor lokal udvikling, CI-checks og produktion opfører sig konsistent."
+      ]
     },
     "tags": ["GitHub Pages", "CI-ready", "Reliability"]
   }
