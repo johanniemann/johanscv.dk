@@ -31,6 +31,22 @@ export function WelcomeGate({ t }) {
   `
 }
 
+export function WelcomeWarmupGate({ t }) {
+  return `
+    <section class="welcome-screen" aria-label="Service warmup">
+      <div class="welcome-panel">
+        <p class="welcome-kicker">johanscv.dk</p>
+        <h1 class="welcome-title">${t.welcome.title}</h1>
+        <p class="welcome-intro">${t.welcome.warmingUp}</p>
+        <p class="welcome-status welcome-status-static has-message">${t.welcome.warmingUpAutoContinue || ''}</p>
+        <div class="welcome-warmup-row" aria-hidden="true">
+          <span class="welcome-warmup-spinner"></span>
+        </div>
+      </div>
+    </section>
+  `
+}
+
 export function bindWelcomeGate(onContinue, { t, apiMode = false } = {}) {
   const button = document.querySelector('#welcome-continue')
   const input = document.querySelector('#welcome-access-code')
