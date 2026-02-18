@@ -61,6 +61,17 @@ test('POST /auth/login rejects invalid access code when required', async () => {
   assert.equal(response.body.answer, 'Access denied. Invalid access code.')
 })
 
+test('POST /auth/login validates content type', async () => {
+  const app = createApp({
+    accessCode: 'secret',
+    jwtSecret: 'jwt-secret'
+  })
+  const response = await request(app).post('/auth/login').type('form').send({ accessCode: 'secret' })
+
+  assert.equal(response.status, 415)
+  assert.equal(response.body.answer, 'Unsupported content type.')
+})
+
 test('POST /auth/login returns bearer token on success', async () => {
   const app = createApp({
     accessCode: 'secret',
@@ -72,6 +83,17 @@ test('POST /auth/login returns bearer token on success', async () => {
   assert.equal(typeof response.body.token, 'string')
   assert.equal(response.body.tokenType, 'Bearer')
   assert.equal(response.headers['cache-control'], 'no-store')
+})
+
+test('POST /auth/login returns 500 when JWT secret is missing', async () => {
+  const app = createApp({
+    accessCode: 'secret',
+    jwtSecret: ''
+  })
+  const response = await request(app).post('/auth/login').send({ accessCode: 'secret' })
+
+  assert.equal(response.status, 500)
+  assert.equal(response.body.answer, 'Server auth is not configured. Missing JWT_SECRET.')
 })
 
 test('POST /api/ask-johan requires auth when access code is configured', async () => {
@@ -113,12 +135,33 @@ test('GET /api/geojohan/maps-key returns key for valid bearer token', async () =
   assert.equal(response.headers['cache-control'], 'no-store')
 })
 
+test('GET /api/geojohan/maps-key returns 503 when maps key is not configured', async () => {
+  const app = createApp({
+    accessCode: 'secret',
+    jwtSecret: 'jwt-secret',
+    geoJohanMapsApiKey: ''
+  })
+  const token = await loginAndGetToken(app)
+  const response = await request(app).get('/api/geojohan/maps-key').set('Authorization', `Bearer ${token}`)
+
+  assert.equal(response.status, 503)
+  assert.equal(response.body.answer, 'GeoJohan maps is temporarily unavailable.')
+})
+
 test('POST /api/ask-johan validates content type', async () => {
   const app = createApp({ client: fakeClient('Hello') })
   const response = await request(app).post('/api/ask-johan').type('form').send({ question: 'hello' })
 
   assert.equal(response.status, 415)
   assert.equal(response.body.answer, 'Unsupported content type.')
+})
+
+test('POST /api/ask-johan rejects empty questions after sanitization', async () => {
+  const app = createApp({ client: fakeClient('Hello') })
+  const response = await request(app).post('/api/ask-johan').send({ question: ' \n\t ' })
+
+  assert.equal(response.status, 400)
+  assert.equal(response.body.answer, 'Please write a question first.')
 })
 
 test('POST /api/ask-johan validates question type', async () => {

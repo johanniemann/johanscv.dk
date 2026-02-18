@@ -5,7 +5,7 @@
 - Current active production architecture:
   - Frontend SPA in `johanscv/` (GitHub Pages).
   - Backend API in `ask-johan-api/` (Render web service).
-  - Legacy references in `legacy/` and root `public/` are not part of active CI/deploy.
+  - Legacy references in `legacy/` and root `public/` are not part of active CI/deploy (root `public/` is currently empty).
 
 ## Active Code Organization
 - Frontend feature modules:

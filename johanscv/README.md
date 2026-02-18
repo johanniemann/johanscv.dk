@@ -6,7 +6,7 @@ Personal CV website built with Vite, Vanilla JS, and Tailwind CSS.
 
 - Frontend app (this folder): `johanscv/`
 - Backend API (separate folder): `../ask-johan-api/`
-- Legacy prototype code exists in `../legacy/root-src/` and `../public/` but is not used by this app's scripts.
+- Legacy prototype code exists in `../legacy/root-src/` and `../public/` (currently empty) but is not used by this app's scripts.
 - Frontend feature modules:
   - Ask Johan client: `src/features/ask-johan/AskJohanWidget.js`
   - GeoJohan gameplay: `src/features/geojohan/GeoJohanPage.js`
@@ -80,7 +80,7 @@ Fill `.env`:
 - `ASK_JOHAN_ACCESS_CODE` (deprecated fallback)
 - `JWT_SECRET`
 - `ASK_JOHAN_JWT_TTL` (default `7d`)
-- `ASK_JOHAN_AUTH_COMPAT_MODE` (default `true` during rollout)
+- `ASK_JOHAN_AUTH_COMPAT_MODE` (set explicitly per environment; this repo's `.env.example`/`render.yaml` use `false`)
 - `ASK_JOHAN_DAILY_CAP` (default `100`)
 - `MAX_QUESTION_CHARS` (default `800`)
 - `GEOJOHAN_MAPS_API_KEY` (required for GeoJohan Street View + map)

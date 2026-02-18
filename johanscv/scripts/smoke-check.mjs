@@ -20,6 +20,21 @@ const checks = [
     ]
   },
   {
+    file: 'src/features/ask-johan/AskJohanWidget.js',
+    contains: [
+      "const API_LOGIN_PATH = '/auth/login'",
+      "const API_ASK_PATH = '/api/ask-johan'",
+      'Authorization: `Bearer ${token}`'
+    ]
+  },
+  {
+    file: 'src/main.js',
+    contains: [
+      "const API_LOGIN_PATH = '/auth/login'",
+      'validateAccessCodeWithApiAttempt(accessCode)'
+    ]
+  },
+  {
     file: 'src/features/geojohan/GeoJohanPage.js',
     contains: ['new maps.StreetViewPanorama', "document.querySelector('#geojohan-map')", 'scoreDistance(']
   },

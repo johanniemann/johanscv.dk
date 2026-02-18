@@ -13,11 +13,11 @@ Personal website stack with two active production services:
 | `.github/workflows/ci.yml` | CI quality gate (repo guardrails + frontend lint/smoke/build/budget + API tests + dependency audit) | Active |
 | `render.yaml` | Render blueprint (`rootDir: ask-johan-api`) | Active |
 | `legacy/root-src/` | Previous frontend prototype source | Legacy |
-| `public/` | Previous root-level static assets (legacy reference files) | Legacy |
+| `public/` | Previous root-level static assets (legacy reference folder, currently empty) | Legacy |
 | `docs/` | Operational docs/runbooks | Active |
 | `scripts/verify.sh` | Repo-level verify script | Active |
 
-`legacy/` and root `public/` are not in active deploy paths.
+`legacy/` and root `public/` are not in active deploy paths. (Root `public/` currently has no files.)
 
 ## Internal Module Layout
 
@@ -43,7 +43,7 @@ Active production architecture:
 
 Legacy references:
 1. `legacy/root-src/`
-2. root `public/`
+2. root `public/` (currently empty)
 
 ## Runtime Model
 
@@ -116,6 +116,27 @@ Health:
 curl -s http://127.0.0.1:8787/health
 ```
 
+### Run Both Services (Two Terminals)
+
+Terminal 1 (API):
+
+```bash
+cd ask-johan-api
+npm ci
+npm run dev
+```
+
+Terminal 2 (frontend):
+
+```bash
+cd johanscv
+npm ci
+npm run dev
+```
+
+Open:
+- `http://localhost:5173/`
+
 ## Environment Variables (Names Only)
 
 Frontend (`johanscv/.env.local`):
@@ -152,6 +173,7 @@ Frontend production build config (`johanscv/.env.production`):
 
 - Never commit secret env files (`.env`, `.env.local`, API private context files), tokens, access codes, JWT secrets, or OpenAI keys.
 - `johanscv/.env.production` is intentionally tracked and must only contain non-secret public frontend build values.
+- Never print `.env`/`.env.local` values or private context contents in logs/reports.
 - Never print private context verbatim.
 - Treat all `VITE_*` variables as public in browser bundles.
 

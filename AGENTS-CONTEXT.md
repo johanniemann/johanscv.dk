@@ -11,7 +11,7 @@ Services:
 
 Legacy (not in active CI/deploy):
 1. `legacy/root-src/`
-2. root `public/`
+2. root `public/` (currently empty)
 
 ## Source-Of-Truth Files
 
@@ -167,6 +167,6 @@ Operational docs:
 4. Security assumption error:
    - site access code in frontend storage is not a secure secret by itself; real enforcement is server-side login + JWT.
 5. Legacy confusion:
-   - do not treat `legacy/` or root `public/` as active runtime code.
+   - do not treat `legacy/` or root `public/` (currently empty) as active runtime code.
 6. Node version drift:
    - local Node major should match `20` before running release verification.
