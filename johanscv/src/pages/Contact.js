@@ -34,7 +34,7 @@ export function render({ t }) {
             type: 'link',
             icon: 'in',
             text: t.contact.connectLinkedin,
-            attrs: 'href="https://www.linkedin.com/in/johan-niemann-h-038906312/" target="_blank" rel="noopener noreferrer"'
+            attrs: `href="https://www.linkedin.com/in/johan-niemann-h-038906312/" target="_blank" rel="noopener noreferrer" data-feedback-label="${t.contact.connectedLinkedin}"`
           })
         })}
       </section>
@@ -43,9 +43,13 @@ export function render({ t }) {
 }
 
 export function mount({ t }) {
+  const actionButtons = document.querySelectorAll('.contact-action')
+  actionButtons.forEach((button) => {
+    button.dataset.defaultLabel = button.querySelector('.file-action-text')?.textContent || ''
+  })
+
   const copyButtons = document.querySelectorAll('[data-copy]')
   copyButtons.forEach((button) => {
-    button.dataset.defaultLabel = button.querySelector('.file-action-text')?.textContent || ''
     button.addEventListener('click', async () => {
       if (button.dataset.busy === 'true') return
       const value = button.getAttribute('data-copy') || ''
@@ -54,6 +58,17 @@ export function mount({ t }) {
       if (!copied) return
 
       await animateCopyLabel(button, t.contact.copied)
+    })
+  })
+
+  const feedbackButtons = document.querySelectorAll('[data-feedback-label]')
+  feedbackButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      if (button.dataset.busy === 'true') return
+      const feedbackLabel = button.getAttribute('data-feedback-label') || ''
+      if (!feedbackLabel) return
+
+      void animateCopyLabel(button, feedbackLabel)
     })
   })
 }
@@ -125,12 +140,18 @@ async function animateCopyLabel(button, copiedLabel) {
   const originalLabel = button.dataset.defaultLabel || labelEl.textContent || ''
   const FADE_MS = 180
   const HOLD_MS = 900
+  const WIDTH_TRANSITION_MS = 220
 
   button.dataset.busy = 'true'
+  const originalWidth = Math.ceil(button.getBoundingClientRect().width)
+  const copiedWidth = measureButtonWidth(button, labelEl, copiedLabel)
+  button.style.width = `${originalWidth}px`
+
   button.classList.add('is-label-hidden')
   await wait(FADE_MS)
 
   labelEl.textContent = copiedLabel
+  animateButtonWidth(button, copiedWidth)
   button.classList.remove('is-label-hidden')
   await wait(HOLD_MS)
 
@@ -138,8 +159,31 @@ async function animateCopyLabel(button, copiedLabel) {
   await wait(FADE_MS)
 
   labelEl.textContent = originalLabel
+  animateButtonWidth(button, originalWidth)
   button.classList.remove('is-label-hidden')
+  await wait(WIDTH_TRANSITION_MS)
+  button.style.width = ''
   button.dataset.busy = 'false'
+}
+
+function measureButtonWidth(button, labelEl, nextLabel) {
+  const currentLabel = labelEl.textContent
+  const currentInlineWidth = button.style.width
+
+  labelEl.textContent = nextLabel
+  button.style.width = 'auto'
+  const measured = Math.ceil(button.getBoundingClientRect().width)
+
+  labelEl.textContent = currentLabel
+  button.style.width = currentInlineWidth
+
+  return measured
+}
+
+function animateButtonWidth(button, nextWidth) {
+  window.requestAnimationFrame(() => {
+    button.style.width = `${nextWidth}px`
+  })
 }
 
 function wait(ms) {

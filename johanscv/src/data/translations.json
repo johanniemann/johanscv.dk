@@ -18,8 +18,8 @@
       "point3": "Use Ask Johan for quick context.",
       "continue": "Continue",
       "loggingIn": "Signing you in...",
-      "warmingUp": "The site is waking up after inactivity. Please wait around 20 seconds.",
-      "warmingUpAutoContinue": "You will continue automatically when the site is ready.",
+      "warmingUp": "Please wait while Johan is waking up. Give him ~ 20 seconds.",
+      "warmingUpAutoContinue": "Pro-tip: you can change between EN/DK mode at the bottom of the site",
       "passwordLabel": "Site access code",
       "passwordPlaceholder": "Enter access code",
       "passwordError": "Invalid access code. Please try again.",
@@ -61,6 +61,7 @@
       "previewIntro": "A structured view of my education, practical experience, and key competencies.",
       "cta": "Open Resume / CV",
       "downloadPdf": "Download Resume as PDF",
+      "downloadCertificate": "Download Certificate as PDF",
       "education": "Education",
       "experience": "Work Experience",
       "voluntary": "Voluntary Work",
@@ -71,12 +72,13 @@
     "contact": {
       "title": "Contact",
       "intro": "Reach out directly by email, phone, or LinkedIn.",
-      "emailLabel": "Email",
+      "emailLabel": "E-mail",
       "phoneLabel": "Phone",
       "linkedinLabel": "LinkedIn",
-      "copyEmail": "Copy E-Mail",
+      "copyEmail": "Copy e-mail",
       "copyPhone": "Copy phonenumber",
       "connectLinkedin": "Connect on LinkedIn",
+      "connectedLinkedin": "Connected",
       "copied": "Copied"
     },
     "playground": {
@@ -160,7 +162,7 @@
       "label": "Scroll for more"
     },
     "footer": {
-      "builtWith": "Built with Vite, Tailwind, and Vanilla JavaScript.",
+      "builtWith": "Built with Vite, Tailwind, and custom JavaScript.",
       "rights": "All rights reserved.",
       "playground": "Playground",
       "infoButtonAria": "Open website build information",
@@ -170,7 +172,7 @@
       "infoPoints": [
         "Frontend: A Vite-powered SPA built with Vanilla JavaScript modules and custom styling with Tailwind tooling.",
         "Routing and UX: Client-side routing with smooth page transitions and state-driven theme/language toggles.",
-        "Backend: A Node.js + Express API on Render that powers Ask Johan and serves the protected GeoJohan Maps key.",
+        "Backend: Node.js + Express API on Render that powers Ask Johan and GeoJohan.",
         "AI and data: Ask Johan uses OpenAI with guarded context handling, plus request limits and usage caps for stability.",
         "Hosting and deploy: The frontend is hosted on GitHub Pages, while the API is deployed separately on Render.",
         "Security baseline: Access-code login, JWT bearer auth, strict origin checks, and throttling on protected endpoints."
@@ -197,8 +199,8 @@
       "point3": "Brug Ask Johan for hurtig kontekst.",
       "continue": "Fortsæt",
       "loggingIn": "Logger ind...",
-      "warmingUp": "Sitet er ved at vågne efter inaktivitet. Vent cirka 20 sekunder.",
-      "warmingUpAutoContinue": "Du sendes automatisk videre, når sitet er klar.",
+      "warmingUp": "Vent mens Johan vågner op. Giv ham ~ 20 sekunder.",
+      "warmingUpAutoContinue": "Pro-tip: du kan skifte mellem EN/DK mode nederst på siden",
       "passwordLabel": "Adgangskode til siden",
       "passwordPlaceholder": "Indtast adgangskode",
       "passwordError": "Ugyldig adgangskode. Prøv igen.",
@@ -240,6 +242,7 @@
       "previewIntro": "Et struktureret overblik over uddannelse, praktisk erfaring og væsentlige kompetencer.",
       "cta": "Åbn Resume / CV",
       "downloadPdf": "Download CV som PDF",
+      "downloadCertificate": "Download Certifikat som PDF",
       "education": "Uddannelse",
       "experience": "Arbejdserfaring",
       "voluntary": "Frivilligt arbejde",
@@ -256,6 +259,7 @@
       "copyEmail": "Kopiér e-mail",
       "copyPhone": "Kopiér telefonnummer",
       "connectLinkedin": "Forbind på LinkedIn",
+      "connectedLinkedin": "Forbundet",
       "copied": "Kopieret"
     },
     "playground": {
@@ -339,7 +343,7 @@
       "label": "Scroll for mere"
     },
     "footer": {
-      "builtWith": "Bygget med Vite, Tailwind og Vanilla JavaScript.",
+      "builtWith": "Bygget med Vite, Tailwind og custom JavaScript.",
       "rights": "Alle rettigheder forbeholdes.",
       "playground": "Playground",
       "infoButtonAria": "Åbn information om hvordan websitet er bygget",
@@ -349,7 +353,7 @@
       "infoPoints": [
         "Frontend: En Vite-baseret SPA bygget med Vanilla JavaScript-moduler og custom styling med Tailwind-tooling.",
         "Routing og UX: Client-side routing med glidende sideovergange og state-styrede toggles til tema og sprog.",
-        "Backend: Et Node.js + Express API på Render, som driver Ask Johan og leverer den beskyttede GeoJohan Maps key.",
+        "Backend: Node.js + Express API på Render, som driver Ask Johan og GeoJohan.",
         "AI og data: Ask Johan bruger OpenAI med beskyttet konteksthåndtering samt request-limits og daglige usage caps.",
         "Hosting og deploy: Frontend hostes på GitHub Pages, mens API'et deployes separat på Render.",
         "Sikkerhedsgrundlag: Access-code login, JWT bearer auth, stram origin-kontrol og throttling på beskyttede endpoints."

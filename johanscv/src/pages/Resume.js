@@ -41,7 +41,7 @@ export function render({ t, language }) {
       <section class="resume-section section-reveal" id="resume-voluntary">
         <h3 class="resume-heading">${t.resume.voluntary}</h3>
         <div class="resume-list">
-          ${data.voluntary.map(voluntaryItem).join('')}
+          ${data.voluntary.map((item) => voluntaryItem(item, t)).join('')}
         </div>
       </section>
 
@@ -87,12 +87,32 @@ function experienceItem(item) {
   `
 }
 
-function voluntaryItem(item) {
+function voluntaryItem(item, t) {
+  const certificateFile = String(item.certificateFile ?? '').trim()
+  const certificateUrl = certificateFile ? `${import.meta.env.BASE_URL}${certificateFile}` : ''
+  const hasCertificate = Boolean(certificateUrl)
+
   return `
-    <article class="resume-item">
-      <h4 class="resume-item-title">${item.role}</h4>
-      <p class="resume-item-body">${item.description}</p>
-      <p class="resume-item-period">${item.period}</p>
+    <article class="resume-item${hasCertificate ? ' resume-item-with-action' : ''}">
+      <div class="resume-item-content">
+        <h4 class="resume-item-title">${item.role}</h4>
+        <p class="resume-item-body">${item.description}</p>
+        <p class="resume-item-period">${item.period}</p>
+      </div>
+      ${
+        hasCertificate
+          ? `
+        <a class="file-action resume-item-action" href="${certificateUrl}" download aria-label="${t.resume.downloadCertificate}">
+          <span class="file-action-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path d="M11.25 3.75a.75.75 0 0 1 1.5 0v9.69l2.47-2.47a.75.75 0 1 1 1.06 1.06l-3.75 3.75a.75.75 0 0 1-1.06 0l-3.75-3.75a.75.75 0 1 1 1.06-1.06l2.47 2.47V3.75Z"/>
+              <path d="M4.5 17.25a.75.75 0 0 1 .75-.75h13.5a.75.75 0 0 1 0 1.5H5.25a.75.75 0 0 1-.75-.75Z"/>
+            </svg>
+          </span>
+          <span class="file-action-text">${t.resume.downloadCertificate}</span>
+        </a>`
+          : ''
+      }
     </article>
   `
 }
