@@ -4,6 +4,7 @@ import { sendAnswer, setNoStore, getRequestIp } from '../shared/http.js'
 
 export const AUTH_FAILURE_MESSAGE = 'Too many failed authentication attempts. Please wait a few minutes and try again.'
 export const AUTH_REQUIRED_MESSAGE = 'Authentication required. Log in at /auth/login and send Authorization: Bearer <token>.'
+export const AUTH_ACCESS_CODE_MISSING_MESSAGE = 'Server auth is not configured. Missing JOHANSCV_ACCESS_CODE.'
 export const LEGACY_HEADER_DEPRECATION =
   '299 - "x-access-code is deprecated and will be removed. Use /auth/login and Bearer token auth."'
 
@@ -21,6 +22,10 @@ export function createAuthLoginHandler({
     const requestIp = getRequestIp(req)
     if (await authSecurity.isLimited('auth login check', requestIp, res)) {
       return
+    }
+
+    if (!hasAccessCode) {
+      return sendAnswer(res, 500, AUTH_ACCESS_CODE_MISSING_MESSAGE)
     }
 
     if (!req.is('application/json')) {

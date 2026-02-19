@@ -10,16 +10,16 @@ Deploy command:
 - `npm run deploy`
 
 Build behavior:
-- Vite base defaults to `/johanscv.dk/`.
-- If `CUSTOM_DOMAIN=true`, Vite base becomes `/`.
+- Deploy flow enforces `CUSTOM_DOMAIN=true` and verifies `dist/index.html` uses `/assets/...`.
+- Vite base defaults to `/johanscv.dk/` for non-custom-domain builds.
 - `public/404.html` handles SPA refresh/deep-link fallback for GitHub Pages.
 
 ## Publish Steps
 
 1. Push your latest code to GitHub.
 2. Run deploy from `johanscv/`:
-   - `cd /Users/johanniemannhusbjerg/Desktop/WEBSITE/johanscv`
-   - `CUSTOM_DOMAIN=true npm run deploy`
+   - `cd johanscv`
+   - `npm run deploy`
 3. For GitHub Pages base-path testing build (non-custom-domain):
    - `CUSTOM_DOMAIN=false npm run build`
 4. In GitHub repo settings:
@@ -33,13 +33,13 @@ Build behavior:
 
 ## Ask Johan Mode
 
-Default mode:
-- Mock deterministic answers from `src/data/mockAnswers.json`.
-
-Optional API mode later:
-- Set env: `VITE_ASK_JOHAN_MODE=api`
-- Expected endpoint: `POST /api/ask-johan`
-- Expected response JSON: `{ "answer": "..." }`
+Mode notes:
+- `johanscv/.env.example` defaults to `VITE_ASK_JOHAN_MODE=mock` (deterministic fallback answers from `src/data/mockAnswers.json`).
+- `johanscv/.env.local.example` and `johanscv/.env.production` are configured for `VITE_ASK_JOHAN_MODE=api`.
+- API mode expected endpoints:
+  - `POST /auth/login`
+  - `POST /api/ask-johan`
+  - `GET /api/geojohan/maps-key`
 
 ## Environment Safety (production vs local)
 

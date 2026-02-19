@@ -87,7 +87,7 @@ Frontend flow in API mode:
 Then redeploy frontend:
 
 ```bash
-cd /Users/johanniemannhusbjerg/Desktop/WEBSITE/johanscv
+cd johanscv
 CUSTOM_DOMAIN=true npm run deploy
 ```
 
@@ -107,7 +107,7 @@ Use this quick checklist every time you release:
 3. Run repo verification:
 
 ```bash
-cd /Users/johanniemannhusbjerg/Desktop/WEBSITE
+# from repo root:
 ./scripts/verify.sh
 ```
 
@@ -117,7 +117,7 @@ cd /Users/johanniemannhusbjerg/Desktop/WEBSITE
 2. Deploy frontend to GitHub Pages:
 
 ```bash
-cd /Users/johanniemannhusbjerg/Desktop/WEBSITE/johanscv
+cd johanscv
 CUSTOM_DOMAIN=true npm run deploy
 ```
 

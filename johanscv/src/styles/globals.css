@@ -56,6 +56,10 @@ body {
   scroll-behavior: smooth;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   font-family: Inter, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   color: var(--text-primary);
@@ -86,17 +90,25 @@ body {
     transform var(--duration-major) var(--ease-standard);
 }
 
+.overlay-root {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+}
+
 body.welcome-active {
   overflow: hidden;
 }
 
-body.footer-info-open {
+body.footer-info-lock {
   overflow: hidden;
   overscroll-behavior: none;
 }
 
 body.footer-info-open #site-shell {
   filter: blur(2px);
+  transform: scale(0.996);
 }
 
 body.welcome-active #site-shell {
@@ -714,43 +726,43 @@ body.welcome-active #site-shell {
 }
 
 .footer-info-modal {
-  position: fixed;
+  position: absolute;
   inset: 0;
-  z-index: 75;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow-y: auto;
   padding: 1.25rem;
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
-  transition: opacity var(--duration-major) var(--ease-standard);
+  transition:
+    opacity var(--duration-major) var(--ease-standard),
+    visibility 0s linear var(--duration-major);
 }
 
 .footer-info-modal.is-visible {
   opacity: 1;
+  visibility: visible;
   pointer-events: auto;
+  transition: opacity var(--duration-major) var(--ease-standard);
 }
 
 .footer-info-backdrop {
   position: absolute;
   inset: 0;
   opacity: 0;
-  background: rgba(9, 13, 24, 0);
-  -webkit-backdrop-filter: blur(0);
-  backdrop-filter: blur(0);
+  background: rgba(9, 13, 24, 0.56);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
   transition:
     opacity var(--duration-major) var(--ease-standard),
-    background-color var(--duration-major) var(--ease-standard),
-    -webkit-backdrop-filter var(--duration-major) var(--ease-standard),
-    backdrop-filter var(--duration-major) var(--ease-standard);
+    background-color var(--duration-major) var(--ease-standard);
 }
 
 .footer-info-modal.is-visible .footer-info-backdrop {
   opacity: 1;
-  background: rgba(9, 13, 24, 0.56);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
 }
 
 .footer-info-dialog {
@@ -1988,6 +2000,21 @@ body.welcome-active #site-shell {
     box-shadow var(--duration-base) var(--ease-standard),
     background var(--duration-base) var(--ease-standard),
     width 220ms var(--ease-standard);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html,
+  body {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @media (max-width: 860px) {

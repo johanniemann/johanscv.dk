@@ -13,7 +13,7 @@ const RATE_LIMIT_STORE_UNAVAILABLE_MESSAGE = 'Rate-limit store unavailable. Plea
 export function createApp({
   accessCode = '',
   allowedOrigins = DEFAULT_ALLOWED_ORIGINS,
-  authCompatMode = true,
+  authCompatMode = false,
   authFailureMax = 10,
   authFailureWindowMs = 600_000,
   client = null,

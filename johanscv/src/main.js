@@ -21,6 +21,7 @@ app.innerHTML = `
     <div id="page-root"></div>
     <div id="footer-root"></div>
   </div>
+  <div id="overlay-root" class="overlay-root"></div>
   <div id="scroll-hint-root"></div>
 `
 
@@ -46,6 +47,7 @@ const welcomeRoot = document.querySelector('#welcome-root')
 const navRoot = document.querySelector('#nav-root')
 const pageRoot = document.querySelector('#page-root')
 const footerRoot = document.querySelector('#footer-root')
+const overlayRoot = document.querySelector('#overlay-root')
 const scrollHintRoot = document.querySelector('#scroll-hint-root')
 let navHidden = false
 let navScrollInitialized = false
@@ -246,7 +248,7 @@ function renderFooter() {
     router?.refresh()
   })
 
-  bindFooterInfoPopup()
+  bindFooterInfoPopup(t, { overlayRoot })
   scheduleFooterPositionAnimation()
 }
 

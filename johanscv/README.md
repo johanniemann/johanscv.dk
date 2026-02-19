@@ -6,7 +6,7 @@ Personal CV website built with Vite, Vanilla JS, and Tailwind CSS.
 
 - Frontend app (this folder): `johanscv/`
 - Backend API (separate folder): `../ask-johan-api/`
-- Legacy prototype code exists in `../legacy/root-src/` and `../public/` (currently empty) but is not used by this app's scripts.
+- Legacy prototype code exists in `../legacy/root-src/` and `../public/` (placeholder dirs only) but is not used by this app's scripts.
 - Frontend feature modules:
   - Ask Johan client: `src/features/ask-johan/AskJohanWidget.js`
   - GeoJohan gameplay: `src/features/geojohan/GeoJohanPage.js`
@@ -56,6 +56,7 @@ Production safety:
 ```bash
 npm run dev
 ```
+- `npm run dev` uses `scripts/dev-fixed.sh` (`127.0.0.1:5173`, strict port, and automatic stale-port cleanup).
 
 5. Open:
    - `http://localhost:5173/` (default)
@@ -127,10 +128,10 @@ npm run preview
 npm run deploy
 ```
 
-This deploys the built `dist/` folder to the `gh-pages` branch.
+This deploys `dist/` to `gh-pages` and enforces custom-domain asset paths (`/assets/...`).
 
-For custom apex domain builds (`/` base), run:
+For non-custom-domain base-path testing:
 
 ```bash
-CUSTOM_DOMAIN=true npm run deploy
+CUSTOM_DOMAIN=false npm run build
 ```

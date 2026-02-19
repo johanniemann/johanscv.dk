@@ -13,11 +13,11 @@ Personal website stack with two active production services:
 | `.github/workflows/ci.yml` | CI quality gate (repo guardrails + frontend lint/smoke/build/budget + API tests + dependency audit) | Active |
 | `render.yaml` | Render blueprint (`rootDir: ask-johan-api`) | Active |
 | `legacy/root-src/` | Previous frontend prototype source | Legacy |
-| `public/` | Previous root-level static assets (legacy reference folder, currently empty) | Legacy |
+| `public/` | Previous root-level static assets (legacy reference folder with placeholder dirs only) | Legacy |
 | `docs/` | Operational docs/runbooks | Active |
 | `scripts/verify.sh` | Repo-level verify script | Active |
 
-`legacy/` and root `public/` are not in active deploy paths. (Root `public/` currently has no files.)
+`legacy/` and root `public/` are not in active deploy paths. (Root `public/` has no active files.)
 
 ## Internal Module Layout
 
@@ -90,6 +90,7 @@ npm run dev
 
 Default local URL:
 - `http://localhost:5173/`
+- `npm run dev` uses `johanscv/scripts/dev-fixed.sh` (binds `127.0.0.1:5173`, `--strictPort`, and clears stale port listeners).
 
 GitHub Pages base-path emulation locally:
 
@@ -152,11 +153,14 @@ Frontend (`johanscv/.env.local`):
   - `VITE_GEOJOHAN_ROUND{N}_ANSWER_LAT`, `VITE_GEOJOHAN_ROUND{N}_ANSWER_LNG`
   - `VITE_GEOJOHAN_ROUND{N}_SUMMARY_ADDRESS`
   - `VITE_GEOJOHAN_ROUND{N}_SUMMARY_CONTEXT_DK`, `VITE_GEOJOHAN_ROUND{N}_SUMMARY_CONTEXT_EN`
+- defaults:
+  - `johanscv/.env.example` uses `VITE_ASK_JOHAN_MODE=mock`
+  - `johanscv/.env.local.example` and `johanscv/.env.production` use `VITE_ASK_JOHAN_MODE=api`
 
 API (`ask-johan-api/.env`):
 - `OPENAI_API_KEY`, `OPENAI_MODEL`, `PORT`
 - `JOHANSCV_ACCESS_CODE` (primary), `ASK_JOHAN_ACCESS_CODE` (deprecated fallback)
-- `JWT_SECRET`, `ASK_JOHAN_JWT_TTL`, `ASK_JOHAN_AUTH_COMPAT_MODE`
+- `JWT_SECRET`, `ASK_JOHAN_JWT_TTL`, `ASK_JOHAN_AUTH_COMPAT_MODE` (recommended/default: `false`)
 - `ASK_JOHAN_AUTH_FAIL_WINDOW_MS`, `ASK_JOHAN_AUTH_FAIL_MAX`
 - `GEOJOHAN_MAPS_API_KEY`
 - `ASK_JOHAN_USAGE_STORE`, `REDIS_URL`, `ASK_JOHAN_REDIS_KEY_PREFIX`

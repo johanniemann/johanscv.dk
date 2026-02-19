@@ -11,10 +11,12 @@
     "lint": "eslint src --max-warnings=0",
     "smoke": "node ./scripts/smoke-check.mjs",
     "build": "vite build",
+    "build:custom-domain": "CUSTOM_DOMAIN=true vite build",
     "check:bundle": "node ./scripts/check-bundle-budget.mjs",
     "preview": "vite preview",
     "optimize:favicon": "svgo --multipass -i public/images/favicon-round.svg -o public/images/favicon-round.svg",
-    "predeploy": "npm run build",
+    "verify:custom-domain-build": "node ./scripts/verify-custom-domain-build.mjs",
+    "predeploy": "npm run build:custom-domain && npm run verify:custom-domain-build",
     "deploy": "gh-pages -d dist --no-history"
   },
   "devDependencies": {

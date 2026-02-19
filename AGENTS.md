@@ -5,7 +5,7 @@
 - Current active production architecture:
   - Frontend SPA in `johanscv/` (GitHub Pages).
   - Backend API in `ask-johan-api/` (Render web service).
-  - Legacy references in `legacy/` and root `public/` are not part of active CI/deploy (root `public/` is currently empty).
+  - Legacy references in `legacy/` and root `public/` are not part of active CI/deploy (root `public/` has only placeholder dirs).
 
 ## Active Code Organization
 - Frontend feature modules:
@@ -46,6 +46,7 @@
 
 ## Deployment Assumptions
 - Frontend deploy path is GitHub Pages via `johanscv` scripts.
+- Frontend local dev entry uses `johanscv/scripts/dev-fixed.sh` (host `127.0.0.1`, port `5173`, `CUSTOM_DOMAIN=true` default).
 - API deploy path is Render via `render.yaml` (`rootDir: ask-johan-api`).
 - Runtime expectation is Node 20 (see `.nvmrc`, CI `node-version`, and `render.yaml` `NODE_VERSION`).
 - Protected API routes include:
@@ -70,6 +71,7 @@
 
 ## Definition Of Done
 - Run relevant commands and report pass/fail.
+- For local runtime checks, confirm frontend URL `http://localhost:5173/` is reachable when dev server is running.
 - Minimum verification for cross-cutting changes:
   - `cd johanscv && npm run lint && npm run smoke && npm run build && npm run check:bundle`
   - `cd ask-johan-api && npm test`

@@ -96,6 +96,17 @@ test('POST /auth/login returns 500 when JWT secret is missing', async () => {
   assert.equal(response.body.answer, 'Server auth is not configured. Missing JWT_SECRET.')
 })
 
+test('POST /auth/login returns 500 when access code is missing', async () => {
+  const app = createApp({
+    accessCode: '',
+    jwtSecret: 'jwt-secret'
+  })
+  const response = await request(app).post('/auth/login').send({ accessCode: 'anything' })
+
+  assert.equal(response.status, 500)
+  assert.equal(response.body.answer, 'Server auth is not configured. Missing JOHANSCV_ACCESS_CODE.')
+})
+
 test('POST /api/ask-johan requires auth when access code is configured', async () => {
   const app = createApp({
     accessCode: 'secret',

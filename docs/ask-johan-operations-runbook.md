@@ -15,6 +15,7 @@ Checks:
 - Confirm API runtime access code is set:
   - `JOHANSCV_ACCESS_CODE` (primary)
   - `ASK_JOHAN_ACCESS_CODE` (deprecated fallback)
+- If access code is missing, `/auth/login` now fails closed with a server configuration error.
 - In API mode, site access is validated server-side via `POST /auth/login`.
 - Confirm latest frontend is deployed to GitHub Pages.
 - Confirm browser local storage is refreshed:

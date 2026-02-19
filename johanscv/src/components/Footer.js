@@ -2,6 +2,8 @@ import { ThemeToggle } from './ThemeToggle.js'
 import { LanguageToggle } from './LanguageToggle.js'
 
 const FOOTER_INFO_TRANSITION_MS = 320
+const FOOTER_INFO_MODAL_ID = 'footer-info-modal'
+const FOOTER_INFO_DIALOG_ID = 'footer-info-dialog'
 
 export function Footer({ t, theme, language }) {
   const year = new Date().getFullYear()
@@ -33,58 +35,65 @@ export function Footer({ t, theme, language }) {
             type="button"
             aria-label="${t.footer.infoButtonAria}"
             aria-haspopup="dialog"
-            aria-controls="footer-info-dialog"
+            aria-controls="${FOOTER_INFO_DIALOG_ID}"
             aria-expanded="false"
           >
             ?
           </button>
         </div>
       </div>
-
-      <div id="footer-info-modal" class="footer-info-modal" hidden>
-        <div class="footer-info-backdrop" data-footer-info-close></div>
-        <section
-          id="footer-info-dialog"
-          class="footer-info-dialog"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="footer-info-title"
-        >
-          <p class="footer-info-kicker">${t.footer.infoKicker}</p>
-          <h2 id="footer-info-title" class="section-title footer-info-title">${t.footer.infoTitle}</h2>
-          <p class="section-body footer-info-intro">${t.footer.infoIntro}</p>
-          <ul class="footer-info-list">
-            ${t.footer.infoPoints.map((point) => `<li>${point}</li>`).join('')}
-          </ul>
-          <button id="footer-info-close" class="projects-cta footer-info-close" type="button">
-            ${t.footer.infoClose}
-          </button>
-        </section>
-      </div>
     </footer>
   `
 }
 
-export function bindFooterInfoPopup() {
+export function bindFooterInfoPopup(t, options = {}) {
+  const overlayRoot = resolveOverlayRoot(options.overlayRoot)
   const toggleButton = document.querySelector('#footer-info-toggle')
-  const modal = mountFooterInfoModalPortal()
+  const modal = mountFooterInfoModalPortal(t, overlayRoot)
   const closeButton = modal?.querySelector('#footer-info-close')
   const backdrop = modal?.querySelector('[data-footer-info-close]')
   if (!toggleButton || !modal || !closeButton || !backdrop) return
 
+  document.body.classList.remove('footer-info-lock')
+  document.body.classList.remove('footer-info-open')
   let closeTimer = null
+  let closeTransitionHandler = null
+  const CLOSE_FALLBACK_MS = FOOTER_INFO_TRANSITION_MS + 280
+
+  const clearCloseWaiters = () => {
+    if (closeTransitionHandler) {
+      modal.removeEventListener('transitionend', closeTransitionHandler)
+      closeTransitionHandler = null
+    }
+    if (closeTimer) {
+      window.clearTimeout(closeTimer)
+      closeTimer = null
+    }
+  }
+
+  const isOpen = () => !modal.hidden && modal.classList.contains('is-visible')
+
+  const finalizeClose = () => {
+    clearCloseWaiters()
+    modal.hidden = true
+    modal.classList.remove('is-visible')
+    document.body.classList.remove('footer-info-lock')
+    document.body.classList.remove('footer-info-open')
+    toggleButton.focus({ preventScroll: true })
+  }
 
   const setExpanded = (expanded) => {
     toggleButton.setAttribute('aria-expanded', expanded ? 'true' : 'false')
   }
 
   const open = () => {
-    window.clearTimeout(closeTimer)
+    if (isOpen()) return
+    clearCloseWaiters()
     modal.hidden = false
-    modal.classList.remove('is-exiting')
+    modal.classList.remove('is-visible')
+    document.body.classList.add('footer-info-lock')
     document.body.classList.add('footer-info-open')
     setExpanded(true)
-
     window.requestAnimationFrame(() => {
       modal.classList.add('is-visible')
       closeButton.focus({ preventScroll: true })
@@ -92,20 +101,26 @@ export function bindFooterInfoPopup() {
   }
 
   const close = () => {
+    if (modal.hidden) return
+    clearCloseWaiters()
     modal.classList.remove('is-visible')
-    modal.classList.add('is-exiting')
     setExpanded(false)
 
-    window.clearTimeout(closeTimer)
-    closeTimer = window.setTimeout(() => {
-      modal.hidden = true
-      modal.classList.remove('is-exiting')
-      document.body.classList.remove('footer-info-open')
-      toggleButton.focus({ preventScroll: true })
-    }, FOOTER_INFO_TRANSITION_MS)
+    closeTransitionHandler = (event) => {
+      if (event.target !== modal || event.propertyName !== 'opacity') return
+      finalizeClose()
+    }
+    modal.addEventListener('transitionend', closeTransitionHandler)
+    closeTimer = window.setTimeout(finalizeClose, CLOSE_FALLBACK_MS)
   }
 
-  toggleButton.addEventListener('click', open)
+  toggleButton.addEventListener('click', () => {
+    if (isOpen()) {
+      close()
+      return
+    }
+    open()
+  })
   closeButton.addEventListener('click', close)
   backdrop.addEventListener('click', close)
   modal.addEventListener('keydown', (event) => {
@@ -113,18 +128,52 @@ export function bindFooterInfoPopup() {
   })
 }
 
-function mountFooterInfoModalPortal() {
+function mountFooterInfoModalPortal(t, overlayRoot) {
+  document.body.classList.remove('footer-info-lock')
   document.body.classList.remove('footer-info-open')
 
-  const existingPortalModal = document.querySelector('body > #footer-info-modal[data-footer-info-portal="true"]')
-  if (existingPortalModal) {
-    existingPortalModal.remove()
-  }
+  document.querySelectorAll(`#${FOOTER_INFO_MODAL_ID}`).forEach((existingModal) => {
+    existingModal.remove()
+  })
 
-  const inlineModal = document.querySelector('#footer-info-modal')
-  if (!inlineModal) return null
+  if (!t?.footer) return null
 
-  inlineModal.dataset.footerInfoPortal = 'true'
-  document.body.append(inlineModal)
-  return inlineModal
+  const targetRoot = resolveOverlayRoot(overlayRoot)
+
+  const modal = document.createElement('div')
+  modal.id = FOOTER_INFO_MODAL_ID
+  modal.className = 'footer-info-modal'
+  modal.hidden = true
+  modal.innerHTML = `
+    <div class="footer-info-backdrop" data-footer-info-close></div>
+    <section
+      id="${FOOTER_INFO_DIALOG_ID}"
+      class="footer-info-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="footer-info-title"
+    >
+      <p class="footer-info-kicker">${t.footer.infoKicker}</p>
+      <h2 id="footer-info-title" class="section-title footer-info-title">${t.footer.infoTitle}</h2>
+      <p class="section-body footer-info-intro">${t.footer.infoIntro}</p>
+      <ul class="footer-info-list">
+        ${t.footer.infoPoints.map((point) => `<li>${point}</li>`).join('')}
+      </ul>
+      <button id="footer-info-close" class="projects-cta footer-info-close" type="button">
+        ${t.footer.infoClose}
+      </button>
+    </section>
+  `
+
+  targetRoot.append(modal)
+  return modal
+}
+
+function resolveOverlayRoot(candidateRoot = null) {
+  if (candidateRoot instanceof HTMLElement) return candidateRoot
+
+  const overlayRoot = document.querySelector('#overlay-root')
+  if (overlayRoot instanceof HTMLElement) return overlayRoot
+
+  return document.body
 }

@@ -11,7 +11,7 @@ Services:
 
 Legacy (not in active CI/deploy):
 1. `legacy/root-src/`
-2. root `public/` (currently empty)
+2. root `public/` (legacy placeholder dirs, no active runtime files)
 
 ## Source-Of-Truth Files
 
@@ -24,6 +24,7 @@ Frontend:
 6. Resume page: `johanscv/src/pages/Resume.js`
 7. Base path behavior: `johanscv/vite.config.js`
 8. Dev startup behavior: `johanscv/scripts/dev-fixed.sh`
+9. GitHub Pages deep-link fallback: `johanscv/public/404.html`
 
 API:
 1. Runtime entrypoint: `ask-johan-api/index.js`
@@ -90,7 +91,7 @@ Frontend (`johanscv/.env.local`):
 Backend (`ask-johan-api/.env` or Render env):
 1. `OPENAI_API_KEY`, `OPENAI_MODEL`, `PORT`
 2. `JOHANSCV_ACCESS_CODE` (primary), `ASK_JOHAN_ACCESS_CODE` (deprecated fallback)
-3. `JWT_SECRET`, `ASK_JOHAN_JWT_TTL`, `ASK_JOHAN_AUTH_COMPAT_MODE`
+3. `JWT_SECRET`, `ASK_JOHAN_JWT_TTL`, `ASK_JOHAN_AUTH_COMPAT_MODE` (default/recommended `false`)
 4. `ASK_JOHAN_AUTH_FAIL_WINDOW_MS`, `ASK_JOHAN_AUTH_FAIL_MAX`
 5. `GEOJOHAN_MAPS_API_KEY`
 6. `ASK_JOHAN_DAILY_CAP`, `ASK_JOHAN_RATE_LIMIT_WINDOW_MS`, `ASK_JOHAN_RATE_LIMIT_MAX`
@@ -131,6 +132,7 @@ Operational docs:
    - `npm ci`
    - `npm run dev`
    - open `http://localhost:5173/`
+   - note: `npm run dev` binds to `127.0.0.1:5173` via `scripts/dev-fixed.sh`; `localhost:5173` works in browser.
 
 3. GitHub Pages base-path emulation local:
    - `cd johanscv && CUSTOM_DOMAIN=false npm run dev`
@@ -170,3 +172,6 @@ Operational docs:
    - do not treat `legacy/` or root `public/` (currently empty) as active runtime code.
 6. Node version drift:
    - local Node major should match `20` before running release verification.
+7. Mode confusion:
+   - `johanscv/.env.example` defaults Ask Johan to `mock`.
+   - `johanscv/.env.local.example` and `johanscv/.env.production` use `api`.
