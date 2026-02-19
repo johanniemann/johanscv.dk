@@ -122,6 +122,12 @@ export function createApp({
     if (error.message === 'CORS origin not allowed') {
       return sendAnswer(res, 403, 'Origin is not allowed.')
     }
+    if (error.type === 'entity.too.large') {
+      return sendAnswer(res, 413, 'Request body is too large.')
+    }
+    if (error instanceof SyntaxError && Object.prototype.hasOwnProperty.call(error, 'body')) {
+      return sendAnswer(res, 400, 'Invalid JSON payload.')
+    }
     logger.error?.('Unexpected middleware error:', error)
     return sendAnswer(res, 500, 'Unexpected server middleware error.')
   })

@@ -26,13 +26,14 @@ require_contains() {
 README_FILE="$ROOT_DIR/README.md"
 AGENTS_FILE="$ROOT_DIR/AGENTS.md"
 CONTEXT_FILE="$ROOT_DIR/AGENTS-CONTEXT.md"
+API_AGENTS_FILE="$ROOT_DIR/ask-johan-api/AGENTS.md"
 
 require_file "$README_FILE"
 require_file "$AGENTS_FILE"
 require_file "$CONTEXT_FILE"
 require_file "$ROOT_DIR/CONTRIBUTING.md"
 require_file "$ROOT_DIR/johanscv/README.md"
-require_file "$ROOT_DIR/ask-johan-api/AGENTS.md"
+require_file "$API_AGENTS_FILE"
 
 require_contains "$README_FILE" "johanscv/" "active frontend path"
 require_contains "$README_FILE" "ask-johan-api/" "active API path"
@@ -40,15 +41,21 @@ require_contains "$README_FILE" "http://localhost:5173/" "frontend local URL"
 require_contains "$README_FILE" "http://127.0.0.1:8787/health" "API health URL"
 require_contains "$README_FILE" "./scripts/verify.sh" "repo verification command"
 require_contains "$README_FILE" "Node 20" "runtime version requirement"
+require_contains "$README_FILE" 'malformed JSON -> `400`' "API malformed JSON contract"
+require_contains "$README_FILE" 'oversized JSON body (> `8kb`) -> `413`' "API body size contract"
 
 require_contains "$AGENTS_FILE" "Never commit or push without explicit Johan approval" "git approval rule"
 require_contains "$AGENTS_FILE" "strict CORS allowlist" "CORS guardrail"
 require_contains "$AGENTS_FILE" "JWT auth flow" "auth guardrail"
+require_contains "$AGENTS_FILE" "request body guardrails" "request body guardrail"
 
 require_contains "$CONTEXT_FILE" "POST /auth/login" "auth endpoint contract"
 require_contains "$CONTEXT_FILE" "POST /api/ask-johan" "ask endpoint contract"
 require_contains "$CONTEXT_FILE" "GET /api/geojohan/maps-key" "GeoJohan endpoint contract"
 require_contains "$CONTEXT_FILE" "Never reveal private context verbatim" "private-context guardrail"
+require_contains "$CONTEXT_FILE" 'malformed JSON -> `400`; request body above `8kb` -> `413`' "ask endpoint validation contract"
+
+require_contains "$API_AGENTS_FILE" "malformed JSON handling + request body-size limit handling" "API request-body guardrail"
 
 if [[ "$failures" -gt 0 ]]; then
   echo "[docs-sync] FAILED with $failures issue(s)."

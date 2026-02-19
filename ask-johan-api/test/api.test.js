@@ -167,6 +167,25 @@ test('POST /api/ask-johan validates content type', async () => {
   assert.equal(response.body.answer, 'Unsupported content type.')
 })
 
+test('POST /api/ask-johan rejects invalid JSON payload', async () => {
+  const app = createApp({ client: fakeClient('Hello') })
+  const response = await request(app)
+    .post('/api/ask-johan')
+    .set('Content-Type', 'application/json')
+    .send('{"question":')
+
+  assert.equal(response.status, 400)
+  assert.equal(response.body.answer, 'Invalid JSON payload.')
+})
+
+test('POST /api/ask-johan rejects oversized request body', async () => {
+  const app = createApp({ client: fakeClient('Hello') })
+  const response = await request(app).post('/api/ask-johan').send({ question: 'x'.repeat(12_000) })
+
+  assert.equal(response.status, 413)
+  assert.equal(response.body.answer, 'Request body is too large.')
+})
+
 test('POST /api/ask-johan rejects empty questions after sanitization', async () => {
   const app = createApp({ client: fakeClient('Hello') })
   const response = await request(app).post('/api/ask-johan').send({ question: ' \n\t ' })

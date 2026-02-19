@@ -39,6 +39,7 @@
 - Keep CORS strict (`ALLOWED_ORIGINS` exact allowlist + localhost dev rule).
 - Keep validation/throttling active:
   - content-type + input type/length checks,
+  - malformed JSON handling + request body-size limit handling,
   - request rate limiter,
   - failed-auth throttling,
   - daily cap per IP.
@@ -69,6 +70,7 @@
 ## Definition Of Done (API)
 - Run from `ask-johan-api/`:
   - `npm test`
+  - `npm audit --omit=dev`
 - For runtime-sensitive changes, also run `npm run start` smoke checks for:
   - `/health`
   - `/auth/login`

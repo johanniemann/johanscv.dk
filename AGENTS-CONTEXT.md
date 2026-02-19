@@ -68,6 +68,7 @@ Quick contract reference:
    - request: `{ "question": "..." }`
    - success: `{ "answer": "..." }`
    - error: `{ "answer": "..." }`
+   - validation: malformed JSON -> `400`; request body above `8kb` -> `413`
 3. `GET /api/geojohan/maps-key`
    - success: `{ "mapsApiKey": "..." }`
    - error: `{ "answer": "..." }`
@@ -78,6 +79,7 @@ Security controls in API:
 3. Per-IP rate limit (`ASK_JOHAN_RATE_LIMIT_*`).
 4. Per-IP daily cap (`ASK_JOHAN_DAILY_CAP`).
 5. Prompt/context exfiltration refusal patterns.
+6. JSON/body guardrails (`application/json` checks + body-size protection).
 
 ## Environment Variables (Names Only)
 
@@ -148,13 +150,17 @@ Operational docs:
 
 2. API:
    - `cd ask-johan-api && npm test`
+   - `cd ask-johan-api && npm audit --omit=dev`
 
-3. Repo guardrails:
+3. Frontend dependency audit:
+   - `cd johanscv && npm audit --omit=dev`
+
+4. Repo guardrails:
    - `./scripts/check-node-alignment.sh`
    - `./scripts/check-doc-sync.sh`
    - `./scripts/scan-secrets.sh`
 
-4. Repo gate:
+5. Repo gate:
    - `./scripts/verify.sh`
 
 ## Common Pitfalls
@@ -169,7 +175,7 @@ Operational docs:
 4. Security assumption error:
    - site access code in frontend storage is not a secure secret by itself; real enforcement is server-side login + JWT.
 5. Legacy confusion:
-   - do not treat `legacy/` or root `public/` (currently empty) as active runtime code.
+   - do not treat `legacy/` or root `public/` (placeholder directories only) as active runtime code.
 6. Node version drift:
    - local Node major should match `20` before running release verification.
 7. Mode confusion:

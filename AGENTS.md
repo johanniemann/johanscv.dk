@@ -42,7 +42,8 @@
   - strict CORS allowlist (`ALLOWED_ORIGINS`),
   - JWT auth flow (`/auth/login` + Bearer token),
   - auth-failure throttling,
-  - per-IP rate limit + daily cap.
+  - per-IP rate limit + daily cap,
+  - request body guardrails (JSON-only + max body size handling).
 
 ## Deployment Assumptions
 - Frontend deploy path is GitHub Pages via `johanscv` scripts.
@@ -75,6 +76,9 @@
 - Minimum verification for cross-cutting changes:
   - `cd johanscv && npm run lint && npm run smoke && npm run build && npm run check:bundle`
   - `cd ask-johan-api && npm test`
+  - dependency checks:
+    - `cd johanscv && npm audit --omit=dev`
+    - `cd ask-johan-api && npm audit --omit=dev`
 - Guardrail checks:
   - `./scripts/check-node-alignment.sh`
   - `./scripts/check-doc-sync.sh`

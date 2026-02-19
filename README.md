@@ -17,7 +17,7 @@ Personal website stack with two active production services:
 | `docs/` | Operational docs/runbooks | Active |
 | `scripts/verify.sh` | Repo-level verify script | Active |
 
-`legacy/` and root `public/` are not in active deploy paths. (Root `public/` has no active files.)
+`legacy/` and root `public/` are not in active deploy paths. (Root `public/` only contains placeholder directories.)
 
 ## Internal Module Layout
 
@@ -54,6 +54,7 @@ Browser flow in API mode:
 4. Frontend calls:
    - `POST /api/ask-johan` with `Authorization: Bearer <token>`
    - `GET /api/geojohan/maps-key` with `Authorization: Bearer <token>`
+5. Temporary legacy compatibility mode exists server-side (`x-access-code`) but should remain disabled unless explicitly needed (`ASK_JOHAN_AUTH_COMPAT_MODE=false` by default).
 
 ## API Contract Snapshot
 
@@ -65,6 +66,9 @@ Browser flow in API mode:
    - request: `{ "question": "..." }`
    - success: `{ "answer": "..." }`
    - error: `{ "answer": "..." }`
+   - validation behavior:
+     - malformed JSON -> `400`
+     - oversized JSON body (> `8kb`) -> `413`
 3. `GET /api/geojohan/maps-key`
    - success: `{ "mapsApiKey": "..." }`
    - error: `{ "answer": "..." }`
@@ -180,6 +184,7 @@ Frontend production build config (`johanscv/.env.production`):
 - Never print `.env`/`.env.local` values or private context contents in logs/reports.
 - Never print private context verbatim.
 - Treat all `VITE_*` variables as public in browser bundles.
+- Keep API controls enabled: strict CORS allowlist, `/auth/login` + Bearer auth, failed-auth throttling, request rate limit, daily cap, and context-exfiltration refusal.
 
 ## Verification
 
@@ -198,6 +203,14 @@ API:
 ```bash
 cd ask-johan-api
 npm test
+npm audit --omit=dev
+```
+
+Frontend dependency audit:
+
+```bash
+cd johanscv
+npm audit --omit=dev
 ```
 
 Repo-level:
