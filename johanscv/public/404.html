@@ -6,18 +6,31 @@
     <title>johanscv</title>
     <script>
       (function () {
+        var REPO_BASE_SEGMENT = 'johanscv.dk'
         var pathname = window.location.pathname
         var search = window.location.search
         var hash = window.location.hash
         var segments = pathname.split('/').filter(Boolean)
+        var isRepoPath = segments.length > 0 && segments[0] === REPO_BASE_SEGMENT
+        var base = isRepoPath ? '/' + REPO_BASE_SEGMENT + '/' : '/'
+        var routeSegments = isRepoPath ? segments.slice(1) : segments
+        var route = '/' + routeSegments.join('/')
+        var params = new URLSearchParams(search)
 
-        if (segments.length === 0) {
-          window.location.replace('/')
+        if (route.length > 1 && route.endsWith('/')) {
+          route = route.slice(0, -1)
+        }
+
+        if (!route || route === '//') {
+          route = '/'
+        }
+
+        // Prevent recursive encoding loops if an already wrapped URL hits 404.
+        if (params.has('p')) {
+          window.location.replace(base + '?' + params.toString() + hash)
           return
         }
 
-        var base = '/' + segments[0] + '/'
-        var route = '/' + segments.slice(1).join('/')
         var query = route
 
         if (search && search.length > 1) {
