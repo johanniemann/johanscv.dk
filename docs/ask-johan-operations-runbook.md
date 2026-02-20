@@ -26,6 +26,7 @@ Checks:
 GeoJohan note:
 - GeoJohan maps key now comes from API endpoint `GET /api/geojohan/maps-key` (authenticated).
 - Confirm `GEOJOHAN_MAPS_API_KEY` is set in Render Environment Variables.
+- Legacy fallback env names are supported for recovery (`GOOGLE_MAPS_API_KEY`, `ASK_JOHAN_MAPS_API_KEY`), but migrate back to `GEOJOHAN_MAPS_API_KEY`.
 
 ## 2) Repeated `401` in Render logs
 

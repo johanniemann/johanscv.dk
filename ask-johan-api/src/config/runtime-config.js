@@ -7,6 +7,7 @@ import { parseAllowedOrigins } from '../app/origins.js'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const API_ROOT_DIR = path.resolve(__dirname, '..', '..')
+const GEOJOHAN_MAPS_KEY_ENV_KEYS = ['GEOJOHAN_MAPS_API_KEY', 'GOOGLE_MAPS_API_KEY', 'ASK_JOHAN_MAPS_API_KEY']
 
 export function readRuntimeConfig(env = process.env) {
   const maxQuestionChars = parsePositiveInt(env.MAX_QUESTION_CHARS, 800)
@@ -19,7 +20,7 @@ export function readRuntimeConfig(env = process.env) {
   const authFailureMax = parsePositiveInt(env.ASK_JOHAN_AUTH_FAIL_MAX, 10)
   const authCompatMode = parseBoolean(env.ASK_JOHAN_AUTH_COMPAT_MODE, false)
   const jwtTtl = (env.ASK_JOHAN_JWT_TTL || '7d').trim() || '7d'
-  const geoJohanMapsApiKey = String(env.GEOJOHAN_MAPS_API_KEY || '').trim()
+  const { geoJohanMapsApiKey, geoJohanMapsApiKeySource } = resolveGeoJohanMapsApiKey(env)
   const usageStoreMode = String(env.ASK_JOHAN_USAGE_STORE || 'memory').trim().toLowerCase()
   const redisUrl = String(env.REDIS_URL || '').trim()
   const redisKeyPrefix = String(env.ASK_JOHAN_REDIS_KEY_PREFIX || 'ask-johan').trim() || 'ask-johan'
@@ -47,6 +48,7 @@ export function readRuntimeConfig(env = process.env) {
     authCompatMode,
     jwtTtl,
     geoJohanMapsApiKey,
+    geoJohanMapsApiKeySource,
     usageStoreMode,
     redisUrl,
     redisKeyPrefix,
@@ -133,6 +135,23 @@ function parseBoolean(value, fallback) {
   if (normalized === 'true' || normalized === '1' || normalized === 'yes') return true
   if (normalized === 'false' || normalized === '0' || normalized === 'no') return false
   return fallback
+}
+
+function resolveGeoJohanMapsApiKey(env = process.env) {
+  for (const envKey of GEOJOHAN_MAPS_KEY_ENV_KEYS) {
+    const value = String(env[envKey] || '').trim()
+    if (value) {
+      return {
+        geoJohanMapsApiKey: value,
+        geoJohanMapsApiKeySource: envKey
+      }
+    }
+  }
+
+  return {
+    geoJohanMapsApiKey: '',
+    geoJohanMapsApiKeySource: 'none'
+  }
 }
 
 function resolveAccessCode(rawJohanScvAccessCode, rawLegacyAccessCode) {

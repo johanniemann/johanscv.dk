@@ -5,7 +5,7 @@
 - Current active production architecture:
   - Frontend SPA in `johanscv/` (GitHub Pages).
   - Backend API in `ask-johan-api/` (Render web service).
-  - Legacy references in `legacy/` and root `public/` are not part of active CI/deploy (root `public/` has only placeholder dirs).
+  - Legacy references in `archive/legacy-frontend-prototype/` and `archive/root-public-placeholders/` are not part of active CI/deploy/runtime.
 
 ## Active Code Organization
 - Frontend feature modules:
@@ -85,6 +85,7 @@
   - `./scripts/scan-secrets.sh`
 - For repo-wide verification, prefer:
   - `./scripts/verify.sh`
+  - Node 20 convenience wrapper: `./scripts/verify-node20.sh`
 - In final report include:
   - files changed,
   - commands run,

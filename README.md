@@ -12,12 +12,12 @@ Personal website stack with two active production services:
 | `ask-johan-api/` | Ask Johan + GeoJohan API (Node/Express/OpenAI) | Active |
 | `.github/workflows/ci.yml` | CI quality gate (repo guardrails + frontend lint/smoke/build/budget + API tests + dependency audit) | Active |
 | `render.yaml` | Render blueprint (`rootDir: ask-johan-api`) | Active |
-| `legacy/root-src/` | Previous frontend prototype source | Legacy |
-| `public/` | Previous root-level static assets (legacy reference folder with placeholder dirs only) | Legacy |
+| `archive/legacy-frontend-prototype/root-src/` | Previous frontend prototype source | Archived legacy |
+| `archive/root-public-placeholders/` | Previous root-level static placeholders | Archived legacy |
 | `docs/` | Operational docs/runbooks | Active |
 | `scripts/verify.sh` | Repo-level verify script | Active |
 
-`legacy/` and root `public/` are not in active deploy paths. (Root `public/` only contains placeholder directories.)
+`archive/` is not in active deploy paths; it only stores legacy reference material.
 
 ## Internal Module Layout
 
@@ -42,8 +42,8 @@ Active production architecture:
 2. `ask-johan-api/` deploys to Render.
 
 Legacy references:
-1. `legacy/root-src/`
-2. root `public/` (currently empty)
+1. `archive/legacy-frontend-prototype/root-src/`
+2. `archive/root-public-placeholders/`
 
 ## Runtime Model
 
@@ -81,6 +81,12 @@ If your local machine is on a different major version, switch before verificatio
 
 ```bash
 nvm use 20
+```
+
+Or run the Node-20 wrapper verification directly:
+
+```bash
+./scripts/verify-node20.sh
 ```
 
 ### Frontend (`johanscv/`)
@@ -166,7 +172,7 @@ API (`ask-johan-api/.env`):
 - `JOHANSCV_ACCESS_CODE` (primary), `ASK_JOHAN_ACCESS_CODE` (deprecated fallback)
 - `JWT_SECRET`, `ASK_JOHAN_JWT_TTL`, `ASK_JOHAN_AUTH_COMPAT_MODE` (recommended/default: `false`)
 - `ASK_JOHAN_AUTH_FAIL_WINDOW_MS`, `ASK_JOHAN_AUTH_FAIL_MAX`
-- `GEOJOHAN_MAPS_API_KEY`
+- `GEOJOHAN_MAPS_API_KEY` (canonical; runtime also accepts legacy fallbacks `GOOGLE_MAPS_API_KEY` and `ASK_JOHAN_MAPS_API_KEY`)
 - `ASK_JOHAN_USAGE_STORE`, `REDIS_URL`, `ASK_JOHAN_REDIS_KEY_PREFIX`
 - `MAX_QUESTION_CHARS`, `ASK_JOHAN_DAILY_CAP`
 - `ALLOWED_ORIGINS`

@@ -28,6 +28,12 @@ const ANSWER_PIN_STYLE_BY_ROUND = {
 let mapsPromise = null
 let mountCounter = 0
 const STAGE_TRANSITION_MS = 560
+const GEOJOHAN_INIT_ERROR = {
+  AUTH: 'GEOJOHAN_AUTH_FAILED',
+  MAPS_KEY_UNAVAILABLE: 'GEOJOHAN_MAPS_KEY_UNAVAILABLE',
+  MAPS_KEY_REQUEST_FAILED: 'GEOJOHAN_MAPS_KEY_REQUEST_FAILED',
+  MAPS_SCRIPT_LOAD_FAILED: 'GEOJOHAN_MAPS_SCRIPT_LOAD_FAILED'
+}
 
 export function render({ t }) {
   return `
@@ -147,19 +153,30 @@ export function mount({ t, language = 'en' }) {
       state.streetViewService = new maps.StreetViewService()
       await beginRound(state, refs, t)
     })
-    .catch(() => {
+    .catch((error) => {
       if (!isMounted()) return
-      refs.feedback.textContent = API_BASE ? t.geojohan.loadError : t.geojohan.missingKey
+      const { message, hint } = getGeoJohanMapsLoadFeedback(error, t)
+      refs.feedback.textContent = hint ? `${message} ${hint}` : message
       setActionMode(refs, 'hidden')
+      console.warn('GeoJohan initialization failed:', error?.code || error?.message || error)
     })
 }
 
 async function resolveGeoJohanMapsApiKey() {
   if (!API_BASE) {
-    throw new Error('VITE_API_BASE_URL is not configured.')
+    throw createGeoJohanInitError(GEOJOHAN_INIT_ERROR.AUTH, 'VITE_API_BASE_URL is not configured.')
   }
 
-  const token = await getApiBearerToken()
+  let token = ''
+  try {
+    token = await getApiBearerToken()
+  } catch (error) {
+    throw createGeoJohanInitError(
+      GEOJOHAN_INIT_ERROR.AUTH,
+      error instanceof Error ? error.message : 'Unable to authenticate GeoJohan maps request.'
+    )
+  }
+
   const response = await fetch(`${API_BASE}${MAPS_KEY_PATH}`, {
     headers: {
       Authorization: `Bearer ${token}`
@@ -167,16 +184,49 @@ async function resolveGeoJohanMapsApiKey() {
   })
 
   if (!response.ok) {
-    throw new Error(`GeoJohan maps key request failed (${response.status}).`)
+    if (response.status === 503) {
+      throw createGeoJohanInitError(
+        GEOJOHAN_INIT_ERROR.MAPS_KEY_UNAVAILABLE,
+        'GeoJohan maps key is unavailable in the API response.'
+      )
+    }
+
+    throw createGeoJohanInitError(
+      GEOJOHAN_INIT_ERROR.MAPS_KEY_REQUEST_FAILED,
+      `GeoJohan maps key request failed (${response.status}).`
+    )
   }
 
   const payload = await response.json()
   const mapsApiKey = typeof payload?.mapsApiKey === 'string' ? payload.mapsApiKey.trim() : ''
   if (!mapsApiKey) {
-    throw new Error('GeoJohan maps key is missing in response.')
+    throw createGeoJohanInitError(
+      GEOJOHAN_INIT_ERROR.MAPS_KEY_UNAVAILABLE,
+      'GeoJohan maps key is missing in response.'
+    )
   }
 
   return mapsApiKey
+}
+
+function createGeoJohanInitError(code, message) {
+  const error = new Error(message)
+  error.code = code
+  return error
+}
+
+function getGeoJohanMapsLoadFeedback(error, t) {
+  if (error?.code === GEOJOHAN_INIT_ERROR.MAPS_KEY_UNAVAILABLE) {
+    return {
+      message: t.geojohan.missingKey,
+      hint: t.geojohan.missingKeyHint || ''
+    }
+  }
+
+  return {
+    message: API_BASE ? t.geojohan.loadError : t.geojohan.missingKey,
+    hint: API_BASE ? t.geojohan.loadErrorHint || '' : t.geojohan.missingKeyHint || ''
+  }
 }
 
 function getRefs() {
@@ -728,7 +778,7 @@ function loadGoogleMapsApi(apiKey) {
     script.onerror = () => {
       delete window[callbackName]
       mapsPromise = null
-      reject(new Error('Google Maps failed to load'))
+      reject(createGeoJohanInitError(GEOJOHAN_INIT_ERROR.MAPS_SCRIPT_LOAD_FAILED, 'Google Maps failed to load'))
     }
     document.head.appendChild(script)
   })

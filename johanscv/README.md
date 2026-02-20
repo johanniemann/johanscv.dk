@@ -6,7 +6,7 @@ Personal CV website built with Vite, Vanilla JS, and Tailwind CSS.
 
 - Frontend app (this folder): `johanscv/`
 - Backend API (separate folder): `../ask-johan-api/`
-- Legacy prototype code exists in `../legacy/root-src/` and `../public/` (placeholder dirs only) but is not used by this app's scripts.
+- Legacy prototype code exists in `../archive/legacy-frontend-prototype/root-src/` and `../archive/root-public-placeholders/` but is not used by this app's scripts.
 - Frontend feature modules:
   - Ask Johan client: `src/features/ask-johan/AskJohanWidget.js`
   - GeoJohan gameplay: `src/features/geojohan/GeoJohanPage.js`

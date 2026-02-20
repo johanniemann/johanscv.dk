@@ -2,8 +2,8 @@
 
 This repository keeps an older prototype frontend in:
 
-- `legacy/root-src/`
-- `public/`
+- `archive/legacy-frontend-prototype/root-src/`
+- `archive/root-public-placeholders/`
 
 These folders are currently retained for reference only.
 

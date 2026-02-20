@@ -10,8 +10,8 @@ Services:
 2. Backend API in `ask-johan-api/` (Node + Express + OpenAI), deployed to Render.
 
 Legacy (not in active CI/deploy):
-1. `legacy/root-src/`
-2. root `public/` (legacy placeholder dirs, no active runtime files)
+1. `archive/legacy-frontend-prototype/root-src/`
+2. `archive/root-public-placeholders/`
 
 ## Source-Of-Truth Files
 
@@ -95,7 +95,7 @@ Backend (`ask-johan-api/.env` or Render env):
 2. `JOHANSCV_ACCESS_CODE` (primary), `ASK_JOHAN_ACCESS_CODE` (deprecated fallback)
 3. `JWT_SECRET`, `ASK_JOHAN_JWT_TTL`, `ASK_JOHAN_AUTH_COMPAT_MODE` (default/recommended `false`)
 4. `ASK_JOHAN_AUTH_FAIL_WINDOW_MS`, `ASK_JOHAN_AUTH_FAIL_MAX`
-5. `GEOJOHAN_MAPS_API_KEY`
+5. `GEOJOHAN_MAPS_API_KEY` (canonical; runtime accepts legacy fallbacks `GOOGLE_MAPS_API_KEY` and `ASK_JOHAN_MAPS_API_KEY`)
 6. `ASK_JOHAN_DAILY_CAP`, `ASK_JOHAN_RATE_LIMIT_WINDOW_MS`, `ASK_JOHAN_RATE_LIMIT_MAX`
 7. `ASK_JOHAN_TIMEOUT_MS`, `MAX_QUESTION_CHARS`
 8. `ALLOWED_ORIGINS`
@@ -162,6 +162,7 @@ Operational docs:
 
 5. Repo gate:
    - `./scripts/verify.sh`
+   - `./scripts/verify-node20.sh` (convenience wrapper for Node 20 local verification)
 
 ## Common Pitfalls
 
@@ -175,7 +176,7 @@ Operational docs:
 4. Security assumption error:
    - site access code in frontend storage is not a secure secret by itself; real enforcement is server-side login + JWT.
 5. Legacy confusion:
-   - do not treat `legacy/` or root `public/` (placeholder directories only) as active runtime code.
+   - do not treat `archive/` contents as active runtime code.
 6. Node version drift:
    - local Node major should match `20` before running release verification.
 7. Mode confusion:

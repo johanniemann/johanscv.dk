@@ -43,6 +43,11 @@ export function startServer(env = process.env) {
     if (config.accessCodeSource === 'ASK_JOHAN_ACCESS_CODE') {
       console.warn('ASK_JOHAN_ACCESS_CODE is deprecated. Rename it to JOHANSCV_ACCESS_CODE.')
     }
+    if (config.geoJohanMapsApiKey && config.geoJohanMapsApiKeySource !== 'GEOJOHAN_MAPS_API_KEY') {
+      console.warn(
+        `${config.geoJohanMapsApiKeySource} is deprecated for GeoJohan maps. Rename it to GEOJOHAN_MAPS_API_KEY.`
+      )
+    }
 
     console.log(`Ask Johan API running on http://127.0.0.1:${port}`)
     console.log(`Allowed CORS origins: ${config.allowedOrigins.join(', ')}`)
@@ -54,5 +59,8 @@ export function startServer(env = process.env) {
     console.log(`Ask Johan auth compatibility mode: ${config.authCompatMode ? 'enabled' : 'disabled'}`)
     console.log(`Ask Johan JWT TTL: ${config.jwtTtl}`)
     console.log(`GeoJohan maps key: ${config.geoJohanMapsApiKey ? 'configured' : 'not configured'}`)
+    if (config.geoJohanMapsApiKey) {
+      console.log(`GeoJohan maps key source: ${config.geoJohanMapsApiKeySource}`)
+    }
   })
 }
