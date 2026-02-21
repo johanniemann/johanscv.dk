@@ -236,6 +236,10 @@ body.welcome-active #site-shell {
   margin-top: 0.95rem;
 }
 
+.welcome-input-row {
+  position: relative;
+}
+
 .welcome-input-label {
   display: block;
   margin: 0 0 0.4rem;
@@ -253,6 +257,10 @@ body.welcome-active #site-shell {
   transition:
     border-color var(--duration-base) var(--ease-standard),
     box-shadow var(--duration-base) var(--ease-standard);
+}
+
+.welcome-input-with-button {
+  padding-right: 4.35rem;
 }
 
 .welcome-input::placeholder {
@@ -2274,6 +2282,10 @@ body.welcome-active #site-shell {
     padding: 0.66rem 4.2rem 0.66rem 0.75rem;
   }
 
+  .welcome-input-with-button {
+    padding-right: 4.2rem;
+  }
+
   .ask-button {
     right: 0.28rem;
     min-height: 1.98rem;
@@ -2369,6 +2381,10 @@ body.welcome-active #site-shell {
   }
 
   .ask-input {
+    padding-right: 3.85rem;
+  }
+
+  .welcome-input-with-button {
     padding-right: 3.85rem;
   }
 

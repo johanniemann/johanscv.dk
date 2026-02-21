@@ -12,20 +12,34 @@ export function WelcomeGate({ t }) {
         </ul>
         <div class="welcome-input-wrap">
           <label class="welcome-input-label" for="welcome-access-code">${t.welcome.passwordLabel}</label>
-          <input
-            id="welcome-access-code"
-            class="welcome-input"
-            type="password"
-            autocomplete="current-password"
-            placeholder="${t.welcome.passwordPlaceholder}"
-          />
+          <div class="welcome-input-row">
+            <input
+              id="welcome-access-code"
+              class="welcome-input welcome-input-with-button"
+              type="password"
+              autocomplete="current-password"
+              placeholder="${t.welcome.passwordPlaceholder}"
+            />
+            <button id="welcome-continue" class="ask-button welcome-continue-button" type="button" aria-label="${t.welcome.continue}">
+              <span class="ask-button-visual" aria-hidden="true">
+                <span class="ask-button-icon ask-button-icon-arrow">
+                  <svg viewBox="0 0 24 24" focusable="false">
+                    <path d="M12 19V7.2" />
+                    <path d="M7.5 11.7 12 7.2l4.5 4.5" />
+                  </svg>
+                </span>
+                <span class="ask-button-icon ask-button-icon-spinner">
+                  <svg viewBox="0 0 24 24" focusable="false">
+                    <circle class="spinner-track" cx="12" cy="12" r="8.2" />
+                    <circle class="spinner-head" cx="12" cy="12" r="8.2" />
+                  </svg>
+                </span>
+              </span>
+            </button>
+          </div>
           <p id="welcome-error" class="welcome-error" aria-live="polite"></p>
           <p id="welcome-status" class="welcome-status" aria-live="polite"></p>
         </div>
-        <button id="welcome-continue" class="welcome-button" type="button">
-          <span class="welcome-button-text">${t.welcome.continue}</span>
-          <span class="welcome-button-spinner" aria-hidden="true"></span>
-        </button>
       </div>
     </section>
   `
