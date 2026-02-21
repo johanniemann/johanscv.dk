@@ -21,7 +21,7 @@
       "warmingUp": "Please wait while Johan is waking up. Give him ~ 20 seconds.",
       "warmingUpAutoContinue": "Pro-tip: you can change between EN/DK mode at the bottom of the site",
       "passwordLabel": "Site access code",
-      "passwordPlaceholder": "Enter access code",
+      "passwordPlaceholder": "Enter site code",
       "passwordError": "Invalid access code. Please try again.",
       "passwordRateLimited": "Too many login attempts. Please wait a few minutes and try again.",
       "passwordForbidden": "This site origin is not allowed right now. Please contact Johan.",

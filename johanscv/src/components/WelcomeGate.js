@@ -11,7 +11,6 @@ export function WelcomeGate({ t }) {
           <li>${t.welcome.point3}</li>
         </ul>
         <div class="welcome-input-wrap">
-          <label class="welcome-input-label" for="welcome-access-code">${t.welcome.passwordLabel}</label>
           <div class="welcome-input-row">
             <input
               id="welcome-access-code"
