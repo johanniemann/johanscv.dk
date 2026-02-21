@@ -174,10 +174,10 @@
       "infoTitle": "How this site is built",
       "infoIntro": "A quick overview of the main tools and architecture choices used to build and run this website.",
       "infoPoints": [
-        "Frontend: A Vite-powered SPA built with Vanilla JavaScript modules and custom styling with Tailwind tooling.",
+        "Frontend: A Vite-powered SPA built with Vanilla JavaScript modules and custom styling with Tailwind tooling. No frontend templates used. Everything is build from scratch.",
         "Routing and UX: Client-side routing with smooth page transitions and state-driven theme/language toggles.",
         "Backend: Node.js + Express API on Render that powers Ask Johan and GeoJohan.",
-        "AI and data: Ask Johan uses OpenAI with guarded context handling, plus request limits and usage caps for stability.",
+        "AI and data: Ask Johan uses OpenAI' API with guarded context handling. GeoJohan uses Google Maps' API for interactive streetview and map. Both is request limited and usage capped for stability.",
         "Hosting and deploy: The frontend is hosted on GitHub Pages, while the API is deployed separately on Render.",
         "Security baseline: Access-code login, JWT bearer auth, strict origin checks, and throttling on protected endpoints."
       ],
@@ -359,10 +359,10 @@
       "infoTitle": "Sådan er sitet bygget",
       "infoIntro": "Et hurtigt overblik over de vigtigste værktøjer og arkitekturvalg bag websitet.",
       "infoPoints": [
-        "Frontend: En Vite-baseret SPA bygget med Vanilla JavaScript-moduler og custom styling med Tailwind-tooling.",
+        "Frontend: En Vite-baseret SPA bygget med Vanilla JavaScript-moduler og custom styling med Tailwind-tooling. Ingen frontend templates er brugt. Alt er bygget fra bunden.",
         "Routing og UX: Client-side routing med glidende sideovergange og state-styrede toggles til tema og sprog.",
         "Backend: Node.js + Express API på Render, som driver Ask Johan og GeoJohan.",
-        "AI og data: Ask Johan bruger OpenAI med beskyttet konteksthåndtering samt request-limits og daglige usage caps.",
+        "AI og data: Ask Johan bruger OpenAI's API med beskyttet konteksthåndtering. GeoJohan bruger Google Maps' API til interaktiv streetview og kort. Begge har request-limits og usage caps for stabilitet.",
         "Hosting og deploy: Frontend hostes på GitHub Pages, mens API'et deployes separat på Render.",
         "Sikkerhedsgrundlag: Access-code login, JWT bearer auth, stram origin-kontrol og throttling på beskyttede endpoints."
       ],
