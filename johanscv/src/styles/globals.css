@@ -274,25 +274,43 @@ body.welcome-active #site-shell {
 }
 
 .welcome-error {
-  min-height: 1.2rem;
-  margin: 0.4rem 0 0;
+  margin: 0;
+  max-height: 0;
+  overflow: hidden;
   font-size: 0.78rem;
   color: rgba(255, 173, 173, 0.95);
+  opacity: 0;
+  transform: translateY(-2px);
+  transition:
+    max-height var(--duration-base) var(--ease-standard),
+    opacity var(--duration-base) var(--ease-standard),
+    transform var(--duration-base) var(--ease-standard);
+}
+
+.welcome-error:not(:empty) {
+  margin-top: 0.4rem;
+  max-height: 2.2rem;
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .welcome-status {
-  min-height: 1.2rem;
-  margin: 0.35rem 0 0;
+  margin: 0;
+  max-height: 0;
+  overflow: hidden;
   font-size: 0.78rem;
   color: rgba(202, 216, 255, 0.92);
   opacity: 0;
   transform: translateY(3px);
   transition:
+    max-height var(--duration-base) var(--ease-standard),
     opacity var(--duration-base) var(--ease-standard),
     transform var(--duration-base) var(--ease-standard);
 }
 
 .welcome-status.has-message {
+  margin-top: 0.35rem;
+  max-height: 2.2rem;
   opacity: 1;
   transform: translateY(0);
 }
