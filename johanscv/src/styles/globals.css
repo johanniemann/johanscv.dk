@@ -175,7 +175,9 @@ body.welcome-active #site-shell {
 
 .welcome-points {
   margin: 1rem 0 0;
-  padding-left: 1rem;
+  padding-left: 1.2rem;
+  list-style: disc;
+  list-style-position: outside;
   color: rgba(208, 220, 255, 0.88);
   display: grid;
   gap: 0.45rem;
