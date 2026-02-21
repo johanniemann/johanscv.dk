@@ -164,26 +164,43 @@ export function mount({ t, language = 'en' }) {
 
 async function resolveGeoJohanMapsApiKey() {
   if (!API_BASE) {
-    throw createGeoJohanInitError(GEOJOHAN_INIT_ERROR.AUTH, 'VITE_API_BASE_URL is not configured.')
+    throw createGeoJohanInitError(GEOJOHAN_INIT_ERROR.MAPS_KEY_REQUEST_FAILED, 'VITE_API_BASE_URL is not configured.')
   }
 
   let token = ''
   try {
     token = await getApiBearerToken()
   } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to authenticate GeoJohan maps request.'
+    const isAccessCodeError = /access code is required/i.test(message)
     throw createGeoJohanInitError(
-      GEOJOHAN_INIT_ERROR.AUTH,
-      error instanceof Error ? error.message : 'Unable to authenticate GeoJohan maps request.'
+      isAccessCodeError ? GEOJOHAN_INIT_ERROR.AUTH : GEOJOHAN_INIT_ERROR.MAPS_KEY_REQUEST_FAILED,
+      message
     )
   }
 
-  const response = await fetch(`${API_BASE}${MAPS_KEY_PATH}`, {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  })
+  let response
+  try {
+    response = await fetch(`${API_BASE}${MAPS_KEY_PATH}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+  } catch (error) {
+    throw createGeoJohanInitError(
+      GEOJOHAN_INIT_ERROR.MAPS_KEY_REQUEST_FAILED,
+      error instanceof Error ? error.message : 'GeoJohan maps key request failed.'
+    )
+  }
 
   if (!response.ok) {
+    if (response.status === 401) {
+      throw createGeoJohanInitError(
+        GEOJOHAN_INIT_ERROR.AUTH,
+        'GeoJohan maps key request requires valid authentication.'
+      )
+    }
+
     if (response.status === 503) {
       throw createGeoJohanInitError(
         GEOJOHAN_INIT_ERROR.MAPS_KEY_UNAVAILABLE,
@@ -216,10 +233,24 @@ function createGeoJohanInitError(code, message) {
 }
 
 function getGeoJohanMapsLoadFeedback(error, t) {
+  if (error?.code === GEOJOHAN_INIT_ERROR.AUTH) {
+    return {
+      message: t.geojohan.authError || t.geojohan.loadError,
+      hint: t.geojohan.authErrorHint || ''
+    }
+  }
+
   if (error?.code === GEOJOHAN_INIT_ERROR.MAPS_KEY_UNAVAILABLE) {
     return {
       message: t.geojohan.missingKey,
       hint: t.geojohan.missingKeyHint || ''
+    }
+  }
+
+  if (error?.code === GEOJOHAN_INIT_ERROR.MAPS_KEY_REQUEST_FAILED) {
+    return {
+      message: t.geojohan.apiError || t.geojohan.loadError,
+      hint: t.geojohan.apiErrorHint || ''
     }
   }
 
@@ -370,10 +401,17 @@ async function setupScene(state, refs, round) {
     position: initialPanoramaPosition,
     pov,
     zoom: 1,
+    disableDefaultUI: true,
     addressControl: false,
     fullscreenControl: false,
-    linksControl: true
+    keyboardShortcuts: false,
+    // Keep Street View fixed to the current panorama: allow pan/zoom, disable movement between panoramas.
+    clickToGo: false,
+    linksControl: false,
+    showRoadLabels: false
   })
+
+  configurePanoramaPositionLock(state, initialPanoramaPosition)
 
   state.panorama.setPov(pov)
   state.panorama.setVisible(true)
@@ -624,6 +662,7 @@ function scheduleViewportResize(state, round) {
 }
 
 function scoreDistance(distanceKm) {
+  if (distanceKm <= 0.025) return SCORE_CURVE[0].points
   if (distanceKm <= SCORE_CURVE[0].km) return SCORE_CURVE[0].points
 
   for (let i = 1; i < SCORE_CURVE.length; i += 1) {
@@ -758,6 +797,40 @@ function normalizePov(rawPov) {
     heading: Number.isFinite(heading) ? heading : DEFAULT_POV.heading,
     pitch: Number.isFinite(pitch) ? pitch : DEFAULT_POV.pitch
   }
+}
+
+function configurePanoramaPositionLock(state, lockPosition) {
+  if (!state.panorama) return
+
+  const panorama = state.panorama
+  const normalizedLockPosition = toLatLngLiteral(lockPosition)
+  if (!normalizedLockPosition) return
+
+  let lockGuard = false
+
+  panorama.addListener('position_changed', () => {
+    if (lockGuard) return
+    const currentPosition = panorama.getPosition?.()
+    const currentPositionLiteral = toLatLngLiteral(currentPosition)
+    if (!currentPositionLiteral) return
+    if (haversineDistanceKm(currentPositionLiteral, normalizedLockPosition) * 1000 < 0.5) return
+
+    lockGuard = true
+    panorama.setPosition(normalizedLockPosition)
+    window.setTimeout(() => {
+      lockGuard = false
+    }, 0)
+  })
+}
+
+function toLatLngLiteral(position) {
+  if (!position) return null
+
+  const lat = typeof position.lat === 'function' ? position.lat() : Number(position.lat)
+  const lng = typeof position.lng === 'function' ? position.lng() : Number(position.lng)
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
+
+  return { lat, lng }
 }
 
 function loadGoogleMapsApi(apiKey) {
