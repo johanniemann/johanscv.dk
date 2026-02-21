@@ -1,9 +1,10 @@
 import { ThemeToggle } from './ThemeToggle.js'
 import { LanguageToggle } from './LanguageToggle.js'
 
-const FOOTER_INFO_TRANSITION_MS = 320
 const FOOTER_INFO_MODAL_ID = 'footer-info-modal'
 const FOOTER_INFO_DIALOG_ID = 'footer-info-dialog'
+const FOOTER_INFO_FADE_MS = 320
+const FOOTER_INFO_FOCUS_DELAY_MS = 140
 
 export function Footer({ t, theme, language }) {
   const year = new Date().getFullYear()
@@ -56,9 +57,13 @@ export function bindFooterInfoPopup(t, options = {}) {
 
   document.body.classList.remove('footer-info-lock')
   document.body.classList.remove('footer-info-open')
+  let restoreFocusOnClose = false
+  let isClosing = false
   let closeTimer = null
   let closeTransitionHandler = null
-  const CLOSE_FALLBACK_MS = FOOTER_INFO_TRANSITION_MS + 280
+  let openFocusTimer = null
+
+  const isOpen = () => !modal.hidden && modal.classList.contains('is-visible')
 
   const clearCloseWaiters = () => {
     if (closeTransitionHandler) {
@@ -71,15 +76,25 @@ export function bindFooterInfoPopup(t, options = {}) {
     }
   }
 
-  const isOpen = () => !modal.hidden && modal.classList.contains('is-visible')
+  const clearOpenWaiters = () => {
+    if (openFocusTimer) {
+      window.clearTimeout(openFocusTimer)
+      openFocusTimer = null
+    }
+  }
 
   const finalizeClose = () => {
     clearCloseWaiters()
+    clearOpenWaiters()
+    isClosing = false
     modal.hidden = true
     modal.classList.remove('is-visible')
     document.body.classList.remove('footer-info-lock')
     document.body.classList.remove('footer-info-open')
-    toggleButton.focus({ preventScroll: true })
+    if (restoreFocusOnClose) {
+      toggleButton.focus({ preventScroll: true })
+    }
+    restoreFocusOnClose = false
   }
 
   const setExpanded = (expanded) => {
@@ -87,8 +102,10 @@ export function bindFooterInfoPopup(t, options = {}) {
   }
 
   const open = () => {
-    if (isOpen()) return
+    if (isOpen() || isClosing) return
     clearCloseWaiters()
+    clearOpenWaiters()
+    restoreFocusOnClose = false
     modal.hidden = false
     modal.classList.remove('is-visible')
     document.body.classList.add('footer-info-lock')
@@ -96,41 +113,48 @@ export function bindFooterInfoPopup(t, options = {}) {
     setExpanded(true)
     window.requestAnimationFrame(() => {
       modal.classList.add('is-visible')
-      closeButton.focus({ preventScroll: true })
+      openFocusTimer = window.setTimeout(() => {
+        openFocusTimer = null
+        if (modal.hidden || isClosing || !modal.classList.contains('is-visible')) return
+        closeButton.focus({ preventScroll: true })
+      }, FOOTER_INFO_FOCUS_DELAY_MS)
     })
   }
 
-  const close = () => {
-    if (modal.hidden) return
+  const close = ({ restoreFocus = false } = {}) => {
+    if (modal.hidden || isClosing) return
+    isClosing = true
     clearCloseWaiters()
-    modal.classList.remove('is-visible')
+    clearOpenWaiters()
+    restoreFocusOnClose = restoreFocus
     setExpanded(false)
+    modal.classList.remove('is-visible')
 
     closeTransitionHandler = (event) => {
       if (event.target !== modal || event.propertyName !== 'opacity') return
       finalizeClose()
     }
+
     modal.addEventListener('transitionend', closeTransitionHandler)
-    closeTimer = window.setTimeout(finalizeClose, CLOSE_FALLBACK_MS)
+    closeTimer = window.setTimeout(finalizeClose, FOOTER_INFO_FADE_MS + 80)
   }
 
   toggleButton.addEventListener('click', () => {
     if (isOpen()) {
-      close()
+      close({ restoreFocus: true })
       return
     }
     open()
   })
-  closeButton.addEventListener('click', close)
-  backdrop.addEventListener('click', close)
+  closeButton.addEventListener('click', () => close())
+  backdrop.addEventListener('click', () => close())
   modal.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') close()
+    if (event.key === 'Escape') close({ restoreFocus: true })
   })
 }
 
 function mountFooterInfoModalPortal(t, overlayRoot) {
   document.body.classList.remove('footer-info-lock')
-  document.body.classList.remove('footer-info-open')
 
   document.querySelectorAll(`#${FOOTER_INFO_MODAL_ID}`).forEach((existingModal) => {
     existingModal.remove()
@@ -159,7 +183,7 @@ function mountFooterInfoModalPortal(t, overlayRoot) {
       <ul class="footer-info-list">
         ${t.footer.infoPoints.map((point) => `<li>${point}</li>`).join('')}
       </ul>
-      <button id="footer-info-close" class="projects-cta footer-info-close" type="button">
+      <button id="footer-info-close" class="footer-info-close-button" type="button">
         ${t.footer.infoClose}
       </button>
     </section>
