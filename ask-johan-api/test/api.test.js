@@ -149,6 +149,29 @@ test('GET /api/music-dashboard/snapshot refreshes spotify token once after 401',
   assert.equal(snapshotResponse.status, 200)
 })
 
+test('GET /api/music-dashboard/snapshot includes client secret in refresh exchange when configured', async () => {
+  const spotifyFetch = createFakeSpotifyFetch({
+    recentlyPlayedItems: buildRecentlyPlayedFixture(),
+    artistsById: {
+      artist1: { id: 'artist1', name: 'Alpha Artist' },
+      artist2: { id: 'artist2', name: 'Beta Artist' },
+      artist3: { id: 'artist3', name: 'Gamma Artist' },
+      artist4: { id: 'artist4', name: 'Delta Artist' }
+    },
+    failRecentlyPlayedOnceWith401: true
+  })
+  const app = createApp({
+    spotify: spotifyConfig({
+      clientSecret: 'spotify-client-secret'
+    }),
+    fetchImpl: spotifyFetch
+  })
+
+  const snapshotResponse = await request(app).get('/api/music-dashboard/snapshot?refresh=true')
+  assert.equal(snapshotResponse.status, 200)
+  assert.ok(spotifyFetch.stats.refreshTokenRequestsWithClientSecret >= 1)
+})
+
 test('GET /api/music-dashboard/snapshot returns 422 when Spotify has no recent plays', async () => {
   const spotifyFetch = createFakeSpotifyFetch({
     recentlyPlayedItems: [],
@@ -547,7 +570,8 @@ function createFakeSpotifyFetch({
   let shouldFailRecentlyPlayed = failRecentlyPlayedOnceWith401
   const stats = {
     clientCredentialsTokenRequests: 0,
-    artistRequestsWithAppToken: 0
+    artistRequestsWithAppToken: 0,
+    refreshTokenRequestsWithClientSecret: 0
   }
 
   async function fakeSpotifyFetch(url, options = {}) {
@@ -564,6 +588,9 @@ function createFakeSpotifyFetch({
         })
       }
       if (body.includes('grant_type=refresh_token')) {
+        if (body.includes('client_secret=spotify-client-secret')) {
+          stats.refreshTokenRequestsWithClientSecret += 1
+        }
         return jsonResponse({
           access_token: 'refreshed-access-token',
           refresh_token: 'refresh-token',

@@ -76,6 +76,7 @@ export async function exchangeSpotifyCode({
 export async function refreshSpotifyAccessToken({
   refreshToken,
   clientId,
+  clientSecret = '',
   fetchImpl = fetch,
   timeoutMs = DEFAULT_TIMEOUT_MS
 }) {
@@ -84,6 +85,10 @@ export async function refreshSpotifyAccessToken({
     refresh_token: refreshToken,
     client_id: clientId
   })
+  const normalizedClientSecret = String(clientSecret || '').trim()
+  if (normalizedClientSecret) {
+    params.set('client_secret', normalizedClientSecret)
+  }
 
   const response = await fetchWithTimeout(
     SPOTIFY_ACCOUNTS_URL,

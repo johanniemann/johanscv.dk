@@ -94,7 +94,7 @@ export function createMusicDashboardSnapshotHandler({
         spotifyOwnerTokenCache.expiresAt = 0
         return res.status(503).json({
           message:
-            'Spotify dashboard auth failed on server. Check SPOTIFY_OWNER_REFRESH_TOKEN and SPOTIFY_CLIENT_ID configuration.'
+            'Spotify dashboard auth failed on server. Check SPOTIFY_OWNER_REFRESH_TOKEN, SPOTIFY_CLIENT_ID, and SPOTIFY_CLIENT_SECRET configuration.'
         })
       }
 
@@ -252,6 +252,7 @@ async function spotifyGetJsonWithOwnerToken({ spotifyConfig, fetchImpl, path, qu
 
 async function getOwnerAccessToken({ spotifyConfig, fetchImpl, forceRefresh = false }) {
   const clientId = String(spotifyConfig?.clientId || '').trim()
+  const clientSecret = String(spotifyConfig?.clientSecret || '').trim()
   const configuredRefreshToken = String(spotifyConfig?.ownerRefreshToken || '').trim()
   const currentRefreshToken = spotifyOwnerTokenCache.refreshToken || configuredRefreshToken
 
@@ -270,6 +271,7 @@ async function getOwnerAccessToken({ spotifyConfig, fetchImpl, forceRefresh = fa
   const refreshed = await refreshSpotifyAccessToken({
     refreshToken: currentRefreshToken,
     clientId,
+    clientSecret,
     fetchImpl,
     timeoutMs: spotifyConfig.requestTimeoutMs
   })
