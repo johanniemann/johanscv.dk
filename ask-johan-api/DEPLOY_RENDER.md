@@ -25,7 +25,13 @@ This deploys `ask-johan-api` as a free Render Web Service using the repo's `rend
    - `JOHANSCV_ACCESS_CODE` = your private site access code
    - `ASK_JOHAN_ACCESS_CODE` = deprecated fallback (optional during migration)
    - `JWT_SECRET` = a long random secret for signing JWTs (required when `NODE_ENV=production`)
+   - `SESSION_SECRET` = optional legacy Spotify OAuth session signing secret
    - `GEOJOHAN_MAPS_API_KEY` = Google Maps browser key used by GeoJohan (served via authenticated API route)
+   - `SPOTIFY_CLIENT_ID` = Spotify app client ID
+   - `SPOTIFY_OWNER_REFRESH_TOKEN` = refresh token for Johan's Spotify account used for server-side dashboard updates
+   - `SPOTIFY_CLIENT_SECRET` = Spotify app client secret (backend-only; recommended for artist/genre lookups)
+   - `SPOTIFY_REDIRECT_URI` = optional legacy API callback URL, e.g. `https://<your-render-service>.onrender.com/api/spotify/callback`
+   - `APP_BASE_URL` = frontend base URL, e.g. `https://johanscv.dk`
    - `JOHAN_CONTEXT_B64` = Base64-encoded private Ask Johan context (recommended so context is not in GitHub)
    - Optional safety vars:
      - `ALLOWED_ORIGINS` (comma-separated exact origins)
@@ -42,6 +48,17 @@ This deploys `ask-johan-api` as a free Render Web Service using the repo's `rend
      - `ASK_JOHAN_TIMEOUT_MS` (default `15000`)
      - `ASK_JOHAN_RATE_LIMIT_WINDOW_MS` (default `60000`)
      - `ASK_JOHAN_RATE_LIMIT_MAX` (default `30`)
+     - Spotify dashboard tuning:
+       - `SPOTIFY_SCOPES` (default `user-read-recently-played`)
+       - `SPOTIFY_SNAPSHOT_CACHE_TTL_MS` (default `600000`)
+       - `SPOTIFY_REQUEST_TIMEOUT_MS` (default `12000`)
+       - `SPOTIFY_RATE_LIMIT_WINDOW_MS` (default `60000`)
+       - `SPOTIFY_RATE_LIMIT_MAX` (default `20`)
+       - `SPOTIFY_DAILY_CAP` (default `100`)
+       - optional legacy OAuth settings:
+         - `SPOTIFY_SESSION_COOKIE_NAME` (default `johanscv_spotify_sid`)
+         - `SPOTIFY_SESSION_TTL_MS` (default `604800000`)
+         - `SPOTIFY_PKCE_TTL_MS` (default `600000`)
 
 ## GeoJohan Maps key policy (recommended)
 
@@ -83,6 +100,10 @@ Frontend flow in API mode:
 - API returns JWT
 - GeoJohan fetches maps key from `GET /api/geojohan/maps-key` with that Bearer token
 - Ask requests use `Authorization: Bearer <token>`
+- Spotify dashboard is always-on:
+  - dashboard data: `GET /api/music-dashboard/snapshot`
+  - API refreshes Spotify access with server-owned `SPOTIFY_OWNER_REFRESH_TOKEN`
+  - no user Spotify connect/disconnect flow is required on frontend
 
 Then redeploy frontend:
 
@@ -153,6 +174,8 @@ CUSTOM_DOMAIN=true npm run deploy
 - Configurable CORS allowlist
 - Request timeout protection for model calls
 - Automated API tests via GitHub Actions
+- Spotify dashboard server-side token refresh with snapshot endpoint rate limiting + cache TTL
+- Spotify snapshot endpoint rate limiting + cache TTL
 
 ## Safe Auth Rollout Plan
 

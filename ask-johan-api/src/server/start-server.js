@@ -2,6 +2,7 @@ import OpenAI from 'openai'
 import { createApp } from '../app/create-app.js'
 import { readRuntimeConfig } from '../config/runtime-config.js'
 import { createUsageStore } from './usage-store.js'
+import { createSpotifySessionStore } from './spotify-session-store.js'
 
 export function startServer(env = process.env) {
   const config = readRuntimeConfig(env)
@@ -11,6 +12,9 @@ export function startServer(env = process.env) {
     redisUrl: config.redisUrl,
     redisKeyPrefix: config.redisKeyPrefix,
     logger: console
+  })
+  const spotifySessionStore = createSpotifySessionStore({
+    sessionTtlMs: config.spotify.sessionTtlMs
   })
 
   const app = createApp({
@@ -30,7 +34,10 @@ export function startServer(env = process.env) {
     rateLimitMax: config.rateLimitMax,
     rateLimitWindowMs: config.rateLimitWindowMs,
     requestTimeoutMs: config.requestTimeoutMs,
-    usageStore
+    usageStore,
+    spotify: config.spotify,
+    sessionSecret: config.sessionSecret,
+    spotifySessionStore
   })
 
   const port = config.port
@@ -61,6 +68,23 @@ export function startServer(env = process.env) {
     console.log(`GeoJohan maps key: ${config.geoJohanMapsApiKey ? 'configured' : 'not configured'}`)
     if (config.geoJohanMapsApiKey) {
       console.log(`GeoJohan maps key source: ${config.geoJohanMapsApiKeySource}`)
+    }
+    if (config.sessionSecretSource !== 'SESSION_SECRET') {
+      console.warn(
+        `SESSION_SECRET is not set. Using ${config.sessionSecretSource} as temporary session signing secret. Set SESSION_SECRET in production.`
+      )
+    }
+    console.log(`Spotify OAuth: ${config.spotify.isConfigured ? 'configured' : 'not configured'}`)
+    console.log(`Spotify dashboard source account: ${config.spotify.dashboardEnabled ? 'configured' : 'not configured'}`)
+    if (config.spotify.isConfigured) {
+      console.log(`Spotify scopes: ${config.spotify.scopes}`)
+      console.log(`Spotify client secret: ${config.spotify.clientSecret ? 'configured' : 'not configured'}`)
+      console.log(`Spotify session store: ${spotifySessionStore.mode}`)
+    }
+    if (config.spotify.dashboardEnabled) {
+      console.log(`Spotify dashboard cache TTL: ${config.spotify.snapshotCacheTtlMs}ms`)
+      console.log(`Spotify rate limit: ${config.spotify.rateLimitMax} requests / ${config.spotify.rateLimitWindowMs}ms`)
+      console.log(`Spotify daily cap: ${config.spotify.dailyCapMax} requests/day/IP`)
     }
   })
 }

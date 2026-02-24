@@ -1,5 +1,9 @@
 import { AskJohan, bindAskJohan } from '../features/ask-johan/AskJohanWidget.js'
 import { renderGeoJohanSection, mount as mountGeoJohan } from '../features/geojohan/GeoJohanPage.js'
+import {
+  renderSpotifyDashboardSection,
+  mountSpotifyDashboardSection
+} from '../features/spotify-dashboard/SpotifyDashboardSection.js'
 
 export function render({ t }) {
   return `
@@ -11,6 +15,7 @@ export function render({ t }) {
 
       ${AskJohan({ t })}
       ${renderGeoJohanSection({ t })}
+      ${renderSpotifyDashboardSection({ t })}
 
       <section class="content-section section-reveal" id="playground-more">
         <h3 class="section-title">${t.playground.moreToComeTitle}</h3>
@@ -23,4 +28,5 @@ export function render({ t }) {
 export function mount({ language, t }) {
   bindAskJohan(language)
   mountGeoJohan({ t })
+  mountSpotifyDashboardSection({ t })
 }

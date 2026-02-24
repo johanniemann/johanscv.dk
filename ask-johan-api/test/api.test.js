@@ -19,7 +19,149 @@ test('GET / returns service metadata', async () => {
   assert.equal(response.status, 200)
   assert.equal(response.body.ok, true)
   assert.equal(response.body.service, 'ask-johan-api')
-  assert.deepEqual(response.body.endpoints, ['/health', '/auth/login', '/api/geojohan/maps-key', '/api/ask-johan'])
+  assert.deepEqual(response.body.endpoints, [
+    '/health',
+    '/auth/login',
+    '/api/geojohan/maps-key',
+    '/api/ask-johan',
+    '/api/spotify/login',
+    '/api/spotify/callback',
+    '/api/spotify/logout',
+    '/api/music-dashboard/snapshot'
+  ])
+})
+
+test('GET /api/spotify/login redirects to Spotify with PKCE params when configured', async () => {
+  const app = createApp({
+    spotify: spotifyConfig()
+  })
+  const response = await request(app).get('/api/spotify/login')
+
+  assert.equal(response.status, 302)
+  assert.match(response.headers.location, /^https:\/\/accounts\.spotify\.com\/authorize\?/)
+  assert.match(response.headers.location, /code_challenge=/)
+  assert.match(response.headers.location, /state=/)
+  assert.match(response.headers['set-cookie']?.join(' ') || '', /HttpOnly/)
+})
+
+test('GET /api/music-dashboard/snapshot returns 503 when owner account is not configured', async () => {
+  const app = createApp({
+    spotify: spotifyConfig({
+      dashboardEnabled: false,
+      ownerRefreshToken: ''
+    })
+  })
+  const response = await request(app).get('/api/music-dashboard/snapshot')
+
+  assert.equal(response.status, 503)
+  assert.match(response.body.message, /source account is not configured/i)
+})
+
+test('GET /api/music-dashboard/snapshot builds dashboard lists from Spotify data', async () => {
+  const spotifyFetch = createFakeSpotifyFetch({
+    recentlyPlayedItems: buildRecentlyPlayedFixture(),
+    artistsById: {
+      artist1: { id: 'artist1', name: 'Alpha Artist' },
+      artist2: { id: 'artist2', name: 'Beta Artist' },
+      artist3: { id: 'artist3', name: 'Gamma Artist' },
+      artist4: { id: 'artist4', name: 'Delta Artist' }
+    }
+  })
+  const app = createApp({
+    spotify: spotifyConfig(),
+    fetchImpl: spotifyFetch
+  })
+
+  const snapshotResponse = await request(app).get('/api/music-dashboard/snapshot?refresh=true')
+  assert.equal(snapshotResponse.status, 200)
+  assert.equal(Array.isArray(snapshotResponse.body.lists?.tracks), true)
+  assert.equal(Array.isArray(snapshotResponse.body.lists?.albums), true)
+  assert.equal(Array.isArray(snapshotResponse.body.lists?.artists), true)
+  assert.equal(snapshotResponse.body.lists.tracks.length, 4)
+  assert.equal(snapshotResponse.body.lists.albums.length, 4)
+  assert.equal(snapshotResponse.body.lists.artists.length, 4)
+})
+
+test('GET /api/music-dashboard/snapshot uses client credentials token for artist lookup when configured', async () => {
+  const spotifyFetch = createFakeSpotifyFetch({
+    recentlyPlayedItems: buildRecentlyPlayedFixture(),
+    artistsById: {
+      artist1: { id: 'artist1', name: 'Alpha Artist' },
+      artist2: { id: 'artist2', name: 'Beta Artist' },
+      artist3: { id: 'artist3', name: 'Gamma Artist' },
+      artist4: { id: 'artist4', name: 'Delta Artist' }
+    },
+    failArtistsForUserToken: true
+  })
+  const app = createApp({
+    spotify: spotifyConfig({
+      clientSecret: 'spotify-client-secret'
+    }),
+    fetchImpl: spotifyFetch
+  })
+
+  const snapshotResponse = await request(app).get('/api/music-dashboard/snapshot?refresh=true')
+  assert.equal(snapshotResponse.status, 200)
+  assert.equal(spotifyFetch.stats.clientCredentialsTokenRequests, 1)
+  assert.ok(spotifyFetch.stats.artistRequestsWithAppToken >= 1)
+})
+
+test('GET /api/music-dashboard/snapshot still returns data when artist lookup is forbidden', async () => {
+  const spotifyFetch = createFakeSpotifyFetch({
+    recentlyPlayedItems: buildRecentlyPlayedFixture(),
+    artistsById: {
+      artist1: { id: 'artist1', name: 'Alpha Artist' },
+      artist2: { id: 'artist2', name: 'Beta Artist' },
+      artist3: { id: 'artist3', name: 'Gamma Artist' },
+      artist4: { id: 'artist4', name: 'Delta Artist' }
+    },
+    failArtistsAlwaysWith403: true
+  })
+  const app = createApp({
+    spotify: spotifyConfig({
+      clientSecret: 'spotify-client-secret'
+    }),
+    fetchImpl: spotifyFetch
+  })
+
+  const snapshotResponse = await request(app).get('/api/music-dashboard/snapshot?refresh=true')
+  assert.equal(snapshotResponse.status, 200)
+  assert.equal(snapshotResponse.body.lists.artists.length, 4)
+})
+
+test('GET /api/music-dashboard/snapshot refreshes spotify token once after 401', async () => {
+  const spotifyFetch = createFakeSpotifyFetch({
+    recentlyPlayedItems: buildRecentlyPlayedFixture(),
+    artistsById: {
+      artist1: { id: 'artist1', name: 'Alpha Artist' },
+      artist2: { id: 'artist2', name: 'Beta Artist' },
+      artist3: { id: 'artist3', name: 'Gamma Artist' },
+      artist4: { id: 'artist4', name: 'Delta Artist' }
+    },
+    failRecentlyPlayedOnceWith401: true
+  })
+  const app = createApp({
+    spotify: spotifyConfig(),
+    fetchImpl: spotifyFetch
+  })
+
+  const snapshotResponse = await request(app).get('/api/music-dashboard/snapshot?refresh=true')
+  assert.equal(snapshotResponse.status, 200)
+})
+
+test('GET /api/music-dashboard/snapshot returns 422 when Spotify has no recent plays', async () => {
+  const spotifyFetch = createFakeSpotifyFetch({
+    recentlyPlayedItems: [],
+    artistsById: {}
+  })
+  const app = createApp({
+    spotify: spotifyConfig(),
+    fetchImpl: spotifyFetch
+  })
+
+  const snapshotResponse = await request(app).get('/api/music-dashboard/snapshot?refresh=true')
+  assert.equal(snapshotResponse.status, 422)
+  assert.match(snapshotResponse.body.message, /no recent spotify plays/i)
 })
 
 test('parseAllowedOrigins includes full production defaults when value is empty', () => {
@@ -368,6 +510,219 @@ function fakeClient(answer, onCall = null) {
         if (typeof onCall === 'function') onCall()
         return { output_text: answer }
       }
+    }
+  }
+}
+
+function spotifyConfig(overrides = {}) {
+  return {
+    isConfigured: true,
+    dashboardEnabled: true,
+    clientId: 'spotify-client-id',
+    clientSecret: '',
+    ownerRefreshToken: 'owner-refresh-token',
+    redirectUri: 'http://127.0.0.1:8787/api/spotify/callback',
+    scopes: 'user-read-recently-played',
+    appBaseUrl: 'http://localhost:5173',
+    pkceTtlMs: 600000,
+    sessionTtlMs: 86400000,
+    snapshotCacheTtlMs: 600000,
+    rateLimitWindowMs: 60000,
+    rateLimitMax: 20,
+    dailyCapMax: 100,
+    requestTimeoutMs: 12000,
+    cookieName: 'spotify_test_sid',
+    ...overrides
+  }
+}
+
+function createFakeSpotifyFetch({
+  recentlyPlayedItems,
+  artistsById,
+  failRecentlyPlayedOnceWith401 = false,
+  meProfile = null,
+  failArtistsForUserToken = false,
+  failArtistsAlwaysWith403 = false
+}) {
+  let shouldFailRecentlyPlayed = failRecentlyPlayedOnceWith401
+  const stats = {
+    clientCredentialsTokenRequests: 0,
+    artistRequestsWithAppToken: 0
+  }
+
+  async function fakeSpotifyFetch(url, options = {}) {
+    const target = typeof url === 'string' ? url : url.toString()
+    if (target.includes('accounts.spotify.com/api/token')) {
+      const body = String(options.body || '')
+      if (body.includes('grant_type=authorization_code')) {
+        return jsonResponse({
+          access_token: 'access-token',
+          refresh_token: 'refresh-token',
+          token_type: 'Bearer',
+          scope: 'user-read-recently-played',
+          expires_in: 3600
+        })
+      }
+      if (body.includes('grant_type=refresh_token')) {
+        return jsonResponse({
+          access_token: 'refreshed-access-token',
+          refresh_token: 'refresh-token',
+          token_type: 'Bearer',
+          scope: 'user-read-recently-played',
+          expires_in: 3600
+        })
+      }
+      if (body.includes('grant_type=client_credentials')) {
+        stats.clientCredentialsTokenRequests += 1
+        return jsonResponse({
+          access_token: 'app-access-token',
+          token_type: 'Bearer',
+          expires_in: 3600
+        })
+      }
+    }
+
+    if (target.includes('/me') && !target.includes('/me/player/recently-played')) {
+      return jsonResponse(
+        meProfile || {
+          id: 'test-user-id',
+          display_name: 'Test User',
+          product: 'premium'
+        }
+      )
+    }
+
+    if (target.includes('/me/player/recently-played')) {
+      if (shouldFailRecentlyPlayed) {
+        shouldFailRecentlyPlayed = false
+        return jsonResponse({ error: 'expired_token' }, 401)
+      }
+      return jsonResponse({
+        items: recentlyPlayedItems
+      })
+    }
+
+    if (target.includes('/artists')) {
+      const authorizationHeader = String(options.headers?.Authorization || '')
+      if (authorizationHeader === 'Bearer app-access-token') {
+        stats.artistRequestsWithAppToken += 1
+      }
+      if (failArtistsAlwaysWith403) {
+        return jsonResponse({ error: { status: 403, message: 'Forbidden' } }, 403)
+      }
+      if (failArtistsForUserToken && authorizationHeader !== 'Bearer app-access-token') {
+        return jsonResponse({ error: { status: 403, message: 'Forbidden' } }, 403)
+      }
+
+      const parsedUrl = new URL(target)
+      const ids = (parsedUrl.searchParams.get('ids') || '').split(',').filter(Boolean)
+      return jsonResponse({
+        artists: ids.map((id) => {
+          const artist = artistsById[id] || {}
+          return {
+            id,
+            name: artist.name || `Artist ${id}`,
+            images: [{ url: artist.imageUrl || `https://cdn.example/${id}.jpg` }],
+            external_urls: {
+              spotify: artist.externalUrl || `https://open.spotify.com/artist/${id}`
+            }
+          }
+        })
+      })
+    }
+
+    return jsonResponse({ error: 'not found' }, 404)
+  }
+
+  fakeSpotifyFetch.stats = stats
+  return fakeSpotifyFetch
+}
+
+function jsonResponse(payload, status = 200) {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+}
+
+function buildRecentlyPlayedFixture() {
+  return [
+    playFixture({
+      playedAt: '2026-02-20T10:00:00.000Z',
+      trackId: 'track1',
+      trackName: 'First Track',
+      albumId: 'album1',
+      albumName: 'First Album',
+      artistId: 'artist1',
+      artistName: 'Alpha Artist'
+    }),
+    playFixture({
+      playedAt: '2026-02-20T09:00:00.000Z',
+      trackId: 'track2',
+      trackName: 'Second Track',
+      albumId: 'album2',
+      albumName: 'Second Album',
+      artistId: 'artist2',
+      artistName: 'Beta Artist'
+    }),
+    playFixture({
+      playedAt: '2026-02-20T08:00:00.000Z',
+      trackId: 'track3',
+      trackName: 'Third Track',
+      albumId: 'album3',
+      albumName: 'Third Album',
+      artistId: 'artist3',
+      artistName: 'Gamma Artist'
+    }),
+    playFixture({
+      playedAt: '2026-02-20T07:00:00.000Z',
+      trackId: 'track4',
+      trackName: 'Fourth Track',
+      albumId: 'album1',
+      albumName: 'First Album',
+      artistId: 'artist1',
+      artistName: 'Alpha Artist'
+    }),
+    playFixture({
+      playedAt: '2026-02-20T06:00:00.000Z',
+      trackId: 'track5',
+      trackName: 'Fifth Track',
+      albumId: 'album4',
+      albumName: 'Fourth Album',
+      artistId: 'artist4',
+      artistName: 'Delta Artist'
+    })
+  ]
+}
+
+function playFixture({ playedAt, trackId, trackName, albumId, albumName, artistId, artistName }) {
+  return {
+    played_at: playedAt,
+    track: {
+      id: trackId,
+      name: trackName,
+      external_urls: {
+        spotify: `https://open.spotify.com/track/${trackId}`
+      },
+      album: {
+        id: albumId,
+        name: albumName,
+        external_urls: {
+          spotify: `https://open.spotify.com/album/${albumId}`
+        },
+        images: [{ url: `https://cdn.example/${albumId}.jpg` }]
+      },
+      artists: [
+        {
+          id: artistId,
+          name: artistName,
+          external_urls: {
+            spotify: `https://open.spotify.com/artist/${artistId}`
+          }
+        }
+      ]
     }
   }
 }

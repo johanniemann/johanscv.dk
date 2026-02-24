@@ -74,3 +74,39 @@ test('readRuntimeConfig reports none when no maps key env is configured', () => 
   assert.equal(config.geoJohanMapsApiKey, '')
   assert.equal(config.geoJohanMapsApiKeySource, 'none')
 })
+
+test('readRuntimeConfig parses spotify settings and marks integration configured', () => {
+  const config = readRuntimeConfig(
+    buildEnv({
+      APP_BASE_URL: 'http://localhost:5173',
+      SPOTIFY_CLIENT_ID: 'spotify-client-id',
+      SPOTIFY_CLIENT_SECRET: 'spotify-client-secret',
+      SPOTIFY_OWNER_REFRESH_TOKEN: 'owner-refresh-token',
+      SPOTIFY_REDIRECT_URI: 'http://127.0.0.1:8787/api/spotify/callback',
+      SPOTIFY_SCOPES: 'user-read-recently-played, user-read-email',
+      SESSION_SECRET: 'session-secret'
+    })
+  )
+
+  assert.equal(config.spotify.isConfigured, true)
+  assert.equal(config.spotify.dashboardEnabled, true)
+  assert.equal(config.spotify.clientId, 'spotify-client-id')
+  assert.equal(config.spotify.clientSecret, 'spotify-client-secret')
+  assert.equal(config.spotify.ownerRefreshToken, 'owner-refresh-token')
+  assert.equal(config.spotify.redirectUri, 'http://127.0.0.1:8787/api/spotify/callback')
+  assert.equal(config.spotify.scopes, 'user-read-recently-played user-read-email')
+  assert.equal(config.sessionSecretSource, 'SESSION_SECRET')
+})
+
+test('readRuntimeConfig disables spotify dashboard when owner refresh token is missing', () => {
+  const config = readRuntimeConfig(
+    buildEnv({
+      APP_BASE_URL: 'http://localhost:5173',
+      SPOTIFY_CLIENT_ID: 'spotify-client-id',
+      SPOTIFY_REDIRECT_URI: 'http://127.0.0.1:8787/api/spotify/callback'
+    })
+  )
+
+  assert.equal(config.spotify.isConfigured, true)
+  assert.equal(config.spotify.dashboardEnabled, false)
+})

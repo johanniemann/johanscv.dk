@@ -8,6 +8,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const API_ROOT_DIR = path.resolve(__dirname, '..', '..')
 const GEOJOHAN_MAPS_KEY_ENV_KEYS = ['GEOJOHAN_MAPS_API_KEY', 'GOOGLE_MAPS_API_KEY', 'ASK_JOHAN_MAPS_API_KEY']
+const DEFAULT_SPOTIFY_SCOPES = 'user-read-recently-played'
 
 export function readRuntimeConfig(env = process.env) {
   const maxQuestionChars = parsePositiveInt(env.MAX_QUESTION_CHARS, 800)
@@ -25,15 +26,34 @@ export function readRuntimeConfig(env = process.env) {
   const redisUrl = String(env.REDIS_URL || '').trim()
   const redisKeyPrefix = String(env.ASK_JOHAN_REDIS_KEY_PREFIX || 'ask-johan').trim() || 'ask-johan'
   const isProduction = String(env.NODE_ENV || '').trim().toLowerCase() === 'production'
+  const spotifyClientId = String(env.SPOTIFY_CLIENT_ID || '').trim()
+  const spotifyClientSecret = String(env.SPOTIFY_CLIENT_SECRET || '').trim()
+  const spotifyRedirectUri = normalizeHttpUrl(env.SPOTIFY_REDIRECT_URI)
+  const spotifyScopes = normalizeScopes(env.SPOTIFY_SCOPES || DEFAULT_SPOTIFY_SCOPES)
+  const spotifyOwnerRefreshToken = String(env.SPOTIFY_OWNER_REFRESH_TOKEN || '').trim()
+  const appBaseUrl = normalizeHttpUrl(env.APP_BASE_URL)
+  const spotifyPkceTtlMs = parsePositiveInt(env.SPOTIFY_PKCE_TTL_MS, 600000)
+  const spotifySessionTtlMs = parsePositiveInt(env.SPOTIFY_SESSION_TTL_MS, 604800000)
+  const spotifySnapshotCacheTtlMs = parsePositiveInt(env.SPOTIFY_SNAPSHOT_CACHE_TTL_MS, 600000)
+  const spotifyRateLimitWindowMs = parsePositiveInt(env.SPOTIFY_RATE_LIMIT_WINDOW_MS, 60000)
+  const spotifyRateLimitMax = parsePositiveInt(env.SPOTIFY_RATE_LIMIT_MAX, 20)
+  const spotifyDailyCapMax = parsePositiveInt(env.SPOTIFY_DAILY_CAP, 100)
+  const spotifyRequestTimeoutMs = parsePositiveInt(env.SPOTIFY_REQUEST_TIMEOUT_MS, 12000)
+  const spotifyCookieName = parseCookieName(env.SPOTIFY_SESSION_COOKIE_NAME, 'johanscv_spotify_sid')
   const johanContext = loadJohanContext(env)
   const { accessCode, accessCodeSource } = resolveAccessCode(env.JOHANSCV_ACCESS_CODE, env.ASK_JOHAN_ACCESS_CODE)
   const { jwtSecret, jwtSecretSource } = resolveJwtSecret(env.JWT_SECRET, accessCode, accessCodeSource, {
+    allowFallback: !isProduction
+  })
+  const { sessionSecret, sessionSecretSource } = resolveSessionSecret(env.SESSION_SECRET, jwtSecret, {
     allowFallback: !isProduction
   })
   const allowedOrigins = parseAllowedOrigins(
     env.ALLOWED_ORIGINS || 'https://johanniemann.github.io,https://johanscv.dk,https://www.johanscv.dk'
   )
   const apiKey = env.OPENAI_API_KEY
+  const spotifyIsConfigured = Boolean(spotifyClientId && spotifyRedirectUri && appBaseUrl)
+  const spotifyDashboardEnabled = Boolean(spotifyClientId && spotifyOwnerRefreshToken)
 
   return {
     port: env.PORT || 8787,
@@ -57,8 +77,28 @@ export function readRuntimeConfig(env = process.env) {
     accessCodeSource,
     jwtSecret,
     jwtSecretSource,
+    sessionSecret,
+    sessionSecretSource,
     allowedOrigins,
-    apiKey
+    apiKey,
+    spotify: {
+      isConfigured: spotifyIsConfigured,
+      dashboardEnabled: spotifyDashboardEnabled,
+      clientId: spotifyClientId,
+      clientSecret: spotifyClientSecret,
+      ownerRefreshToken: spotifyOwnerRefreshToken,
+      redirectUri: spotifyRedirectUri,
+      scopes: spotifyScopes,
+      appBaseUrl,
+      pkceTtlMs: spotifyPkceTtlMs,
+      sessionTtlMs: spotifySessionTtlMs,
+      snapshotCacheTtlMs: spotifySnapshotCacheTtlMs,
+      rateLimitWindowMs: spotifyRateLimitWindowMs,
+      rateLimitMax: spotifyRateLimitMax,
+      dailyCapMax: spotifyDailyCapMax,
+      requestTimeoutMs: spotifyRequestTimeoutMs,
+      cookieName: spotifyCookieName
+    }
   }
 }
 
@@ -137,6 +177,39 @@ function parseBoolean(value, fallback) {
   return fallback
 }
 
+function normalizeHttpUrl(rawValue) {
+  const value = String(rawValue || '').trim()
+  if (!value) return ''
+  try {
+    const parsed = new URL(value)
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return ''
+    return parsed.toString().replace(/\/$/, '')
+  } catch {
+    return ''
+  }
+}
+
+function normalizeScopes(rawValue) {
+  const value = String(rawValue || '').trim()
+  const normalized = value || DEFAULT_SPOTIFY_SCOPES
+  const scopes = [
+    ...new Set(
+      normalized
+        .split(/[,\s]+/)
+        .map((scope) => scope.trim())
+        .filter(Boolean)
+    )
+  ]
+  return scopes.length ? scopes.join(' ') : DEFAULT_SPOTIFY_SCOPES
+}
+
+function parseCookieName(rawValue, fallback) {
+  const value = String(rawValue || '').trim()
+  if (!value) return fallback
+  if (!/^[A-Za-z0-9._-]+$/.test(value)) return fallback
+  return value
+}
+
 function resolveGeoJohanMapsApiKey(env = process.env) {
   for (const envKey of GEOJOHAN_MAPS_KEY_ENV_KEYS) {
     const value = String(env[envKey] || '').trim()
@@ -201,5 +274,32 @@ function resolveJwtSecret(rawJwtSecret, accessCode, accessCodeSource, { allowFal
   return {
     jwtSecret: crypto.randomBytes(32).toString('hex'),
     jwtSecretSource: 'ephemeral random fallback'
+  }
+}
+
+function resolveSessionSecret(rawSessionSecret, jwtSecret, { allowFallback = true } = {}) {
+  const sessionSecret = String(rawSessionSecret || '').trim()
+  if (sessionSecret) {
+    return {
+      sessionSecret,
+      sessionSecretSource: 'SESSION_SECRET'
+    }
+  }
+
+  const normalizedJwtSecret = String(jwtSecret || '').trim()
+  if (normalizedJwtSecret) {
+    return {
+      sessionSecret: normalizedJwtSecret,
+      sessionSecretSource: 'JWT_SECRET fallback'
+    }
+  }
+
+  if (!allowFallback) {
+    throw new Error('SESSION_SECRET is required when NODE_ENV=production.')
+  }
+
+  return {
+    sessionSecret: crypto.randomBytes(32).toString('hex'),
+    sessionSecretSource: 'ephemeral random fallback'
   }
 }

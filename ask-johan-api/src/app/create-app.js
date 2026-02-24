@@ -1,10 +1,19 @@
+import crypto from 'node:crypto'
 import cors from 'cors'
 import express from 'express'
 import helmet from 'helmet'
 import { createUsageStore } from '../server/usage-store.js'
+import { createSpotifySessionStore } from '../server/spotify-session-store.js'
 import { createAuthLoginHandler, AUTH_FAILURE_MESSAGE } from '../features/auth.js'
 import { createAskJohanHandler, createAskJohanRateLimiter } from '../features/ask-johan.js'
 import { createGeoJohanMapsKeyHandler } from '../features/geojohan.js'
+import { createSpotifySessionService } from '../features/spotify-session.js'
+import {
+  createSpotifyLoginHandler,
+  createSpotifyCallbackHandler,
+  createSpotifyLogoutHandler
+} from '../features/spotify-auth.js'
+import { createMusicDashboardSnapshotHandler, createMusicDashboardSnapshotRateLimiter } from '../features/music-dashboard.js'
 import { LOCAL_ORIGIN_RE, DEFAULT_ALLOWED_ORIGINS, parseAllowedOrigins } from './origins.js'
 import { sendAnswer } from '../shared/http.js'
 
@@ -28,7 +37,11 @@ export function createApp({
   rateLimitMax = 30,
   rateLimitWindowMs = 60_000,
   requestTimeoutMs = 15_000,
-  usageStore = createUsageStore()
+  usageStore = createUsageStore(),
+  fetchImpl = fetch,
+  spotify = {},
+  sessionSecret = '',
+  spotifySessionStore = createSpotifySessionStore()
 } = {}) {
   const app = express()
   const allowedOriginSet = new Set(allowedOrigins.filter(Boolean))
@@ -39,6 +52,16 @@ export function createApp({
   const requiresAuth = hasAccessCode || hasJwtSecret
   const tokenTtl = typeof jwtTtl === 'string' && jwtTtl.trim() ? jwtTtl.trim() : '7d'
   const assistantInstructions = buildAssistantInstructions(johanContext)
+  const spotifyConfig = normalizeSpotifyConfig(spotify)
+  const isProduction = String(process.env.NODE_ENV || '').trim().toLowerCase() === 'production'
+  const spotifyCookieSecret = String(sessionSecret || jwtSecret || crypto.randomBytes(32).toString('hex'))
+  const spotifySessionService = createSpotifySessionService({
+    sessionStore: spotifySessionStore,
+    cookieName: spotifyConfig.cookieName,
+    cookieSecret: spotifyCookieSecret,
+    sessionTtlMs: spotifyConfig.sessionTtlMs,
+    isProduction
+  })
 
   const usageStoreError = (scope, error, res) => {
     logger.error?.(`Usage store error (${scope}):`, error)
@@ -86,6 +109,14 @@ export function createApp({
       return null
     }
   }
+  const takeSpotifyDailyQuotaOrFail = async (requestIp, res) => {
+    try {
+      return await usageStore.takeDailyQuota(`spotify-dashboard:${requestIp}`, spotifyConfig.dailyCapMax)
+    } catch (error) {
+      usageStoreError('spotify daily quota', error, res)
+      return null
+    }
+  }
 
   app.disable('x-powered-by')
   app.set('trust proxy', 1)
@@ -97,6 +128,7 @@ export function createApp({
   app.use(express.json({ limit: '8kb' }))
   app.use(
     cors({
+      credentials: true,
       origin(origin, callback) {
         if (!origin) return callback(null, true)
         if (allowedOriginSet.has(origin) || LOCAL_ORIGIN_RE.test(origin)) {
@@ -111,7 +143,7 @@ export function createApp({
     const startedAt = Date.now()
     res.on('finish', () => {
       logger.info?.(
-        `[${new Date().toISOString()}] ${req.method} ${req.originalUrl} ${res.statusCode} ${Date.now() - startedAt}ms`
+        `[${new Date().toISOString()}] ${req.method} ${req.path} ${res.statusCode} ${Date.now() - startedAt}ms`
       )
     })
     next()
@@ -140,7 +172,16 @@ export function createApp({
     res.json({
       ok: true,
       service: 'ask-johan-api',
-      endpoints: ['/health', '/auth/login', '/api/geojohan/maps-key', '/api/ask-johan']
+      endpoints: [
+        '/health',
+        '/auth/login',
+        '/api/geojohan/maps-key',
+        '/api/ask-johan',
+        '/api/spotify/login',
+        '/api/spotify/callback',
+        '/api/spotify/logout',
+        '/api/music-dashboard/snapshot'
+      ]
     })
   })
 
@@ -188,6 +229,47 @@ export function createApp({
     })
   )
 
+  app.get(
+    '/api/spotify/login',
+    createSpotifyLoginHandler({
+      spotifyConfig,
+      sessionService: spotifySessionService
+    })
+  )
+
+  app.get(
+    '/api/spotify/callback',
+    createSpotifyCallbackHandler({
+      spotifyConfig,
+      sessionService: spotifySessionService,
+      fetchImpl,
+      logger
+    })
+  )
+
+  app.post(
+    '/api/spotify/logout',
+    createSpotifyLogoutHandler({
+      sessionService: spotifySessionService
+    })
+  )
+
+  const musicDashboardSnapshotLimiter = createMusicDashboardSnapshotRateLimiter({
+    windowMs: spotifyConfig.rateLimitWindowMs,
+    max: spotifyConfig.rateLimitMax
+  })
+  app.get(
+    '/api/music-dashboard/snapshot',
+    musicDashboardSnapshotLimiter,
+    createMusicDashboardSnapshotHandler({
+      spotifyConfig,
+      fetchImpl,
+      spotifyDailyCapMax: spotifyConfig.dailyCapMax,
+      takeDailyQuotaOrFail: takeSpotifyDailyQuotaOrFail,
+      logger
+    })
+  )
+
   return app
 }
 
@@ -208,4 +290,34 @@ function buildAssistantInstructions(johanContext) {
     'Context:',
     johanContext
   ].join('\n')
+}
+
+function normalizeSpotifyConfig(rawSpotify) {
+  const defaults = {
+    isConfigured: false,
+    dashboardEnabled: false,
+    clientId: '',
+    clientSecret: '',
+    ownerRefreshToken: '',
+    redirectUri: '',
+    scopes: 'user-read-recently-played',
+    appBaseUrl: '',
+    pkceTtlMs: 600_000,
+    sessionTtlMs: 7 * 24 * 60 * 60 * 1000,
+    snapshotCacheTtlMs: 600_000,
+    rateLimitWindowMs: 60_000,
+    rateLimitMax: 20,
+    dailyCapMax: 100,
+    requestTimeoutMs: 12_000,
+    cookieName: 'johanscv_spotify_sid'
+  }
+
+  const normalized = {
+    ...defaults,
+    ...(rawSpotify && typeof rawSpotify === 'object' ? rawSpotify : {})
+  }
+
+  normalized.isConfigured = Boolean(normalized.clientId && normalized.redirectUri && normalized.appBaseUrl)
+  normalized.dashboardEnabled = Boolean(normalized.clientId && normalized.ownerRefreshToken)
+  return normalized
 }

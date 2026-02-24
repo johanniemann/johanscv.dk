@@ -11,14 +11,15 @@
 - Frontend feature modules:
   - `johanscv/src/features/ask-johan/`
   - `johanscv/src/features/geojohan/`
+  - `johanscv/src/features/spotify-dashboard/`
 - Frontend app shell and shared routing:
   - `johanscv/src/main.js`
   - `johanscv/src/router.js`
 - API layered modules:
   - `ask-johan-api/src/config/` (runtime/env/context loading)
   - `ask-johan-api/src/app/` (Express app wiring + middleware)
-  - `ask-johan-api/src/features/` (auth, ask-johan, geojohan handlers)
-  - `ask-johan-api/src/server/` (bootstrap + usage store)
+  - `ask-johan-api/src/features/` (auth, ask-johan, geojohan, spotify auth, music-dashboard handlers)
+  - `ask-johan-api/src/server/` (bootstrap + usage store + spotify session store)
   - `ask-johan-api/src/shared/` (shared HTTP/timeout helpers)
 
 ## Discovery Rule (Mandatory)
@@ -41,6 +42,7 @@
 - Keep server protections active:
   - strict CORS allowlist (`ALLOWED_ORIGINS`),
   - JWT auth flow (`/auth/login` + Bearer token),
+  - Spotify dashboard server-side token flow (`SPOTIFY_OWNER_REFRESH_TOKEN` stored only on API side),
   - auth-failure throttling,
   - per-IP rate limit + daily cap,
   - request body guardrails (JSON-only + max body size handling).
@@ -53,6 +55,7 @@
 - Protected API routes include:
   - `POST /api/ask-johan`
   - `GET /api/geojohan/maps-key`
+  - `GET /api/music-dashboard/snapshot`
   - Auth bootstrap: `POST /auth/login`
 - CI in `.github/workflows/ci.yml` is the quality gate:
   - repo guardrails (`check-node-alignment`, `check-doc-sync`, `scan-secrets`),

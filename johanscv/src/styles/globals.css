@@ -1001,6 +1001,180 @@ body.welcome-active #site-shell {
   cursor: not-allowed;
 }
 
+.spotify-dashboard {
+  display: grid;
+  gap: 1rem;
+}
+
+.spotify-dashboard-header {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.spotify-dashboard-intro {
+  max-width: 66ch;
+}
+
+.spotify-dashboard-shell {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.spotify-dashboard-state-card {
+  display: grid;
+  gap: 0.9rem;
+  border-radius: 1rem;
+  border: 1px solid var(--surface-inner-border);
+  background: var(--surface-inner-bg);
+  box-shadow: 0 10px 24px rgba(52, 64, 92, 0.12);
+  padding: 1rem;
+}
+
+.spotify-dashboard-state-title {
+  margin: 0;
+}
+
+.spotify-dashboard-state-body {
+  margin: 0;
+}
+
+.spotify-dashboard-status {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}
+
+.spotify-dashboard-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.spotify-dashboard-tab {
+  border: 1px solid var(--surface-inner-border);
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.34);
+  color: var(--text-primary);
+  text-align: left;
+  display: grid;
+  gap: 0.28rem;
+  padding: 0.82rem;
+  cursor: pointer;
+  transition:
+    transform var(--duration-base) var(--ease-standard),
+    border-color var(--duration-base) var(--ease-standard),
+    box-shadow var(--duration-base) var(--ease-standard),
+    background var(--duration-base) var(--ease-standard);
+}
+
+.spotify-dashboard-tab:hover {
+  transform: translateY(-2px);
+  border-color: var(--surface-inner-hover-border);
+  box-shadow: var(--surface-inner-hover-shadow);
+}
+
+.spotify-dashboard-tab.is-active {
+  border-color: rgba(96, 120, 184, 0.72);
+  background: rgba(218, 229, 255, 0.58);
+  box-shadow: 0 10px 24px rgba(72, 95, 157, 0.24);
+}
+
+:root[data-theme='dark'] .spotify-dashboard-tab {
+  background: rgba(36, 49, 77, 0.66);
+}
+
+:root[data-theme='dark'] .spotify-dashboard-tab.is-active {
+  border-color: rgba(138, 166, 238, 0.74);
+  background: rgba(65, 82, 120, 0.66);
+  box-shadow: 0 12px 26px rgba(8, 15, 31, 0.44);
+}
+
+.spotify-dashboard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.62rem;
+}
+
+.spotify-dashboard-actions .projects-cta {
+  margin-top: 0;
+}
+
+.spotify-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.spotify-dashboard-card {
+  gap: 0.38rem;
+  min-height: 100%;
+}
+
+.spotify-dashboard-rank {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.spotify-dashboard-image {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 0.65rem;
+  border: 1px solid var(--surface-inner-border);
+}
+
+.spotify-dashboard-image-placeholder {
+  background: rgba(174, 193, 233, 0.3);
+}
+
+.spotify-dashboard-card-title {
+  margin: 0;
+}
+
+.spotify-dashboard-card-subtitle {
+  margin: 0;
+  min-height: 2.4em;
+}
+
+.spotify-dashboard-playcount {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-soft);
+}
+
+.spotify-dashboard-card.is-placeholder {
+  opacity: 0.85;
+}
+
+.spotify-dashboard-updated {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--text-soft);
+}
+
+.spotify-dashboard-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.spotify-dashboard-link:hover {
+  text-decoration: underline;
+}
+
+:root[data-theme='dark'] .spotify-dashboard-image-placeholder {
+  background: rgba(62, 79, 117, 0.72);
+}
+
+:root[data-theme='dark'] .spotify-dashboard-updated,
+:root[data-theme='dark'] .spotify-dashboard-playcount,
+:root[data-theme='dark'] .spotify-dashboard-rank {
+  margin: 0;
+  color: var(--text-soft);
+}
+
 .geojohan-page {
   display: grid;
   gap: 1rem;
@@ -2100,6 +2274,10 @@ body.welcome-active #site-shell {
     min-width: 6.4rem;
   }
 
+  .nav-link-playground {
+    min-width: 7.8rem;
+  }
+
   .site-shell {
     width: min(1120px, calc(100% - 1.2rem));
     padding: 0.9rem 0 1.5rem;
@@ -2136,7 +2314,9 @@ body.welcome-active #site-shell {
   }
 
   .quiz-choice-grid,
-  .geojohan-summary-list {
+  .geojohan-summary-list,
+  .spotify-dashboard-tabs,
+  .spotify-dashboard-grid {
     grid-template-columns: 1fr;
   }
 

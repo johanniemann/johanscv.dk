@@ -2,7 +2,8 @@ export function Navbar({ route, t }) {
   const links = [
     { path: '/', label: t.nav.home },
     { path: '/projects', label: t.nav.projects },
-    { path: '/resume', label: t.nav.files }
+    { path: '/resume', label: t.nav.files },
+    { path: '/playground', label: t.nav.playground }
   ]
 
   return `

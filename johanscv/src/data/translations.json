@@ -4,6 +4,7 @@
       "home": "Home",
       "projects": "Projects",
       "files": "Resume",
+      "playground": "Playground",
       "contact": "Contact"
     },
     "hero": {
@@ -82,9 +83,9 @@
       "copied": "Copied"
     },
     "playground": {
-      "title": "Experimental Playground",
-      "intro": "This is a sandbox page for testing ideas, UI experiments, and prototypes.",
-      "quizHubTitle": "Quiz Landing",
+      "title": "Playground",
+      "intro": "Get to know Johan through interactive services: Ask Johan, GeoJohan, and a live Spotify dashboard.",
+      "quizHubTitle": "Service Hub",
       "quizHubIntro": "Choose an experience. GeoJohan is a 3-round location guessing mini game.",
       "cards": {
         "askJohan": {
@@ -162,6 +163,32 @@
       "loadErrorHint": "Check API key restrictions, billing, and allowed referrers.",
       "demoCoordinatesNote": "Using demo coordinates. Set VITE_GEOJOHAN_ROUND*_... vars in .env.local for your real rounds."
     },
+    "spotifyDashboard": {
+      "title": "Spotify Dashboard",
+      "intro": "Always shows Johan's updated top 4 tracks (past week), top 4 albums, and top 4 artists (past week). No user Spotify login required.",
+      "tabs": {
+        "tracks": "Top Tracks",
+        "albums": "Top Albums",
+        "artists": "Top Artists"
+      },
+      "switchLabel": "Switch Spotify dashboard list",
+      "loading": "Loading Spotify dashboard...",
+      "refreshData": "Refresh dashboard",
+      "errorTitle": "Spotify dashboard unavailable",
+      "loadError": "Could not load Spotify dashboard right now. Please try again.",
+      "networkError": "Could not reach the API. Check that backend is running and try again.",
+      "apiBaseMissing": "VITE_API_BASE_URL is not configured for Spotify dashboard API calls.",
+      "invalidPayload": "Spotify dashboard response was invalid.",
+      "rateLimited": "Spotify is rate limiting requests. Please wait before retrying.",
+      "retryAfter": "Retry after",
+      "retryCta": "Retry",
+      "lastUpdated": "Updated",
+      "weekFallback": "No plays found in the last 7 days, so the latest available recent plays are shown.",
+      "emptyTitle": "Waiting for data",
+      "emptySlot": "No ranked item available yet.",
+      "playSingle": "play",
+      "playPlural": "plays"
+    },
     "scrollHint": {
       "label": "Scroll for more"
     },
@@ -189,6 +216,7 @@
       "home": "Hjem",
       "projects": "Projekter",
       "files": "CV",
+      "playground": "Playground",
       "contact": "Kontakt"
     },
     "hero": {
@@ -267,9 +295,9 @@
       "copied": "Kopieret"
     },
     "playground": {
-      "title": "Eksperimentelt Playground",
-      "intro": "Dette er en sandbox-side til at teste ideer, UI-eksperimenter og prototyper.",
-      "quizHubTitle": "Quiz landing",
+      "title": "Playground",
+      "intro": "Lær Johan bedre at kende gennem interaktive services: Spørg Johan, GeoJohan og et live Spotify-dashboard.",
+      "quizHubTitle": "Servicehub",
       "quizHubIntro": "Vælg en oplevelse. GeoJohan er et 3-runders locationspil.",
       "cards": {
         "askJohan": {
@@ -346,6 +374,32 @@
       "loadError": "Google Maps kunne ikke indlæses. Prøv igen.",
       "loadErrorHint": "Tjek API key-restriktioner, billing og tilladte domæner.",
       "demoCoordinatesNote": "Demo-koordinater bruges lige nu. Sæt VITE_GEOJOHAN_ROUND*_... i .env.local for rigtige runder."
+    },
+    "spotifyDashboard": {
+      "title": "Spotify Dashboard",
+      "intro": "Viser altid Johans opdaterede top 4 sange (sidste uge), top 4 albums og top 4 artister (sidste uge). Intet bruger-Spotify-login kræves.",
+      "tabs": {
+        "tracks": "Top Sange",
+        "albums": "Top Albums",
+        "artists": "Top Artister"
+      },
+      "switchLabel": "Skift Spotify dashboard-liste",
+      "loading": "Indlæser Spotify dashboard...",
+      "refreshData": "Opdater dashboard",
+      "errorTitle": "Spotify dashboard utilgængeligt",
+      "loadError": "Kunne ikke indlæse Spotify dashboard lige nu. Prøv igen.",
+      "networkError": "Kunne ikke nå API'et. Tjek at backend kører og prøv igen.",
+      "apiBaseMissing": "VITE_API_BASE_URL er ikke sat til Spotify dashboard API-kald.",
+      "invalidPayload": "Spotify dashboard-svaret var ugyldigt.",
+      "rateLimited": "Spotify begrænser requests lige nu. Vent lidt før nyt forsøg.",
+      "retryAfter": "Prøv igen om",
+      "retryCta": "Prøv igen",
+      "lastUpdated": "Opdateret",
+      "weekFallback": "Ingen afspilninger fundet i de sidste 7 dage, så seneste tilgængelige afspilninger vises.",
+      "emptyTitle": "Afventer data",
+      "emptySlot": "Ingen rangering tilgængelig endnu.",
+      "playSingle": "afspilning",
+      "playPlural": "afspilninger"
     },
     "scrollHint": {
       "label": "Scroll for mere"

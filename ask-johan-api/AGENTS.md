@@ -24,12 +24,19 @@
   - auth: `src/features/auth.js`
   - ask-johan: `src/features/ask-johan.js`
   - geojohan maps-key: `src/features/geojohan.js`
+  - optional spotify oauth helpers: `src/features/spotify-auth.js`
+  - spotify music dashboard: `src/features/music-dashboard.js`
 - Public endpoints:
   - `GET /health`
   - `GET /`
   - `POST /auth/login`
   - `GET /api/geojohan/maps-key`
   - `POST /api/ask-johan`
+  - `GET /api/music-dashboard/snapshot`
+  - optional legacy helpers (not required by frontend dashboard UX):
+    - `GET /api/spotify/login`
+    - `GET /api/spotify/callback`
+    - `POST /api/spotify/logout`
 - Auth model:
   - primary: JWT Bearer (token from `/auth/login`),
   - optional temporary compatibility: `x-access-code` controlled by `ASK_JOHAN_AUTH_COMPAT_MODE`.
@@ -43,6 +50,11 @@
   - request rate limiter,
   - failed-auth throttling,
   - daily cap per IP.
+- Spotify dashboard security requirements:
+  - Spotify owner refresh token remains server-side only,
+  - Spotify tokens stored server-side only (never returned to frontend),
+  - refresh-once strategy for Spotify `401`,
+  - no logging of token values.
 - Keep context-protection behavior active:
   - refuse system/developer/internal prompt exfiltration requests,
   - never expose raw private context text verbatim.
@@ -52,7 +64,7 @@
 - Core:
   - `OPENAI_API_KEY`, `OPENAI_MODEL`, `PORT`
   - `JOHANSCV_ACCESS_CODE` (primary), `ASK_JOHAN_ACCESS_CODE` (deprecated fallback)
-  - `JWT_SECRET`, `ASK_JOHAN_JWT_TTL`, `ASK_JOHAN_AUTH_COMPAT_MODE`
+  - `JWT_SECRET`, `SESSION_SECRET`, `ASK_JOHAN_JWT_TTL`, `ASK_JOHAN_AUTH_COMPAT_MODE`
   - `ASK_JOHAN_AUTH_FAIL_WINDOW_MS`, `ASK_JOHAN_AUTH_FAIL_MAX`
   - `GEOJOHAN_MAPS_API_KEY`
   - `ASK_JOHAN_DAILY_CAP`, `ASK_JOHAN_RATE_LIMIT_WINDOW_MS`, `ASK_JOHAN_RATE_LIMIT_MAX`
@@ -61,6 +73,20 @@
   - Usage store:
     - `ASK_JOHAN_USAGE_STORE` (`memory` or `redis`)
     - `REDIS_URL`, `ASK_JOHAN_REDIS_KEY_PREFIX` (when redis mode)
+- Spotify dashboard:
+  - `SPOTIFY_CLIENT_ID`
+  - `SPOTIFY_OWNER_REFRESH_TOKEN`
+  - `SPOTIFY_CLIENT_SECRET` (optional, recommended)
+  - optional legacy OAuth helpers:
+    - `APP_BASE_URL`
+    - `SPOTIFY_REDIRECT_URI`
+    - `SPOTIFY_SCOPES` (default `user-read-recently-played`)
+    - `SPOTIFY_SESSION_COOKIE_NAME`, `SPOTIFY_SESSION_TTL_MS`
+    - `SPOTIFY_PKCE_TTL_MS`
+  - `SPOTIFY_SNAPSHOT_CACHE_TTL_MS`
+  - `SPOTIFY_REQUEST_TIMEOUT_MS`
+  - `SPOTIFY_RATE_LIMIT_WINDOW_MS`, `SPOTIFY_RATE_LIMIT_MAX`
+  - `SPOTIFY_DAILY_CAP`
 - Context source priority:
   - `JOHAN_CONTEXT_B64`
   - `JOHAN_CONTEXT`

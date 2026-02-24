@@ -25,6 +25,26 @@ services:
         value: "60000"
       - key: ASK_JOHAN_RATE_LIMIT_MAX
         value: "30"
+      - key: APP_BASE_URL
+        value: https://johanscv.dk
+      - key: SPOTIFY_SCOPES
+        value: user-read-recently-played
+      - key: SPOTIFY_SESSION_COOKIE_NAME
+        value: johanscv_spotify_sid
+      - key: SPOTIFY_SESSION_TTL_MS
+        value: "604800000"
+      - key: SPOTIFY_PKCE_TTL_MS
+        value: "600000"
+      - key: SPOTIFY_SNAPSHOT_CACHE_TTL_MS
+        value: "600000"
+      - key: SPOTIFY_REQUEST_TIMEOUT_MS
+        value: "12000"
+      - key: SPOTIFY_RATE_LIMIT_WINDOW_MS
+        value: "60000"
+      - key: SPOTIFY_RATE_LIMIT_MAX
+        value: "20"
+      - key: SPOTIFY_DAILY_CAP
+        value: "100"
       - key: ASK_JOHAN_AUTH_FAIL_WINDOW_MS
         value: "600000"
       - key: ASK_JOHAN_AUTH_FAIL_MAX
@@ -45,6 +65,14 @@ services:
       - key: ASK_JOHAN_ACCESS_CODE
         sync: false
       - key: JWT_SECRET
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: SPOTIFY_CLIENT_ID
+        sync: false
+      - key: SPOTIFY_OWNER_REFRESH_TOKEN
+        sync: false
+      - key: SPOTIFY_REDIRECT_URI
         sync: false
       - key: JOHAN_CONTEXT_B64
         sync: false

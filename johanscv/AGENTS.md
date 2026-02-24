@@ -18,6 +18,7 @@
 - Feature modules:
   - Ask Johan: `src/features/ask-johan/AskJohanWidget.js`
   - GeoJohan: `src/features/geojohan/GeoJohanPage.js`
+  - Spotify Dashboard: `src/features/spotify-dashboard/SpotifyDashboardSection.js`
   - GeoJohan config/env readers: `src/features/geojohan/geojohanEnv.js`, `src/features/geojohan/geojohanRounds.js`
 - Resume page module: `src/pages/Resume.js`.
 - Styling is custom CSS with Tailwind/PostCSS tooling; avoid introducing new UI frameworks.
@@ -33,6 +34,10 @@
   - login via `/auth/login`,
   - bearer token on `/api/ask-johan`,
   - bearer token on `/api/geojohan/maps-key`.
+- Keep Spotify dashboard flow compatible with API expectations:
+  - snapshot fetch via `/api/music-dashboard/snapshot`,
+  - no user connect/disconnect requirement in UI,
+  - never store Spotify tokens in browser storage.
 
 ## Environment Variables (Frontend)
 - Source of truth: `.env.local.example` + runtime code.
