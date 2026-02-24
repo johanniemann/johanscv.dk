@@ -92,9 +92,14 @@ export function createMusicDashboardSnapshotHandler({
       if (error instanceof SpotifyAuthError) {
         spotifyOwnerTokenCache.accessToken = ''
         spotifyOwnerTokenCache.expiresAt = 0
+        const authReason = extractSpotifyAuthReason(error?.details)
+        const reasonText = authReason ? ` (Spotify reason: ${authReason})` : ''
+        logger.warn?.(
+          `Spotify dashboard auth failed. status=${error?.status || 'unknown'} details=${String(error?.details || 'n/a')}`
+        )
         return res.status(503).json({
           message:
-            'Spotify dashboard auth failed on server. Check SPOTIFY_OWNER_REFRESH_TOKEN, SPOTIFY_CLIENT_ID, and SPOTIFY_CLIENT_SECRET configuration.'
+            `Spotify dashboard auth failed on server. Check SPOTIFY_OWNER_REFRESH_TOKEN, SPOTIFY_CLIENT_ID, and SPOTIFY_CLIENT_SECRET configuration.${reasonText}`
         })
       }
 
@@ -387,5 +392,14 @@ function normalizeImage(images) {
     const url = String(image?.url || '').trim()
     if (url) return url
   }
+  return ''
+}
+
+function extractSpotifyAuthReason(details) {
+  const normalized = String(details || '').trim().toLowerCase()
+  if (!normalized) return ''
+  if (normalized.includes('invalid_client')) return 'invalid_client'
+  if (normalized.includes('invalid_grant')) return 'invalid_grant'
+  if (normalized.includes('invalid_scope')) return 'invalid_scope'
   return ''
 }

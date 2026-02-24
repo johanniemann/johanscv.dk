@@ -57,14 +57,15 @@ export async function exchangeSpotifyCode({
   )
 
   const payload = await safeParseJson(response)
+  const errorDetails = parseSpotifyErrorDetails(payload)
   if (response.status === 429) {
     throw new SpotifyRateLimitError('Spotify token endpoint is rate limited.', getRetryAfterSeconds(response))
   }
   if (response.status === 400 || response.status === 401) {
-    throw new SpotifyAuthError('Spotify callback validation failed.', { status: response.status })
+    throw new SpotifyAuthError('Spotify callback validation failed.', { status: response.status, details: errorDetails })
   }
   if (!response.ok) {
-    throw new SpotifyApiError('Spotify token exchange failed.', { status: response.status })
+    throw new SpotifyApiError('Spotify token exchange failed.', { status: response.status, details: errorDetails })
   }
 
   return normalizeTokenPayload(payload, {
@@ -104,14 +105,15 @@ export async function refreshSpotifyAccessToken({
   )
 
   const payload = await safeParseJson(response)
+  const errorDetails = parseSpotifyErrorDetails(payload)
   if (response.status === 429) {
     throw new SpotifyRateLimitError('Spotify token refresh is rate limited.', getRetryAfterSeconds(response))
   }
   if (response.status === 400 || response.status === 401) {
-    throw new SpotifyAuthError('Spotify token refresh failed.', { status: response.status })
+    throw new SpotifyAuthError('Spotify token refresh failed.', { status: response.status, details: errorDetails })
   }
   if (!response.ok) {
-    throw new SpotifyApiError('Spotify token refresh failed.', { status: response.status })
+    throw new SpotifyApiError('Spotify token refresh failed.', { status: response.status, details: errorDetails })
   }
 
   return normalizeTokenPayload(payload, {
