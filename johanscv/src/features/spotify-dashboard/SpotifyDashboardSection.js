@@ -1,8 +1,10 @@
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
 const SNAPSHOT_PATH = '/api/music-dashboard/snapshot'
 const REQUEST_TIMEOUT_MS = 20000
+const AUTO_REFRESH_INTERVAL_MS = 10 * 60 * 1000
 const VIEWS = ['tracks', 'albums', 'artists']
 const CARD_COUNT = 4
+let autoRefreshIntervalId = 0
 
 export function renderSpotifyDashboardSection({ t }) {
   return `
@@ -20,6 +22,8 @@ export function mountSpotifyDashboardSection({ t }) {
   const root = document.querySelector('#spotify-dashboard-root')
   const shell = document.querySelector('#spotify-dashboard-shell')
   if (!root || !shell) return
+
+  stopAutoRefresh()
 
   const state = {
     t,
@@ -45,11 +49,6 @@ export function mountSpotifyDashboardSection({ t }) {
       return
     }
 
-    if (action === 'refresh-snapshot') {
-      void loadSnapshot(state, shell, { refresh: true })
-      return
-    }
-
     if (action === 'set-view') {
       const view = String(button.dataset.view || '')
       if (VIEWS.includes(view)) {
@@ -60,15 +59,37 @@ export function mountSpotifyDashboardSection({ t }) {
   })
 
   void loadSnapshot(state, shell, { refresh: false })
+  startAutoRefresh(state, shell, root)
 }
 
-async function loadSnapshot(state, shell, { refresh = false }) {
-  state.status = 'loading'
-  state.message = ''
-  state.retryAfterSeconds = 0
-  renderCurrentState(state, shell)
+function startAutoRefresh(state, shell, root) {
+  autoRefreshIntervalId = window.setInterval(() => {
+    if (!root.isConnected || !shell.isConnected) {
+      stopAutoRefresh()
+      return
+    }
+    void loadSnapshot(state, shell, { refresh: false, suppressLoading: true })
+  }, AUTO_REFRESH_INTERVAL_MS)
+}
+
+function stopAutoRefresh() {
+  if (!autoRefreshIntervalId) return
+  window.clearInterval(autoRefreshIntervalId)
+  autoRefreshIntervalId = 0
+}
+
+async function loadSnapshot(state, shell, { refresh = false, suppressLoading = false }) {
+  const hasExistingSnapshot = Boolean(state.snapshot) && state.status === 'ready'
+  const keepCurrentView = suppressLoading && hasExistingSnapshot
+  if (!keepCurrentView) {
+    state.status = 'loading'
+    state.message = ''
+    state.retryAfterSeconds = 0
+    renderCurrentState(state, shell)
+  }
 
   if (!API_BASE) {
+    if (keepCurrentView) return
     state.status = 'error'
     state.message = state.t.spotifyDashboard.apiBaseMissing
     renderCurrentState(state, shell)
@@ -84,6 +105,7 @@ async function loadSnapshot(state, shell, { refresh = false }) {
       method: 'GET'
     })
   } catch {
+    if (keepCurrentView) return
     state.status = 'error'
     state.message = state.t.spotifyDashboard.networkError
     renderCurrentState(state, shell)
@@ -93,6 +115,7 @@ async function loadSnapshot(state, shell, { refresh = false }) {
   const payload = await parseJsonSafe(response)
 
   if (response.status === 429) {
+    if (keepCurrentView) return
     state.status = 'error'
     state.retryAfterSeconds = Number(payload?.retryAfterSeconds || 0)
     state.message = normalizeMessage(payload?.message, state.t.spotifyDashboard.rateLimited)
@@ -101,6 +124,7 @@ async function loadSnapshot(state, shell, { refresh = false }) {
   }
 
   if (!response.ok) {
+    if (keepCurrentView) return
     state.status = 'error'
     state.message = normalizeMessage(payload?.message, state.t.spotifyDashboard.loadError)
     renderCurrentState(state, shell)
@@ -116,6 +140,7 @@ async function loadSnapshot(state, shell, { refresh = false }) {
     }
     state.status = 'ready'
   } catch {
+    if (keepCurrentView) return
     state.status = 'error'
     state.message = state.t.spotifyDashboard.invalidPayload
   }
@@ -160,25 +185,25 @@ function renderDashboardReadyState(state) {
   const cards = buildCards(entries, state.t)
 
   const updatedAt = formatTimestamp(state.snapshot?.snapshotTimestamp)
+  const updatedLine = `${state.t.spotifyDashboard.lastUpdated}: ${updatedAt} - ${state.t.spotifyDashboard.autoRefreshNote}`
   const fallbackMessage = state.snapshot?.periodFallbackUsed
     ? `<p class="spotify-dashboard-status">${state.t.spotifyDashboard.weekFallback}</p>`
     : ''
 
   return `
     <article class="spotify-dashboard-state-card">
-      <div class="spotify-dashboard-tabs" role="tablist" aria-label="${state.t.spotifyDashboard.switchLabel}">
-        ${VIEWS.map((view) => renderTabButton(view, state.activeView, state.t)).join('')}
-      </div>
-
       <div class="spotify-dashboard-grid">
         ${cards.join('')}
       </div>
 
-      <p class="spotify-dashboard-updated">${state.t.spotifyDashboard.lastUpdated}: ${updatedAt}</p>
-      ${fallbackMessage}
-
-      <div class="spotify-dashboard-actions">
-        <button class="projects-cta" type="button" data-action="refresh-snapshot">${state.t.spotifyDashboard.refreshData}</button>
+      <div class="spotify-dashboard-footer">
+        <div class="spotify-dashboard-meta">
+          <p class="spotify-dashboard-updated">${updatedLine}</p>
+          ${fallbackMessage}
+        </div>
+        <div class="spotify-dashboard-tabs" role="tablist" aria-label="${state.t.spotifyDashboard.switchLabel}">
+          ${VIEWS.map((view) => renderTabButton(view, state.activeView, state.t)).join('')}
+        </div>
       </div>
     </article>
   `

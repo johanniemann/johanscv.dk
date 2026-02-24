@@ -164,8 +164,8 @@
       "demoCoordinatesNote": "Using demo coordinates. Set VITE_GEOJOHAN_ROUND*_... vars in .env.local for your real rounds."
     },
     "spotifyDashboard": {
-      "title": "Spotify Dashboard",
-      "intro": "Always shows Johan's updated top 4 tracks (past week), top 4 albums, and top 4 artists (past week). No user Spotify login required.",
+      "title": "SpotiJohan",
+      "intro": "Explore the music I've listened to the most this week.",
       "tabs": {
         "tracks": "Top Tracks",
         "albums": "Top Albums",
@@ -183,6 +183,7 @@
       "retryAfter": "Retry after",
       "retryCta": "Retry",
       "lastUpdated": "Updated",
+      "autoRefreshNote": "SpotiJohan updates automatically every 10 minutes",
       "weekFallback": "No plays found in the last 7 days, so the latest available recent plays are shown.",
       "emptyTitle": "Waiting for data",
       "emptySlot": "No ranked item available yet.",
@@ -376,8 +377,8 @@
       "demoCoordinatesNote": "Demo-koordinater bruges lige nu. Sæt VITE_GEOJOHAN_ROUND*_... i .env.local for rigtige runder."
     },
     "spotifyDashboard": {
-      "title": "Spotify Dashboard",
-      "intro": "Viser altid Johans opdaterede top 4 sange (sidste uge), top 4 albums og top 4 artister (sidste uge). Intet bruger-Spotify-login kræves.",
+      "title": "SpotiJohan",
+      "intro": "Udforsk hvilken musik jeg har lyttet mest til denne uge.",
       "tabs": {
         "tracks": "Top Sange",
         "albums": "Top Albums",
@@ -395,6 +396,7 @@
       "retryAfter": "Prøv igen om",
       "retryCta": "Prøv igen",
       "lastUpdated": "Opdateret",
+      "autoRefreshNote": "SpotiJohan opdateres automatisk hvert 10. minut",
       "weekFallback": "Ingen afspilninger fundet i de sidste 7 dage, så seneste tilgængelige afspilninger vises.",
       "emptyTitle": "Afventer data",
       "emptySlot": "Ingen rangering tilgængelig endnu.",
