@@ -77,9 +77,47 @@ test('GET /api/music-dashboard/snapshot builds dashboard lists from Spotify data
   assert.equal(Array.isArray(snapshotResponse.body.lists?.tracks), true)
   assert.equal(Array.isArray(snapshotResponse.body.lists?.albums), true)
   assert.equal(Array.isArray(snapshotResponse.body.lists?.artists), true)
-  assert.equal(snapshotResponse.body.lists.tracks.length, 4)
-  assert.equal(snapshotResponse.body.lists.albums.length, 4)
-  assert.equal(snapshotResponse.body.lists.artists.length, 4)
+  assert.equal(snapshotResponse.body.lists.tracks.length, 6)
+  assert.equal(snapshotResponse.body.lists.tracks[0].previewUrl, 'https://cdn.example/previews/track1.mp3')
+  assert.equal(snapshotResponse.body.lists.albums.length, 6)
+  assert.equal(snapshotResponse.body.lists.albums[0].previewUrl, 'https://cdn.example/previews/track1.mp3')
+  assert.equal(snapshotResponse.body.lists.artists.length, 6)
+  assert.equal(snapshotResponse.body.lists.artists[0].previewUrl, 'https://cdn.example/previews/track1.mp3')
+})
+
+test('GET /api/music-dashboard/snapshot fills missing previews with fallback lookup for all dashboard lists', async () => {
+  const noPreviewItems = buildRecentlyPlayedFixture().map((item) => ({
+    ...item,
+    track: {
+      ...item.track,
+      preview_url: ''
+    }
+  }))
+
+  const spotifyFetch = createFakeSpotifyFetch({
+    recentlyPlayedItems: noPreviewItems,
+    artistsById: {
+      artist1: { id: 'artist1', name: 'Alpha Artist' },
+      artist2: { id: 'artist2', name: 'Beta Artist' },
+      artist3: { id: 'artist3', name: 'Gamma Artist' },
+      artist4: { id: 'artist4', name: 'Delta Artist' }
+    },
+    itunesPreviewByTerm: {
+      'first track alpha artist': 'https://fallback.example/previews/track1.m4a',
+      'first album alpha artist': 'https://fallback.example/previews/album1.m4a',
+      'alpha artist': 'https://fallback.example/previews/artist1.m4a'
+    }
+  })
+  const app = createApp({
+    spotify: spotifyConfig(),
+    fetchImpl: spotifyFetch
+  })
+
+  const snapshotResponse = await request(app).get('/api/music-dashboard/snapshot?refresh=true')
+  assert.equal(snapshotResponse.status, 200)
+  assert.equal(snapshotResponse.body.lists.tracks[0].previewUrl, 'https://fallback.example/previews/track1.m4a')
+  assert.equal(snapshotResponse.body.lists.albums[0].previewUrl, 'https://fallback.example/previews/album1.m4a')
+  assert.equal(snapshotResponse.body.lists.artists[0].previewUrl, 'https://fallback.example/previews/artist1.m4a')
 })
 
 test('GET /api/music-dashboard/snapshot uses client credentials token for artist lookup when configured', async () => {
@@ -106,6 +144,31 @@ test('GET /api/music-dashboard/snapshot uses client credentials token for artist
   assert.ok(spotifyFetch.stats.artistRequestsWithAppToken >= 1)
 })
 
+test('GET /api/music-dashboard/snapshot falls back to owner-token when app-token artist lookup is forbidden', async () => {
+  const spotifyFetch = createFakeSpotifyFetch({
+    recentlyPlayedItems: buildRecentlyPlayedFixture(),
+    artistsById: {
+      artist1: { id: 'artist1', name: 'Alpha Artist', imageUrl: 'https://cdn.example/artist1.jpg' },
+      artist2: { id: 'artist2', name: 'Beta Artist', imageUrl: 'https://cdn.example/artist2.jpg' },
+      artist3: { id: 'artist3', name: 'Gamma Artist', imageUrl: 'https://cdn.example/artist3.jpg' },
+      artist4: { id: 'artist4', name: 'Delta Artist', imageUrl: 'https://cdn.example/artist4.jpg' }
+    },
+    failArtistsForAppToken: true
+  })
+  const app = createApp({
+    spotify: spotifyConfig({
+      clientSecret: 'spotify-client-secret'
+    }),
+    fetchImpl: spotifyFetch
+  })
+
+  const snapshotResponse = await request(app).get('/api/music-dashboard/snapshot?refresh=true')
+  assert.equal(snapshotResponse.status, 200)
+  assert.ok(spotifyFetch.stats.artistRequestsWithAppToken >= 1)
+  assert.ok(spotifyFetch.stats.artistRequestsWithOwnerToken >= 1)
+  assert.equal(snapshotResponse.body.lists.artists[0].imageUrl, 'https://cdn.example/artist1.jpg')
+})
+
 test('GET /api/music-dashboard/snapshot still returns data when artist lookup is forbidden', async () => {
   const spotifyFetch = createFakeSpotifyFetch({
     recentlyPlayedItems: buildRecentlyPlayedFixture(),
@@ -126,7 +189,30 @@ test('GET /api/music-dashboard/snapshot still returns data when artist lookup is
 
   const snapshotResponse = await request(app).get('/api/music-dashboard/snapshot?refresh=true')
   assert.equal(snapshotResponse.status, 200)
-  assert.equal(snapshotResponse.body.lists.artists.length, 4)
+  assert.equal(snapshotResponse.body.lists.artists.length, 6)
+  assert.equal(snapshotResponse.body.lists.artists[0].imageUrl, '')
+})
+
+test('GET /api/music-dashboard/snapshot falls back to public Spotify artist page image when artist API is forbidden', async () => {
+  const spotifyFetch = createFakeSpotifyFetch({
+    recentlyPlayedItems: buildRecentlyPlayedFixture(),
+    artistsById: {},
+    failArtistsAlwaysWith403: true,
+    spotifyArtistPageImageById: {
+      artist1: 'https://i.scdn.co/image/artist1-public'
+    }
+  })
+  const app = createApp({
+    spotify: spotifyConfig({
+      clientSecret: 'spotify-client-secret'
+    }),
+    fetchImpl: spotifyFetch
+  })
+
+  const snapshotResponse = await request(app).get('/api/music-dashboard/snapshot?refresh=true')
+  assert.equal(snapshotResponse.status, 200)
+  assert.equal(snapshotResponse.body.lists.artists[0].imageUrl, 'https://i.scdn.co/image/artist1-public')
+  assert.ok(spotifyFetch.stats.artistPageRequests >= 1)
 })
 
 test('GET /api/music-dashboard/snapshot refreshes spotify token once after 401', async () => {
@@ -565,17 +651,69 @@ function createFakeSpotifyFetch({
   failRecentlyPlayedOnceWith401 = false,
   meProfile = null,
   failArtistsForUserToken = false,
-  failArtistsAlwaysWith403 = false
+  failArtistsForAppToken = false,
+  failArtistsAlwaysWith403 = false,
+  itunesPreviewByTerm = {},
+  spotifyArtistPageImageById = {}
 }) {
   let shouldFailRecentlyPlayed = failRecentlyPlayedOnceWith401
   const stats = {
     clientCredentialsTokenRequests: 0,
     artistRequestsWithAppToken: 0,
+    artistRequestsWithOwnerToken: 0,
+    artistPageRequests: 0,
     refreshTokenRequestsWithClientSecret: 0
   }
 
   async function fakeSpotifyFetch(url, options = {}) {
     const target = typeof url === 'string' ? url : url.toString()
+    if (target.includes('itunes.apple.com/search')) {
+      const parsedUrl = new URL(target)
+      const normalizedTerm = String(parsedUrl.searchParams.get('term') || '')
+        .trim()
+        .toLowerCase()
+      const previewUrl = String(itunesPreviewByTerm[normalizedTerm] || '').trim()
+      if (!previewUrl) {
+        return jsonResponse({
+          resultCount: 0,
+          results: []
+        })
+      }
+      return jsonResponse({
+        resultCount: 1,
+        results: [
+          {
+            trackName: 'Fallback Track',
+            artistName: 'Fallback Artist',
+            previewUrl
+          }
+        ]
+      })
+    }
+
+    if (target.includes('open.spotify.com/artist/')) {
+      stats.artistPageRequests += 1
+      const artistId = String(target.split('/artist/')[1] || '')
+        .split(/[?#]/)[0]
+        .trim()
+      const imageUrl = String(spotifyArtistPageImageById[artistId] || '').trim()
+      if (!imageUrl) {
+        return new Response('<html><head></head><body>no image</body></html>', {
+          status: 200,
+          headers: {
+            'Content-Type': 'text/html; charset=utf-8'
+          }
+        })
+      }
+      const html = `<html><head><meta property="og:image" content="${imageUrl}"></head><body></body></html>`
+      return new Response(html, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8'
+        }
+      })
+    }
+
     if (target.includes('accounts.spotify.com/api/token')) {
       const body = String(options.body || '')
       if (body.includes('grant_type=authorization_code')) {
@@ -633,8 +771,13 @@ function createFakeSpotifyFetch({
       const authorizationHeader = String(options.headers?.Authorization || '')
       if (authorizationHeader === 'Bearer app-access-token') {
         stats.artistRequestsWithAppToken += 1
+      } else {
+        stats.artistRequestsWithOwnerToken += 1
       }
       if (failArtistsAlwaysWith403) {
+        return jsonResponse({ error: { status: 403, message: 'Forbidden' } }, 403)
+      }
+      if (failArtistsForAppToken && authorizationHeader === 'Bearer app-access-token') {
         return jsonResponse({ error: { status: 403, message: 'Forbidden' } }, 403)
       }
       if (failArtistsForUserToken && authorizationHeader !== 'Bearer app-access-token') {
@@ -680,6 +823,7 @@ function buildRecentlyPlayedFixture() {
       playedAt: '2026-02-20T10:00:00.000Z',
       trackId: 'track1',
       trackName: 'First Track',
+      previewUrl: 'https://cdn.example/previews/track1.mp3',
       albumId: 'album1',
       albumName: 'First Album',
       artistId: 'artist1',
@@ -720,36 +864,60 @@ function buildRecentlyPlayedFixture() {
       albumName: 'Fourth Album',
       artistId: 'artist4',
       artistName: 'Delta Artist'
+    }),
+    playFixture({
+      playedAt: '2026-02-20T05:00:00.000Z',
+      trackId: 'track6',
+      trackName: 'Sixth Track',
+      albumId: 'album5',
+      albumName: 'Fifth Album',
+      artistId: 'artist5',
+      artistName: 'Epsilon Artist'
+    }),
+    playFixture({
+      playedAt: '2026-02-20T04:00:00.000Z',
+      trackId: 'track7',
+      trackName: 'Seventh Track',
+      albumId: 'album6',
+      albumName: 'Sixth Album',
+      artistId: 'artist6',
+      artistName: 'Zeta Artist'
     })
   ]
 }
 
-function playFixture({ playedAt, trackId, trackName, albumId, albumName, artistId, artistName }) {
+function playFixture({ playedAt, trackId, trackName, previewUrl = '', albumId, albumName, artistId, artistName }) {
+  const track = {
+    id: trackId,
+    name: trackName,
+    external_urls: {
+      spotify: `https://open.spotify.com/track/${trackId}`
+    },
+    album: {
+      id: albumId,
+      name: albumName,
+      external_urls: {
+        spotify: `https://open.spotify.com/album/${albumId}`
+      },
+      images: [{ url: `https://cdn.example/${albumId}.jpg` }]
+    },
+    artists: [
+      {
+        id: artistId,
+        name: artistName,
+        external_urls: {
+          spotify: `https://open.spotify.com/artist/${artistId}`
+        }
+      }
+    ]
+  }
+
+  if (previewUrl) {
+    track.preview_url = previewUrl
+  }
+
   return {
     played_at: playedAt,
-    track: {
-      id: trackId,
-      name: trackName,
-      external_urls: {
-        spotify: `https://open.spotify.com/track/${trackId}`
-      },
-      album: {
-        id: albumId,
-        name: albumName,
-        external_urls: {
-          spotify: `https://open.spotify.com/album/${albumId}`
-        },
-        images: [{ url: `https://cdn.example/${albumId}.jpg` }]
-      },
-      artists: [
-        {
-          id: artistId,
-          name: artistName,
-          external_urls: {
-            spotify: `https://open.spotify.com/artist/${artistId}`
-          }
-        }
-      ]
-    }
+    track
   }
 }

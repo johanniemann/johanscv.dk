@@ -1020,6 +1020,11 @@ body.welcome-active #site-shell {
   gap: 0.9rem;
 }
 
+.spotify-dashboard-ready {
+  display: grid;
+  gap: 0.9rem;
+}
+
 .spotify-dashboard-state-card {
   display: grid;
   gap: 0.9rem;
@@ -1047,22 +1052,28 @@ body.welcome-active #site-shell {
 .spotify-dashboard-footer {
   display: flex;
   align-items: flex-end;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 0.9rem;
 }
 
 .spotify-dashboard-meta {
+  flex: 1 1 auto;
   display: grid;
   gap: 0.35rem;
   min-width: 0;
 }
 
 .spotify-dashboard-tabs {
+  flex: 0 0 auto;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
   gap: 0.75rem;
-  margin-left: auto;
+  margin-left: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
 .spotify-dashboard-tab {
@@ -1075,6 +1086,7 @@ body.welcome-active #site-shell {
   align-items: center;
   justify-content: center;
   width: auto;
+  flex: 0 0 auto;
   white-space: nowrap;
   padding: 0.56rem 0.88rem;
   cursor: pointer;
@@ -1086,9 +1098,10 @@ body.welcome-active #site-shell {
 }
 
 .spotify-dashboard-tab:hover {
-  transform: translateY(-2px);
+  transform: none;
   border-color: var(--surface-inner-hover-border);
-  box-shadow: var(--surface-inner-hover-shadow);
+  box-shadow: 0 8px 18px rgba(66, 92, 148, 0.16);
+  background: rgba(229, 238, 255, 0.62);
 }
 
 .spotify-dashboard-tab.is-active {
@@ -1107,6 +1120,11 @@ body.welcome-active #site-shell {
   box-shadow: 0 12px 26px rgba(8, 15, 31, 0.44);
 }
 
+:root[data-theme='dark'] .spotify-dashboard-tab:hover {
+  background: rgba(56, 74, 115, 0.72);
+  box-shadow: 0 10px 20px rgba(8, 16, 34, 0.38);
+}
+
 .spotify-dashboard-actions {
   display: flex;
   flex-wrap: wrap;
@@ -1119,24 +1137,75 @@ body.welcome-active #site-shell {
 
 .spotify-dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  align-items: stretch;
   gap: 0.85rem;
+  animation: spotify-dashboard-grid-in 360ms var(--ease-standard);
 }
 
 .spotify-dashboard-card {
-  gap: 0.38rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 0.24rem;
   min-height: 100%;
+  opacity: 1;
+  transform: none;
+  animation: spotify-dashboard-card-in 420ms var(--ease-standard);
+  animation-fill-mode: backwards;
 }
 
-.spotify-dashboard-rank {
-  margin: 0;
-  color: var(--text-soft);
-  font-size: 0.76rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+.spotify-dashboard-card:nth-child(1) {
+  animation-delay: 0ms;
+}
+
+.spotify-dashboard-card:nth-child(2) {
+  animation-delay: 40ms;
+}
+
+.spotify-dashboard-card:nth-child(3) {
+  animation-delay: 80ms;
+}
+
+.spotify-dashboard-card:nth-child(4) {
+  animation-delay: 120ms;
+}
+
+.spotify-dashboard-card:nth-child(5) {
+  animation-delay: 160ms;
+}
+
+.spotify-dashboard-card:nth-child(6) {
+  animation-delay: 200ms;
+}
+
+.spotify-dashboard-card:hover,
+.spotify-dashboard-card:focus-within {
+  transform: translateY(-4px);
+  border-color: var(--surface-inner-hover-border);
+  box-shadow: var(--surface-inner-hover-shadow);
+}
+
+.spotify-dashboard-media {
+  position: relative;
+}
+
+.spotify-dashboard-card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  gap: 0.12rem;
+}
+
+.spotify-dashboard-card-meta {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
 }
 
 .spotify-dashboard-image {
+  display: block;
   width: 100%;
   aspect-ratio: 1 / 1;
   object-fit: cover;
@@ -1144,20 +1213,87 @@ body.welcome-active #site-shell {
   border: 1px solid var(--surface-inner-border);
 }
 
+.spotify-dashboard-preview-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2.6rem;
+  height: 2.6rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(22, 36, 66, 0.26);
+  background: rgba(247, 251, 255, 0.9);
+  color: #1a2a4e;
+  box-shadow: 0 12px 28px rgba(17, 30, 56, 0.3);
+  transform: translate(-50%, -50%) scale(0.92);
+  opacity: 0;
+  pointer-events: none;
+  cursor: pointer;
+  transition:
+    opacity var(--duration-base) var(--ease-standard),
+    transform var(--duration-base) var(--ease-standard),
+    box-shadow var(--duration-base) var(--ease-standard),
+    background var(--duration-base) var(--ease-standard);
+}
+
+.spotify-dashboard-preview-icon {
+  width: 0;
+  height: 0;
+  margin-left: 0.12rem;
+  border-top: 0.42rem solid transparent;
+  border-bottom: 0.42rem solid transparent;
+  border-left: 0.66rem solid currentColor;
+}
+
+.spotify-dashboard-preview-button.is-playing .spotify-dashboard-preview-icon {
+  width: 0.58rem;
+  height: 0.66rem;
+  margin-left: 0;
+  border: 0;
+  background:
+    linear-gradient(
+      to right,
+      currentColor 0,
+      currentColor 0.2rem,
+      transparent 0.2rem,
+      transparent 0.38rem,
+      currentColor 0.38rem,
+      currentColor 100%
+    );
+}
+
+.spotify-dashboard-card:hover .spotify-dashboard-preview-button,
+.spotify-dashboard-card:focus-within .spotify-dashboard-preview-button {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.spotify-dashboard-preview-button:hover,
+.spotify-dashboard-preview-button:focus-visible {
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 14px 30px rgba(16, 29, 54, 0.36);
+  outline: none;
+}
+
 .spotify-dashboard-image-placeholder {
   background: rgba(174, 193, 233, 0.3);
 }
 
-.spotify-dashboard-card-title {
+.spotify-dashboard-card .spotify-dashboard-card-title {
   margin: 0;
+  margin-top: 0.28rem;
+  line-height: 1.2;
 }
 
-.spotify-dashboard-card-subtitle {
+.spotify-dashboard-card .spotify-dashboard-card-subtitle {
   margin: 0;
-  min-height: 2.4em;
+  line-height: 1.2;
 }
 
-.spotify-dashboard-playcount {
+.spotify-dashboard-rank-line {
   margin: 0;
   font-size: 0.8rem;
   color: var(--text-soft);
@@ -1169,6 +1305,8 @@ body.welcome-active #site-shell {
 
 .spotify-dashboard-updated {
   margin: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   font-size: 0.84rem;
   color: var(--text-soft);
 }
@@ -1186,11 +1324,61 @@ body.welcome-active #site-shell {
   background: rgba(62, 79, 117, 0.72);
 }
 
+:root[data-theme='dark'] .spotify-dashboard-preview-button {
+  border-color: rgba(173, 194, 255, 0.35);
+  background: rgba(24, 35, 60, 0.9);
+  color: rgba(241, 246, 255, 0.96);
+  box-shadow: 0 14px 30px rgba(4, 8, 16, 0.55);
+}
+
+:root[data-theme='dark'] .spotify-dashboard-preview-button:hover,
+:root[data-theme='dark'] .spotify-dashboard-preview-button:focus-visible {
+  background: rgba(34, 49, 82, 0.96);
+}
+
 :root[data-theme='dark'] .spotify-dashboard-updated,
-:root[data-theme='dark'] .spotify-dashboard-playcount,
-:root[data-theme='dark'] .spotify-dashboard-rank {
+:root[data-theme='dark'] .spotify-dashboard-rank-line {
   margin: 0;
   color: var(--text-soft);
+}
+
+@media (hover: none) {
+  .spotify-dashboard-preview-button {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes spotify-dashboard-grid-in {
+  from {
+    opacity: 0.72;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spotify-dashboard-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spotify-dashboard-grid,
+  .spotify-dashboard-card {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .geojohan-page {
@@ -2332,9 +2520,12 @@ body.welcome-active #site-shell {
   }
 
   .quiz-choice-grid,
-  .geojohan-summary-list,
-  .spotify-dashboard-grid {
+  .geojohan-summary-list {
     grid-template-columns: 1fr;
+  }
+
+  .spotify-dashboard-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .spotify-dashboard-footer {

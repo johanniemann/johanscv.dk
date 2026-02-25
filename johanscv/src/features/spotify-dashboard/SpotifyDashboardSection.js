@@ -1,10 +1,16 @@
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
 const SNAPSHOT_PATH = '/api/music-dashboard/snapshot'
 const REQUEST_TIMEOUT_MS = 20000
-const AUTO_REFRESH_INTERVAL_MS = 10 * 60 * 1000
+const DEFAULT_AUTO_REFRESH_INTERVAL_MS = 10 * 60 * 1000
+const AUTO_REFRESH_INTERVAL_MS = resolveAutoRefreshIntervalMs(import.meta.env.VITE_SPOTIFY_DASHBOARD_REFRESH_MS)
+const PREVIEW_DURATION_MS = 10 * 1000
 const VIEWS = ['tracks', 'albums', 'artists']
-const CARD_COUNT = 4
+const CARD_COUNT = 6
 let autoRefreshIntervalId = 0
+let previewAudio = null
+let previewStopTimeoutId = 0
+let previewActiveButton = null
+let previewActiveCardId = ''
 
 export function renderSpotifyDashboardSection({ t }) {
   return `
@@ -24,6 +30,7 @@ export function mountSpotifyDashboardSection({ t }) {
   if (!root || !shell) return
 
   stopAutoRefresh()
+  stopPreviewPlayback()
 
   const state = {
     t,
@@ -52,9 +59,15 @@ export function mountSpotifyDashboardSection({ t }) {
     if (action === 'set-view') {
       const view = String(button.dataset.view || '')
       if (VIEWS.includes(view)) {
+        stopPreviewPlayback()
         state.activeView = view
         renderCurrentState(state, shell)
       }
+      return
+    }
+
+    if (action === 'toggle-preview') {
+      void toggleTrackPreview(button)
     }
   })
 
@@ -66,9 +79,10 @@ function startAutoRefresh(state, shell, root) {
   autoRefreshIntervalId = window.setInterval(() => {
     if (!root.isConnected || !shell.isConnected) {
       stopAutoRefresh()
+      stopPreviewPlayback()
       return
     }
-    void loadSnapshot(state, shell, { refresh: false, suppressLoading: true })
+    void loadSnapshot(state, shell, { refresh: true, suppressLoading: true })
   }, AUTO_REFRESH_INTERVAL_MS)
 }
 
@@ -149,6 +163,8 @@ async function loadSnapshot(state, shell, { refresh = false, suppressLoading = f
 }
 
 function renderCurrentState(state, shell) {
+  stopPreviewPlayback()
+
   if (state.status === 'loading') {
     shell.innerHTML = `
       <article class="spotify-dashboard-state-card">
@@ -191,7 +207,7 @@ function renderDashboardReadyState(state) {
     : ''
 
   return `
-    <article class="spotify-dashboard-state-card">
+    <div class="spotify-dashboard-ready">
       <div class="spotify-dashboard-grid">
         ${cards.join('')}
       </div>
@@ -205,7 +221,7 @@ function renderDashboardReadyState(state) {
           ${VIEWS.map((view) => renderTabButton(view, state.activeView, state.t)).join('')}
         </div>
       </div>
-    </article>
+    </div>
   `
 }
 
@@ -249,11 +265,39 @@ function buildCards(entries, t) {
     const safeTitle = escapeHtml(item.title)
     const safeSubtitle = escapeHtml(item.subtitle)
     const playCount = Number(item.playCount || 0)
+    const previewUrl = String(item.previewUrl || '').trim()
+    const hasPreview = Boolean(previewUrl)
     const playsLabel = `${playCount} ${playCount === 1 ? t.spotifyDashboard.playSingle : t.spotifyDashboard.playPlural}`
+    const rankAndPlaysLabel = `#${index + 1} ${t.spotifyDashboard.rankWith} ${playsLabel}`
 
-    const imageMarkup = item.imageUrl
+    const imageContent = item.imageUrl
       ? `<img class="spotify-dashboard-image" src="${escapeHtml(item.imageUrl)}" alt="${safeTitle}" loading="lazy" />`
       : '<div class="spotify-dashboard-image spotify-dashboard-image-placeholder" aria-hidden="true"></div>'
+
+    const previewButton = hasPreview
+      ? `
+          <button
+            class="spotify-dashboard-preview-button"
+            type="button"
+            data-action="toggle-preview"
+            data-preview-url="${escapeHtml(previewUrl)}"
+            data-preview-card-id="${escapeHtml(String(item.id || `${index}`))}"
+            data-label-play="${escapeHtml(t.spotifyDashboard.previewPlayLabel)}"
+            data-label-stop="${escapeHtml(t.spotifyDashboard.previewStopLabel)}"
+            aria-label="${escapeHtml(t.spotifyDashboard.previewPlayLabel)}"
+            aria-pressed="false"
+          >
+            <span class="spotify-dashboard-preview-icon" aria-hidden="true"></span>
+          </button>
+        `
+      : ''
+
+    const imageMarkup = `
+      <div class="spotify-dashboard-media">
+        ${imageContent}
+        ${previewButton}
+      </div>
+    `
 
     const titleMarkup = item.spotifyUrl
       ? `<a class="spotify-dashboard-link" href="${escapeHtml(item.spotifyUrl)}" target="_blank" rel="noopener noreferrer">${safeTitle}</a>`
@@ -262,15 +306,84 @@ function buildCards(entries, t) {
     cards.push(`
       <article class="project-card spotify-dashboard-card">
         ${imageMarkup}
-        <p class="spotify-dashboard-rank">#${index + 1}</p>
-        <h4 class="project-title spotify-dashboard-card-title">${titleMarkup}</h4>
-        <p class="project-summary spotify-dashboard-card-subtitle">${safeSubtitle}</p>
-        <p class="spotify-dashboard-playcount">${escapeHtml(playsLabel)}</p>
+        <div class="spotify-dashboard-card-body">
+          <h4 class="project-title spotify-dashboard-card-title">${titleMarkup}</h4>
+          <div class="spotify-dashboard-card-meta">
+            <p class="project-summary spotify-dashboard-card-subtitle">${safeSubtitle}</p>
+            <p class="spotify-dashboard-rank-line">${escapeHtml(rankAndPlaysLabel)}</p>
+          </div>
+        </div>
       </article>
     `)
   }
 
   return cards
+}
+
+async function toggleTrackPreview(button) {
+  const previewUrl = String(button.dataset.previewUrl || '').trim()
+  const previewCardId = String(button.dataset.previewCardId || '').trim()
+  if (!previewUrl || !previewCardId) return
+
+  if (previewAudio && previewActiveCardId === previewCardId) {
+    stopPreviewPlayback()
+    return
+  }
+
+  stopPreviewPlayback()
+
+  const audio = new Audio(previewUrl)
+  previewAudio = audio
+  previewActiveCardId = previewCardId
+  previewActiveButton = button
+  setPreviewButtonState(button, true)
+
+  audio.addEventListener(
+    'ended',
+    () => {
+      stopPreviewPlayback()
+    },
+    { once: true }
+  )
+
+  try {
+    await audio.play()
+  } catch {
+    stopPreviewPlayback()
+    return
+  }
+
+  previewStopTimeoutId = window.setTimeout(() => {
+    stopPreviewPlayback()
+  }, PREVIEW_DURATION_MS)
+}
+
+function stopPreviewPlayback() {
+  if (previewStopTimeoutId) {
+    window.clearTimeout(previewStopTimeoutId)
+    previewStopTimeoutId = 0
+  }
+
+  if (previewAudio) {
+    previewAudio.pause()
+    previewAudio.currentTime = 0
+    previewAudio = null
+  }
+
+  if (previewActiveButton && previewActiveButton.isConnected) {
+    setPreviewButtonState(previewActiveButton, false)
+  }
+
+  previewActiveButton = null
+  previewActiveCardId = ''
+}
+
+function setPreviewButtonState(button, isPlaying) {
+  const playLabel = String(button.dataset.labelPlay || 'Play preview')
+  const stopLabel = String(button.dataset.labelStop || 'Stop preview')
+  button.classList.toggle('is-playing', isPlaying)
+  button.setAttribute('aria-pressed', String(isPlaying))
+  button.setAttribute('aria-label', isPlaying ? stopLabel : playLabel)
 }
 
 function ensureSnapshotShape(payload) {
@@ -344,4 +457,12 @@ function escapeHtml(value) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;')
+}
+
+function resolveAutoRefreshIntervalMs(rawValue) {
+  const parsed = Number(rawValue)
+  if (!Number.isFinite(parsed) || parsed < 10_000) {
+    return DEFAULT_AUTO_REFRESH_INTERVAL_MS
+  }
+  return Math.floor(parsed)
 }

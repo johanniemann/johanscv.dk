@@ -187,8 +187,11 @@
       "weekFallback": "No plays found in the last 7 days, so the latest available recent plays are shown.",
       "emptyTitle": "Waiting for data",
       "emptySlot": "No ranked item available yet.",
+      "rankWith": "with",
       "playSingle": "play",
-      "playPlural": "plays"
+      "playPlural": "plays",
+      "previewPlayLabel": "Play 10-second track preview",
+      "previewStopLabel": "Stop track preview"
     },
     "scrollHint": {
       "label": "Scroll for more"
@@ -400,8 +403,11 @@
       "weekFallback": "Ingen afspilninger fundet i de sidste 7 dage, så seneste tilgængelige afspilninger vises.",
       "emptyTitle": "Afventer data",
       "emptySlot": "Ingen rangering tilgængelig endnu.",
+      "rankWith": "med",
       "playSingle": "afspilning",
-      "playPlural": "afspilninger"
+      "playPlural": "afspilninger",
+      "previewPlayLabel": "Afspil 10 sekunders track-preview",
+      "previewStopLabel": "Stop track-preview"
     },
     "scrollHint": {
       "label": "Scroll for mere"

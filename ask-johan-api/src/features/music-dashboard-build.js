@@ -1,5 +1,5 @@
 const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000
-const DEFAULT_MAX_ITEMS = 4
+const DEFAULT_MAX_ITEMS = 6
 
 export class InsufficientSpotifyDataError extends Error {
   constructor(message) {
@@ -53,6 +53,7 @@ function buildTopTracks(plays, limit) {
         subtitle: play.artistNames.join(', '),
         imageUrl: play.albumImageUrl,
         spotifyUrl: play.trackExternalUrl,
+        previewUrl: play.trackPreviewUrl,
         playCount: 1,
         firstSeenIndex: play.playOrderIndex
       })
@@ -66,6 +67,9 @@ function buildTopTracks(plays, limit) {
     }
     if (!existing.spotifyUrl && play.trackExternalUrl) {
       existing.spotifyUrl = play.trackExternalUrl
+    }
+    if (!existing.previewUrl && play.trackPreviewUrl) {
+      existing.previewUrl = play.trackPreviewUrl
     }
   }
 
@@ -83,6 +87,7 @@ function buildTopAlbums(plays, limit) {
         subtitle: play.artistNames[0] || 'Unknown artist',
         imageUrl: play.albumImageUrl,
         spotifyUrl: play.albumExternalUrl,
+        previewUrl: play.trackPreviewUrl,
         playCount: 1,
         firstSeenIndex: play.playOrderIndex
       })
@@ -96,6 +101,9 @@ function buildTopAlbums(plays, limit) {
     }
     if (!existing.spotifyUrl && play.albumExternalUrl) {
       existing.spotifyUrl = play.albumExternalUrl
+    }
+    if (!existing.previewUrl && play.trackPreviewUrl) {
+      existing.previewUrl = play.trackPreviewUrl
     }
   }
 
@@ -114,20 +122,20 @@ function buildTopArtists(plays, artistsById, limit) {
         subtitle: '',
         imageUrl: '',
         spotifyUrl: play.primaryArtistExternalUrl,
+        previewUrl: play.trackPreviewUrl,
         playCount: 1,
-        firstSeenIndex: play.playOrderIndex,
-        fallbackImageUrl: play.albumImageUrl
+        firstSeenIndex: play.playOrderIndex
       })
       continue
     }
 
     existing.playCount += 1
     existing.firstSeenIndex = Math.min(existing.firstSeenIndex, play.playOrderIndex)
-    if (!existing.fallbackImageUrl && play.albumImageUrl) {
-      existing.fallbackImageUrl = play.albumImageUrl
-    }
     if (!existing.spotifyUrl && play.primaryArtistExternalUrl) {
       existing.spotifyUrl = play.primaryArtistExternalUrl
+    }
+    if (!existing.previewUrl && play.trackPreviewUrl) {
+      existing.previewUrl = play.trackPreviewUrl
     }
   }
 
@@ -146,13 +154,6 @@ function buildTopArtists(plays, artistsById, limit) {
     }
   }
 
-  for (const entry of byArtist.values()) {
-    if (!entry.imageUrl) {
-      entry.imageUrl = entry.fallbackImageUrl || ''
-    }
-    delete entry.fallbackImageUrl
-  }
-
   return toRankedItems(byArtist, limit)
 }
 
@@ -167,6 +168,7 @@ function toRankedItems(collection, limit) {
       subtitle: item.subtitle,
       imageUrl: item.imageUrl,
       spotifyUrl: item.spotifyUrl,
+      previewUrl: item.previewUrl || '',
       playCount: item.playCount
     }))
 }
@@ -184,6 +186,7 @@ function normalizePlays(items) {
     const trackId = normalizeLabel(track.id)
     const trackName = normalizeLabel(track.name, 'Unknown track')
     const trackExternalUrl = normalizeLabel(track?.external_urls?.spotify)
+    const trackPreviewUrl = normalizeLabel(track?.preview_url)
 
     const artistNames = Array.isArray(track.artists)
       ? track.artists.map((artist) => normalizeLabel(artist?.name)).filter(Boolean)
@@ -206,6 +209,7 @@ function normalizePlays(items) {
       trackKey,
       trackName,
       trackExternalUrl,
+      trackPreviewUrl,
       artistNames: artistNames.length ? artistNames : ['Unknown artist'],
       primaryArtistId,
       primaryArtistExternalUrl,
