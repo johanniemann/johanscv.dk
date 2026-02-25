@@ -208,6 +208,12 @@ function renderDashboardReadyState(state) {
 
   return `
     <div class="spotify-dashboard-ready">
+      <div class="spotify-dashboard-controls">
+        <div class="spotify-dashboard-tabs" role="tablist" aria-label="${state.t.spotifyDashboard.switchLabel}">
+          ${renderViewToggle(state.activeView, state.t)}
+        </div>
+      </div>
+
       <div class="spotify-dashboard-grid">
         ${cards.join('')}
       </div>
@@ -217,16 +223,12 @@ function renderDashboardReadyState(state) {
           <p class="spotify-dashboard-updated">${updatedLine}</p>
           ${fallbackMessage}
         </div>
-        <div class="spotify-dashboard-tabs" role="tablist" aria-label="${state.t.spotifyDashboard.switchLabel}">
-          ${VIEWS.map((view) => renderTabButton(view, state.activeView, state.t)).join('')}
-        </div>
       </div>
     </div>
   `
 }
 
-function renderTabButton(view, activeView, t) {
-  const isActive = view === activeView
+function renderViewToggle(activeView, t) {
   const labels = {
     tracks: t.spotifyDashboard.tabs.tracks,
     albums: t.spotifyDashboard.tabs.albums,
@@ -234,8 +236,18 @@ function renderTabButton(view, activeView, t) {
   }
 
   return `
+    <div class="spotify-dashboard-view-toggle is-${activeView}">
+      <span class="spotify-dashboard-view-indicator" aria-hidden="true"></span>
+      ${VIEWS.map((view) => renderViewOption(view, activeView, labels)).join('')}
+    </div>
+  `
+}
+
+function renderViewOption(view, activeView, labels) {
+  const isActive = view === activeView
+  return `
     <button
-      class="spotify-dashboard-tab${isActive ? ' is-active' : ''}"
+      class="spotify-dashboard-view-option${isActive ? ' is-active' : ''}"
       type="button"
       role="tab"
       aria-selected="${isActive}"

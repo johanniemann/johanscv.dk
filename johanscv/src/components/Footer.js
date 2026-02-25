@@ -12,14 +12,16 @@ export function Footer({ t, theme, language }) {
     { href: '/', label: t.nav.home },
     { href: '/projects', label: t.nav.projects },
     { href: '/resume', label: t.nav.files },
-    { href: '/playground', label: t.nav.playground }
+    { href: '/playground', label: t.footer.playground, className: 'footer-playground-link' }
   ]
 
   return `
     <footer class="site-footer" aria-label="Footer">
       <div class="footer-top">
         <nav class="footer-links" aria-label="Footer navigation">
-          ${navLinks.map((link) => `<a href="${link.href}" data-link>${link.label}</a>`).join('')}
+          ${navLinks
+            .map((link) => `<a class="${link.className || ''}" href="${link.href}" data-link>${link.label}</a>`)
+            .join('')}
         </nav>
         <div class="footer-controls">
           ${LanguageToggle(language)}

@@ -4,7 +4,7 @@
       "home": "Home",
       "projects": "Projects",
       "files": "Resume",
-      "playground": "Playground",
+      "playground": "Get to know me",
       "contact": "Contact"
     },
     "hero": {
@@ -167,9 +167,9 @@
       "title": "SpotiJohan",
       "intro": "Explore the music I've listened to the most this week.",
       "tabs": {
-        "tracks": "Top Tracks",
-        "albums": "Top Albums",
-        "artists": "Top Artists"
+        "tracks": "Track",
+        "albums": "Album",
+        "artists": "Artist"
       },
       "switchLabel": "Switch Spotify dashboard list",
       "loading": "Loading Spotify dashboard...",
@@ -199,7 +199,7 @@
     "footer": {
       "builtWith": "Built with Vite, Tailwind, and custom JavaScript.",
       "rights": "All rights reserved.",
-      "playground": "Playground",
+      "playground": "Get to know me",
       "infoButtonAria": "Open website build information",
       "infoKicker": "Behind the build",
       "infoTitle": "How this site is built",
@@ -220,7 +220,7 @@
       "home": "Hjem",
       "projects": "Projekter",
       "files": "CV",
-      "playground": "Playground",
+      "playground": "Lær mig at kende",
       "contact": "Kontakt"
     },
     "hero": {
@@ -383,9 +383,9 @@
       "title": "SpotiJohan",
       "intro": "Udforsk hvilken musik jeg har lyttet mest til denne uge.",
       "tabs": {
-        "tracks": "Top Sange",
-        "albums": "Top Albums",
-        "artists": "Top Artister"
+        "tracks": "Sang",
+        "albums": "Album",
+        "artists": "Artist"
       },
       "switchLabel": "Skift Spotify dashboard-liste",
       "loading": "Indlæser Spotify dashboard...",
@@ -415,7 +415,7 @@
     "footer": {
       "builtWith": "Bygget med Vite, Tailwind og custom JavaScript.",
       "rights": "Alle rettigheder forbeholdes.",
-      "playground": "Playground",
+      "playground": "Lær mig at kende",
       "infoButtonAria": "Åbn information om hvordan websitet er bygget",
       "infoKicker": "Bag kulissen",
       "infoTitle": "Sådan er sitet bygget",

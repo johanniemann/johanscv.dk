@@ -1,18 +1,24 @@
 export function Navbar({ route, t }) {
-  const links = [
+  const leftLinks = [
     { path: '/', label: t.nav.home },
     { path: '/projects', label: t.nav.projects },
-    { path: '/resume', label: t.nav.files },
-    { path: '/playground', label: t.nav.playground }
+    { path: '/resume', label: t.nav.files }
+  ]
+
+  const rightLinks = [
+    { path: '/playground', label: t.nav.playground },
+    { path: '/contact', label: t.nav.contact, extraClass: 'nav-contact-link' }
   ]
 
   return `
     <header id="navbar" class="site-nav">
-      <div class="nav-right">
-        <nav class="nav-links" aria-label="Primary">
-          ${links.map((link) => navLink(link.path, link.label, route)).join('')}
+      <div class="nav-main">
+        <nav class="nav-links nav-links-left" aria-label="Primary left">
+          ${leftLinks.map((link) => navLink(link.path, link.label, route)).join('')}
         </nav>
-        ${navLink('/contact', t.nav.contact, route, 'nav-contact-link')}
+        <nav class="nav-links nav-links-right" aria-label="Primary right">
+          ${rightLinks.map((link) => navLink(link.path, link.label, route, link.extraClass || '')).join('')}
+        </nav>
       </div>
     </header>
   `
