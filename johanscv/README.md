@@ -5,7 +5,7 @@ Personal CV website built with Vite, Vanilla JS, and Tailwind CSS.
 ## Runtime Architecture
 
 - Frontend app (this folder): `johanscv/`
-- Backend API (separate folder): `../ask-johan-api/`
+- Backend API (separate folder): `../johanscv.dk-api/`
 - Legacy prototype code exists in `../archive/legacy-frontend-prototype/root-src/` and `../archive/root-public-placeholders/` but is not used by this app's scripts.
 - Frontend feature modules:
   - Ask Johan client: `src/features/ask-johan/AskJohanWidget.js`
@@ -68,7 +68,7 @@ npm run dev
 In a second terminal:
 
 ```bash
-cd ../ask-johan-api
+cd ../johanscv.dk-api
 npm ci
 cp .env.example .env
 ```

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-API_DIR="$ROOT_DIR/ask-johan-api"
+API_DIR="$ROOT_DIR/johanscv.dk-api"
 FRONTEND_DIR="$ROOT_DIR/johanscv"
 SMOKE_PORT="${ASK_JOHAN_VERIFY_PORT:-8788}"
 HEALTH_URL="http://127.0.0.1:${SMOKE_PORT}/health"
@@ -46,7 +46,7 @@ echo "[verify] API tests"
 
 ENV_FILE="$API_DIR/.env"
 if [[ ! -f "$ENV_FILE" ]]; then
-  echo "[verify] API smoke test skipped (.env not found at ask-johan-api/.env)"
+  echo "[verify] API smoke test skipped (.env not found at johanscv.dk-api/.env)"
   exit 0
 fi
 

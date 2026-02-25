@@ -4,7 +4,7 @@
 - Keep production stable while making small, verifiable improvements.
 - Current active production architecture:
   - Frontend SPA in `johanscv/` (GitHub Pages).
-  - Backend API in `ask-johan-api/` (Render web service).
+  - Backend API in `johanscv.dk-api/` (Render web service).
   - Legacy references in `archive/legacy-frontend-prototype/` and `archive/root-public-placeholders/` are not part of active CI/deploy/runtime.
 
 ## Active Code Organization
@@ -16,11 +16,11 @@
   - `johanscv/src/main.js`
   - `johanscv/src/router.js`
 - API layered modules:
-  - `ask-johan-api/src/config/` (runtime/env/context loading)
-  - `ask-johan-api/src/app/` (Express app wiring + middleware)
-  - `ask-johan-api/src/features/` (auth, ask-johan, geojohan, spotify auth, music-dashboard handlers)
-  - `ask-johan-api/src/server/` (bootstrap + usage store + spotify session store)
-  - `ask-johan-api/src/shared/` (shared HTTP/timeout helpers)
+  - `johanscv.dk-api/src/config/` (runtime/env/context loading)
+  - `johanscv.dk-api/src/app/` (Express app wiring + middleware)
+  - `johanscv.dk-api/src/features/` (auth, ask-johan, geojohan, spotify auth, music-dashboard handlers)
+  - `johanscv.dk-api/src/server/` (bootstrap + usage store + spotify session store)
+  - `johanscv.dk-api/src/shared/` (shared HTTP/timeout helpers)
 
 ## Discovery Rule (Mandatory)
 - Do not assume structure from memory.
@@ -50,7 +50,7 @@
 ## Deployment Assumptions
 - Frontend deploy path is GitHub Pages via `johanscv` scripts.
 - Frontend local dev entry uses `johanscv/scripts/dev-fixed.sh` (host `127.0.0.1`, port `5173`, `CUSTOM_DOMAIN=true` default).
-- API deploy path is Render via `render.yaml` (`rootDir: ask-johan-api`).
+- API deploy path is Render via `render.yaml` (`rootDir: johanscv.dk-api`).
 - Runtime expectation is Node 20 (see `.nvmrc`, CI `node-version`, and `render.yaml` `NODE_VERSION`).
 - Protected API routes include:
   - `POST /api/ask-johan`
@@ -78,10 +78,10 @@
 - For local runtime checks, confirm frontend URL `http://localhost:5173/` is reachable when dev server is running.
 - Minimum verification for cross-cutting changes:
   - `cd johanscv && npm run lint && npm run smoke && npm run build && npm run check:bundle`
-  - `cd ask-johan-api && npm test`
+  - `cd johanscv.dk-api && npm test`
   - dependency checks:
     - `cd johanscv && npm audit --omit=dev`
-    - `cd ask-johan-api && npm audit --omit=dev`
+    - `cd johanscv.dk-api && npm audit --omit=dev`
 - Guardrail checks:
   - `./scripts/check-node-alignment.sh`
   - `./scripts/check-doc-sync.sh`

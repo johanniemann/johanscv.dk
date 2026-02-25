@@ -26,9 +26,9 @@ require_contains() {
 README_FILE="$ROOT_DIR/README.md"
 AGENTS_FILE="$ROOT_DIR/AGENTS.md"
 CONTEXT_FILE="$ROOT_DIR/AGENTS-CONTEXT.md"
-API_AGENTS_FILE="$ROOT_DIR/ask-johan-api/AGENTS.md"
-PUBLIC_CONTEXT_FILE="$ROOT_DIR/ask-johan-api/johan-context.md"
-PRIVATE_CONTEXT_TEMPLATE_FILE="$ROOT_DIR/ask-johan-api/johan-context.private.example.md"
+API_AGENTS_FILE="$ROOT_DIR/johanscv.dk-api/AGENTS.md"
+PUBLIC_CONTEXT_FILE="$ROOT_DIR/johanscv.dk-api/johan-context.md"
+PRIVATE_CONTEXT_TEMPLATE_FILE="$ROOT_DIR/johanscv.dk-api/johan-context.private.example.md"
 
 require_file "$README_FILE"
 require_file "$AGENTS_FILE"
@@ -41,7 +41,7 @@ require_file "$PRIVATE_CONTEXT_TEMPLATE_FILE"
 require_file "$ROOT_DIR/scripts/verify-node20.sh"
 
 require_contains "$README_FILE" "johanscv/" "active frontend path"
-require_contains "$README_FILE" "ask-johan-api/" "active API path"
+require_contains "$README_FILE" "johanscv.dk-api/" "active API path"
 require_contains "$README_FILE" "http://localhost:5173/" "frontend local URL"
 require_contains "$README_FILE" "http://127.0.0.1:8787/health" "API health URL"
 require_contains "$README_FILE" "./scripts/verify.sh" "repo verification command"
@@ -68,7 +68,7 @@ require_contains "$CONTEXT_FILE" "archive/legacy-frontend-prototype/root-src/" "
 
 require_contains "$API_AGENTS_FILE" "malformed JSON handling + request body-size limit handling" "API request-body guardrail"
 require_contains "$PUBLIC_CONTEXT_FILE" 'Active frontend: `johanscv/`' "public context active frontend path"
-require_contains "$PUBLIC_CONTEXT_FILE" 'Active API: `ask-johan-api/`' "public context active API path"
+require_contains "$PUBLIC_CONTEXT_FILE" 'Active API: `johanscv.dk-api/`' "public context active API path"
 require_contains "$PRIVATE_CONTEXT_TEMPLATE_FILE" "Do not put API keys, tokens, access codes, JWT secrets" "private template secret warning"
 
 if [[ "$failures" -gt 0 ]]; then

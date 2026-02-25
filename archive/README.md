@@ -10,4 +10,4 @@ Operational note:
 - Nothing under `archive/` is used by active CI/deploy/runtime.
 - Active production services remain:
   - `johanscv/` (frontend)
-  - `ask-johan-api/` (API)
+  - `johanscv.dk-api/` (API)

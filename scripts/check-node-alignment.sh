@@ -43,7 +43,7 @@ elif [[ "$render_node_version" != "$expected_major" ]]; then
   failures=$((failures + 1))
 fi
 
-for package_file in "$ROOT_DIR/johanscv/package.json" "$ROOT_DIR/ask-johan-api/package.json"; do
+for package_file in "$ROOT_DIR/johanscv/package.json" "$ROOT_DIR/johanscv.dk-api/package.json"; do
   engines_node="$(
     node -e '
       const fs = require("fs");

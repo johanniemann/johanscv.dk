@@ -2,16 +2,16 @@
 
 Personal website stack with two active production services:
 - frontend SPA in `johanscv/` (GitHub Pages),
-- backend API in `ask-johan-api/` (Render).
+- backend API in `johanscv.dk-api/` (Render).
 
 ## Repository Structure
 
 | Path | Purpose | Status |
 | --- | --- | --- |
 | `johanscv/` | Frontend SPA (Vite + Vanilla JS + Tailwind tooling) | Active |
-| `ask-johan-api/` | Ask Johan + GeoJohan API (Node/Express/OpenAI) | Active |
+| `johanscv.dk-api/` | Ask Johan + GeoJohan API (Node/Express/OpenAI) | Active |
 | `.github/workflows/ci.yml` | CI quality gate (repo guardrails + frontend lint/smoke/build/budget + API tests + dependency audit) | Active |
-| `render.yaml` | Render blueprint (`rootDir: ask-johan-api`) | Active |
+| `render.yaml` | Render blueprint (`rootDir: johanscv.dk-api`) | Active |
 | `archive/legacy-frontend-prototype/root-src/` | Previous frontend prototype source | Archived legacy |
 | `archive/root-public-placeholders/` | Previous root-level static placeholders | Archived legacy |
 | `docs/` | Operational docs/runbooks | Active |
@@ -29,7 +29,7 @@ Frontend (`johanscv/src/`):
 5. `pages/` for route-level page composition (`Resume.js`, `Home.js`, etc.).
 6. `components/` for shared presentational components.
 
-API (`ask-johan-api/src/`):
+API (`johanscv.dk-api/src/`):
 1. `config/runtime-config.js` for env parsing + context loading.
 2. `app/create-app.js` + `app/origins.js` for Express wiring and CORS origin rules.
 3. `features/auth.js`, `features/ask-johan.js`, `features/geojohan.js`, `features/spotify-auth.js`, `features/music-dashboard.js` for endpoint behavior.
@@ -40,7 +40,7 @@ API (`ask-johan-api/src/`):
 
 Active production architecture:
 1. `johanscv/` deploys to GitHub Pages.
-2. `ask-johan-api/` deploys to Render.
+2. `johanscv.dk-api/` deploys to Render.
 
 Legacy references:
 1. `archive/legacy-frontend-prototype/root-src/`
@@ -123,10 +123,10 @@ CUSTOM_DOMAIN=false npm run dev
 Emulated URL:
 - `http://localhost:5173/johanscv.dk/`
 
-### API (`ask-johan-api/`)
+### API (`johanscv.dk-api/`)
 
 ```bash
-cd ask-johan-api
+cd johanscv.dk-api
 npm ci
 cp .env.example .env   # only if missing
 npm run dev
@@ -143,7 +143,7 @@ curl -s http://127.0.0.1:8787/health
 Terminal 1 (API):
 
 ```bash
-cd ask-johan-api
+cd johanscv.dk-api
 npm ci
 npm run dev
 ```
@@ -178,7 +178,7 @@ Frontend (`johanscv/.env.local`):
   - `johanscv/.env.example` uses `VITE_ASK_JOHAN_MODE=mock`
   - `johanscv/.env.local.example` and `johanscv/.env.production` use `VITE_ASK_JOHAN_MODE=api`
 
-API (`ask-johan-api/.env`):
+API (`johanscv.dk-api/.env`):
 - `OPENAI_API_KEY`, `OPENAI_MODEL`, `PORT`
 - `JOHANSCV_ACCESS_CODE` (primary), `ASK_JOHAN_ACCESS_CODE` (deprecated fallback)
 - `JWT_SECRET`, `SESSION_SECRET`, `ASK_JOHAN_JWT_TTL`, `ASK_JOHAN_AUTH_COMPAT_MODE` (recommended/default: `false`)
@@ -225,7 +225,7 @@ Frontend production build config (`johanscv/.env.production`):
 2. Generate and store a refresh token for Johan's Spotify account once:
    - put that token in API env `SPOTIFY_OWNER_REFRESH_TOKEN`
    - this token stays server-side only and is used to refresh access tokens for dashboard reads
-3. Set API env values (local `ask-johan-api/.env` and production secrets):
+3. Set API env values (local `johanscv.dk-api/.env` and production secrets):
    - required:
      - `SPOTIFY_CLIENT_ID`
      - `SPOTIFY_OWNER_REFRESH_TOKEN`
@@ -236,7 +236,7 @@ Frontend production build config (`johanscv/.env.production`):
      - `SPOTIFY_REDIRECT_URI`
      - `SPOTIFY_SCOPES=user-read-recently-played`
 4. Start local services:
-   - API: `cd ask-johan-api && npm run dev`
+   - API: `cd johanscv.dk-api && npm run dev`
    - frontend: `cd johanscv && npm run dev`
 5. Verify:
    - open `http://localhost:5173/playground`
@@ -258,7 +258,7 @@ npm run check:bundle
 API:
 
 ```bash
-cd ask-johan-api
+cd johanscv.dk-api
 npm test
 npm audit --omit=dev
 ```
@@ -300,5 +300,5 @@ rg --hidden --glob '!.git' --files-with-matches '(?i)(api[_-]?key|secret|token|p
 ## Deployment Docs
 
 - Frontend: `johanscv/DEPLOYMENT.md`
-- API: `ask-johan-api/DEPLOY_RENDER.md`
+- API: `johanscv.dk-api/DEPLOY_RENDER.md`
 - Operations runbook: `docs/ask-johan-operations-runbook.md`

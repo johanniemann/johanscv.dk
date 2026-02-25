@@ -3,11 +3,11 @@
 Use this when Ask Johan fails in production (`johanscv.dk` + Render API).
 
 Current API structure (for navigation during incidents):
-- Entrypoint: `ask-johan-api/index.js` -> `ask-johan-api/src/server/start-server.js`
-- App wiring: `ask-johan-api/src/app/create-app.js`
-- Feature handlers: `ask-johan-api/src/features/auth.js`, `ask-johan-api/src/features/ask-johan.js`, `ask-johan-api/src/features/geojohan.js`
-- Runtime/env/context parsing: `ask-johan-api/src/config/runtime-config.js`
-- Usage store: `ask-johan-api/src/server/usage-store.js`
+- Entrypoint: `johanscv.dk-api/index.js` -> `johanscv.dk-api/src/server/start-server.js`
+- App wiring: `johanscv.dk-api/src/app/create-app.js`
+- Feature handlers: `johanscv.dk-api/src/features/auth.js`, `johanscv.dk-api/src/features/ask-johan.js`, `johanscv.dk-api/src/features/geojohan.js`
+- Runtime/env/context parsing: `johanscv.dk-api/src/config/runtime-config.js`
+- Usage store: `johanscv.dk-api/src/server/usage-store.js`
 
 ## 1) User sees "Access code is required to use Ask Johan."
 

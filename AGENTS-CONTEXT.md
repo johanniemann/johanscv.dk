@@ -7,7 +7,7 @@ Single source of truth for AI agents working in this repo. Keep this file concis
 
 Services:
 1. Frontend SPA in `johanscv/` (Vite + Vanilla JS + Tailwind tooling), deployed to GitHub Pages.
-2. Backend API in `ask-johan-api/` (Node + Express + OpenAI), deployed to Render.
+2. Backend API in `johanscv.dk-api/` (Node + Express + OpenAI), deployed to Render.
 
 Legacy (not in active CI/deploy):
 1. `archive/legacy-frontend-prototype/root-src/`
@@ -28,22 +28,22 @@ Frontend:
 10. GitHub Pages deep-link fallback: `johanscv/public/404.html`
 
 API:
-1. Runtime entrypoint: `ask-johan-api/index.js`
-2. Bootstrap/orchestration: `ask-johan-api/src/server/start-server.js`
-3. Env/context loading: `ask-johan-api/src/config/runtime-config.js`
-4. App wiring + middleware: `ask-johan-api/src/app/create-app.js`
-5. Origin parsing: `ask-johan-api/src/app/origins.js`
+1. Runtime entrypoint: `johanscv.dk-api/index.js`
+2. Bootstrap/orchestration: `johanscv.dk-api/src/server/start-server.js`
+3. Env/context loading: `johanscv.dk-api/src/config/runtime-config.js`
+4. App wiring + middleware: `johanscv.dk-api/src/app/create-app.js`
+5. Origin parsing: `johanscv.dk-api/src/app/origins.js`
 6. Feature handlers:
-   - `ask-johan-api/src/features/auth.js`
-   - `ask-johan-api/src/features/ask-johan.js`
-   - `ask-johan-api/src/features/geojohan.js`
-   - `ask-johan-api/src/features/music-dashboard.js`
-7. Usage/rate-limit store: `ask-johan-api/src/server/usage-store.js`
-8. Optional Spotify OAuth/session helpers: `ask-johan-api/src/features/spotify-auth.js`, `ask-johan-api/src/server/spotify-session-store.js`
+   - `johanscv.dk-api/src/features/auth.js`
+   - `johanscv.dk-api/src/features/ask-johan.js`
+   - `johanscv.dk-api/src/features/geojohan.js`
+   - `johanscv.dk-api/src/features/music-dashboard.js`
+7. Usage/rate-limit store: `johanscv.dk-api/src/server/usage-store.js`
+8. Optional Spotify OAuth/session helpers: `johanscv.dk-api/src/features/spotify-auth.js`, `johanscv.dk-api/src/server/spotify-session-store.js`
 9. Shared HTTP/timeout helpers:
-   - `ask-johan-api/src/shared/http.js`
-   - `ask-johan-api/src/shared/with-timeout.js`
-10. Tests: `ask-johan-api/test/api.test.js`
+   - `johanscv.dk-api/src/shared/http.js`
+   - `johanscv.dk-api/src/shared/with-timeout.js`
+10. Tests: `johanscv.dk-api/test/api.test.js`
 
 Deploy/CI:
 1. Render blueprint: `render.yaml`
@@ -108,7 +108,7 @@ Frontend (`johanscv/.env.local`):
 4. Optional `VITE_GEOJOHAN_ROUND{N}_*` and `VITE_GEOJOHAN_ROUND{N}_SUMMARY_*`
 5. Production build env file: `johanscv/.env.production` (`VITE_ASK_JOHAN_MODE`, `VITE_API_BASE_URL`) and this file is intentionally tracked (non-secret only).
 
-Backend (`ask-johan-api/.env` or Render env):
+Backend (`johanscv.dk-api/.env` or Render env):
 1. `OPENAI_API_KEY`, `OPENAI_MODEL`, `PORT`
 2. `JOHANSCV_ACCESS_CODE` (primary), `ASK_JOHAN_ACCESS_CODE` (deprecated fallback)
 3. `JWT_SECRET`, `SESSION_SECRET`, `ASK_JOHAN_JWT_TTL`, `ASK_JOHAN_AUTH_COMPAT_MODE` (default/recommended `false`)
@@ -144,13 +144,13 @@ Backend (`ask-johan-api/.env` or Render env):
 6. Never expose Spotify access/refresh tokens to frontend payloads, URLs, or logs.
 
 Operational docs:
-1. Deploy/API setup: `ask-johan-api/DEPLOY_RENDER.md`
+1. Deploy/API setup: `johanscv.dk-api/DEPLOY_RENDER.md`
 2. Incident/runbook/key rotation/rate-limit tuning: `docs/ask-johan-operations-runbook.md`
 
 ## Local Run Checklist
 
 1. API:
-   - `cd ask-johan-api`
+   - `cd johanscv.dk-api`
    - `cp .env.example .env` (only if missing)
    - `npm ci`
    - `npm run dev`
@@ -177,8 +177,8 @@ Operational docs:
    - `cd johanscv && npm run check:bundle`
 
 2. API:
-   - `cd ask-johan-api && npm test`
-   - `cd ask-johan-api && npm audit --omit=dev`
+   - `cd johanscv.dk-api && npm test`
+   - `cd johanscv.dk-api && npm audit --omit=dev`
 
 3. Frontend dependency audit:
    - `cd johanscv && npm audit --omit=dev`

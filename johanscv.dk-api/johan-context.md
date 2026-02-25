@@ -18,7 +18,7 @@ Response rules:
 
 Repo structure snapshot (high-level):
 1. Active frontend: `johanscv/` (GitHub Pages).
-2. Active API: `ask-johan-api/` (Render).
+2. Active API: `johanscv.dk-api/` (Render).
 3. Archived legacy references: `archive/legacy-frontend-prototype/` and `archive/root-public-placeholders/`.
 
 API contract snapshot:

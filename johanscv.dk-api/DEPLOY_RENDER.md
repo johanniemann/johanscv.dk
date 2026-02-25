@@ -1,12 +1,12 @@
 # Deploy Ask Johan API on Render (Free) - No Docker
 
-This deploys `ask-johan-api` as a free Render Web Service using the repo's `render.yaml`.
+This deploys `johanscv.dk-api` as a free Render Web Service using the repo's `render.yaml`.
 
 ## What I already prepared
 
 - Added `render.yaml` at repo root.
 - Service config points to:
-  - `rootDir`: `ask-johan-api`
+  - `rootDir`: `johanscv.dk-api`
   - `buildCommand`: `npm ci`
   - `startCommand`: `npm run start`
   - `healthCheckPath`: `/health`
@@ -73,7 +73,7 @@ Use separate Google Maps keys for production and local development:
   - Do not include localhost referrers on this key
 
 - `DEV Maps API key`
-  - Put this value in local `ask-johan-api/.env`: `GEOJOHAN_MAPS_API_KEY`
+  - Put this value in local `johanscv.dk-api/.env`: `GEOJOHAN_MAPS_API_KEY`
   - Website restrictions:
     - `http://localhost:5173/*`
     - `http://127.0.0.1:5173/*`
@@ -120,7 +120,7 @@ Use this quick checklist every time you release:
 
 1. Confirm secrets are only in env vars (never committed files):
    - Render: `OPENAI_API_KEY`, `GEOJOHAN_MAPS_API_KEY` (PROD key), `JWT_SECRET`, `JOHANSCV_ACCESS_CODE`, `JOHAN_CONTEXT_B64`
-   - Local `ask-johan-api/.env`: `GEOJOHAN_MAPS_API_KEY` must be DEV key only
+   - Local `johanscv.dk-api/.env`: `GEOJOHAN_MAPS_API_KEY` must be DEV key only
 2. Confirm Google Maps key restrictions:
    - PROD key: `https://johanscv.dk/*`, `https://www.johanscv.dk/*`
    - DEV key: `http://localhost:5173/*`, `http://127.0.0.1:5173/*`

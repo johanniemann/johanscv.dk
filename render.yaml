@@ -3,7 +3,7 @@ services:
     name: ask-johan-api
     runtime: node
     plan: free
-    rootDir: ask-johan-api
+    rootDir: johanscv.dk-api
     buildCommand: npm ci
     startCommand: npm run start
     healthCheckPath: /health

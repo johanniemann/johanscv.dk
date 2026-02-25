@@ -2,7 +2,7 @@
 
 ## Development Workflow
 
-1. Make focused changes in the relevant app folder (`johanscv/` or `ask-johan-api/`).
+1. Make focused changes in the relevant app folder (`johanscv/` or `johanscv.dk-api/`).
 2. Align local runtime to Node 20 before release verification:
    - `nvm use 20`
    - or run `./scripts/verify-node20.sh` (uses Node 20 when available and then runs full verify)
@@ -10,7 +10,7 @@
    - Fast path: `./scripts/verify.sh`
    - Manual split:
      - Frontend: `cd johanscv && npm run lint && npm run smoke && npm run build && npm run check:bundle`
-     - API: `cd ask-johan-api && npm test`
+     - API: `cd johanscv.dk-api && npm test`
    - Guardrails:
      - `./scripts/check-node-alignment.sh`
      - `./scripts/check-doc-sync.sh`
@@ -28,7 +28,7 @@
 ## Legacy Code
 
 - `archive/legacy-frontend-prototype/root-src/` and `archive/root-public-placeholders/` are legacy references.
-- Active production code lives in `johanscv/` and `ask-johan-api/`.
+- Active production code lives in `johanscv/` and `johanscv.dk-api/`.
 
 ## Architecture Notes
 
@@ -36,11 +36,11 @@
   - `johanscv/src/features/ask-johan/`
   - `johanscv/src/features/geojohan/`
 - API layered modules:
-  - `ask-johan-api/src/config/`
-  - `ask-johan-api/src/app/`
-  - `ask-johan-api/src/features/`
-  - `ask-johan-api/src/server/`
-  - `ask-johan-api/src/shared/`
+  - `johanscv.dk-api/src/config/`
+  - `johanscv.dk-api/src/app/`
+  - `johanscv.dk-api/src/features/`
+  - `johanscv.dk-api/src/server/`
+  - `johanscv.dk-api/src/shared/`
 
 ## Secret Scanning (Local)
 

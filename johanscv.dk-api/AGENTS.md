@@ -1,4 +1,4 @@
-# AGENTS.md (API: ask-johan-api)
+# AGENTS.md (API: johanscv.dk-api)
 
 ## Mission
 - Keep Ask Johan API stable, secure, and Render-compatible while making minimal, testable changes.
@@ -94,7 +94,7 @@
   - local fallback files.
 
 ## Definition Of Done (API)
-- Run from `ask-johan-api/`:
+- Run from `johanscv.dk-api/`:
   - `npm test`
   - `npm audit --omit=dev`
 - For runtime-sensitive changes, also run `npm run start` smoke checks for:
