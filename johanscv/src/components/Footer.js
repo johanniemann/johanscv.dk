@@ -11,8 +11,7 @@ export function Footer({ t, theme, language }) {
   const navLinks = [
     { href: '/', label: t.nav.home },
     { href: '/projects', label: t.nav.projects },
-    { href: '/resume', label: t.nav.files },
-    { href: '/playground', label: t.footer.playground, className: 'footer-playground-link' }
+    { href: '/resume', label: t.nav.files }
   ]
 
   return `
@@ -24,8 +23,11 @@ export function Footer({ t, theme, language }) {
             .join('')}
         </nav>
         <div class="footer-controls">
-          ${LanguageToggle(language)}
-          ${ThemeToggle(theme)}
+          <a class="footer-playground-link" href="/playground" data-link>${t.footer.playground}</a>
+          <div class="footer-toggles">
+            ${LanguageToggle(language)}
+            ${ThemeToggle(theme)}
+          </div>
         </div>
       </div>
       <div class="footer-bottom">
