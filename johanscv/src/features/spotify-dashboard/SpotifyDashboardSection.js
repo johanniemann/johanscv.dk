@@ -6,11 +6,21 @@ const AUTO_REFRESH_INTERVAL_MS = resolveAutoRefreshIntervalMs(import.meta.env.VI
 const PREVIEW_DURATION_MS = 10 * 1000
 const VIEWS = ['tracks', 'albums', 'artists']
 const CARD_COUNT = 6
+const MARQUEE_MIN_OVERFLOW_PX = 6
+const MARQUEE_MIN_DURATION_MS = 3600
+const MARQUEE_MAX_DURATION_MS = 12000
+const MARQUEE_PIXELS_PER_SECOND = 38
+const MARQUEE_SPEED_MULTIPLIER = 2
+const MARQUEE_EDGE_PAUSE_MS = 3000
+const MARQUEE_RESIZE_SETTLE_MS = 140
 let autoRefreshIntervalId = 0
 let previewAudio = null
 let previewStopTimeoutId = 0
 let previewActiveButton = null
 let previewActiveCardId = ''
+const marqueeAnimations = new WeakMap()
+const activeMarqueeAnimations = new Set()
+let activeSpotifyDashboardCleanup = null
 
 export function renderSpotifyDashboardSection({ t }) {
   return `
@@ -29,8 +39,13 @@ export function mountSpotifyDashboardSection({ t }) {
   const shell = document.querySelector('#spotify-dashboard-shell')
   if (!root || !shell) return
 
+  activeSpotifyDashboardCleanup?.()
   stopAutoRefresh()
   stopPreviewPlayback()
+
+  let isCleanedUp = false
+  let marqueeResizeTimerId = 0
+  let marqueeResizeObserver = null
 
   const state = {
     t,
@@ -45,6 +60,51 @@ export function mountSpotifyDashboardSection({ t }) {
     message: '',
     retryAfterSeconds: 0
   }
+
+  const cleanupMount = () => {
+    if (isCleanedUp) return
+    isCleanedUp = true
+
+    if (marqueeResizeTimerId) {
+      window.clearTimeout(marqueeResizeTimerId)
+      marqueeResizeTimerId = 0
+    }
+
+    window.removeEventListener('resize', scheduleMarqueeResync)
+
+    if (marqueeResizeObserver) {
+      marqueeResizeObserver.disconnect()
+      marqueeResizeObserver = null
+    }
+
+    if (activeSpotifyDashboardCleanup === cleanupMount) {
+      activeSpotifyDashboardCleanup = null
+    }
+  }
+
+  const scheduleMarqueeResync = () => {
+    if (isCleanedUp) return
+    if (!root.isConnected || !shell.isConnected) {
+      cleanupMount()
+      return
+    }
+
+    if (marqueeResizeTimerId) {
+      window.clearTimeout(marqueeResizeTimerId)
+    }
+
+    marqueeResizeTimerId = window.setTimeout(() => {
+      marqueeResizeTimerId = 0
+      if (isCleanedUp || state.status !== 'ready') return
+      if (!root.isConnected || !shell.isConnected) {
+        cleanupMount()
+        return
+      }
+      syncSpotifyCardMarquee(shell)
+    }, MARQUEE_RESIZE_SETTLE_MS)
+  }
+
+  activeSpotifyDashboardCleanup = cleanupMount
 
   shell.addEventListener('click', (event) => {
     const button = event.target.closest('button[data-action]')
@@ -71,15 +131,26 @@ export function mountSpotifyDashboardSection({ t }) {
     }
   })
 
+  window.addEventListener('resize', scheduleMarqueeResync, { passive: true })
+
+  if (typeof ResizeObserver !== 'undefined') {
+    marqueeResizeObserver = new ResizeObserver(() => {
+      scheduleMarqueeResync()
+    })
+    marqueeResizeObserver.observe(root)
+    marqueeResizeObserver.observe(shell)
+  }
+
   void loadSnapshot(state, shell, { refresh: false })
-  startAutoRefresh(state, shell, root)
+  startAutoRefresh(state, shell, root, cleanupMount)
 }
 
-function startAutoRefresh(state, shell, root) {
+function startAutoRefresh(state, shell, root, onDisconnect = () => {}) {
   autoRefreshIntervalId = window.setInterval(() => {
     if (!root.isConnected || !shell.isConnected) {
       stopAutoRefresh()
       stopPreviewPlayback()
+      onDisconnect()
       return
     }
     void loadSnapshot(state, shell, { refresh: true, suppressLoading: true })
@@ -163,6 +234,7 @@ async function loadSnapshot(state, shell, { refresh = false, suppressLoading = f
 }
 
 function renderCurrentState(state, shell) {
+  stopAllSpotifyCardMarquees()
   stopPreviewPlayback()
 
   if (state.status === 'loading') {
@@ -194,6 +266,7 @@ function renderCurrentState(state, shell) {
   }
 
   shell.innerHTML = renderDashboardReadyState(state)
+  syncSpotifyCardMarquee(shell)
 }
 
 function renderDashboardReadyState(state) {
@@ -312,8 +385,16 @@ function buildCards(entries, t) {
     `
 
     const titleMarkup = item.spotifyUrl
-      ? `<a class="spotify-dashboard-link" href="${escapeHtml(item.spotifyUrl)}" target="_blank" rel="noopener noreferrer">${safeTitle}</a>`
-      : safeTitle
+      ? `
+          <a class="spotify-dashboard-link spotify-dashboard-marquee" href="${escapeHtml(item.spotifyUrl)}" target="_blank" rel="noopener noreferrer">
+            <span class="spotify-dashboard-marquee-track">${safeTitle}</span>
+          </a>
+        `
+      : `
+          <span class="spotify-dashboard-marquee">
+            <span class="spotify-dashboard-marquee-track">${safeTitle}</span>
+          </span>
+        `
 
     cards.push(`
       <article class="project-card spotify-dashboard-card">
@@ -321,7 +402,11 @@ function buildCards(entries, t) {
         <div class="spotify-dashboard-card-body">
           <h4 class="project-title spotify-dashboard-card-title">${titleMarkup}</h4>
           <div class="spotify-dashboard-card-meta">
-            <p class="project-summary spotify-dashboard-card-subtitle">${safeSubtitle}</p>
+            <p class="project-summary spotify-dashboard-card-subtitle">
+              <span class="spotify-dashboard-marquee">
+                <span class="spotify-dashboard-marquee-track">${safeSubtitle}</span>
+              </span>
+            </p>
             <p class="spotify-dashboard-rank-line">${escapeHtml(rankAndPlaysLabel)}</p>
           </div>
         </div>
@@ -330,6 +415,120 @@ function buildCards(entries, t) {
   }
 
   return cards
+}
+
+function syncSpotifyCardMarquee(shell) {
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const marqueeElements = shell.querySelectorAll('.spotify-dashboard-marquee')
+  marqueeElements.forEach((marqueeEl) => {
+    const trackEl = marqueeEl.querySelector('.spotify-dashboard-marquee-track')
+    if (!trackEl) return
+
+    stopSpotifyCardMarquee(trackEl)
+    marqueeEl.classList.remove('is-overflowing')
+    marqueeEl.classList.remove('is-moving')
+
+    const overflowDistance = Math.ceil(trackEl.scrollWidth - marqueeEl.clientWidth)
+    if (overflowDistance <= MARQUEE_MIN_OVERFLOW_PX) return
+    if (prefersReducedMotion) return
+
+    const baseDurationMs = Math.min(
+      MARQUEE_MAX_DURATION_MS,
+      Math.max(MARQUEE_MIN_DURATION_MS, Math.round((overflowDistance / MARQUEE_PIXELS_PER_SECOND) * 1000))
+    )
+    const travelDurationMs = baseDurationMs * MARQUEE_SPEED_MULTIPLIER
+
+    if (!startSpotifyCardMarquee(marqueeEl, trackEl, overflowDistance, travelDurationMs)) return
+    marqueeEl.classList.add('is-overflowing')
+  })
+}
+
+function startSpotifyCardMarquee(marqueeEl, trackEl, overflowDistance, travelDurationMs) {
+  if (typeof trackEl.animate !== 'function') return false
+
+  const totalDurationMs = travelDurationMs * 2 + MARQUEE_EDGE_PAUSE_MS * 2
+  const pauseStartOffset = MARQUEE_EDGE_PAUSE_MS / totalDurationMs
+  const forwardEndOffset = (MARQUEE_EDGE_PAUSE_MS + travelDurationMs) / totalDurationMs
+  const backPauseEndOffset = (MARQUEE_EDGE_PAUSE_MS + travelDurationMs + MARQUEE_EDGE_PAUSE_MS) / totalDurationMs
+
+  const animation = trackEl.animate(
+    [
+      { transform: 'translateX(0)', offset: 0 },
+      { transform: 'translateX(0)', offset: pauseStartOffset },
+      { transform: `translateX(-${overflowDistance}px)`, offset: forwardEndOffset },
+      { transform: `translateX(-${overflowDistance}px)`, offset: backPauseEndOffset },
+      { transform: 'translateX(0)', offset: 1 }
+    ],
+    {
+      duration: totalDurationMs,
+      easing: 'linear',
+      iterations: Number.POSITIVE_INFINITY,
+      fill: 'both'
+    }
+  )
+
+  const firstMoveStartMs = MARQUEE_EDGE_PAUSE_MS
+  const firstMoveEndMs = firstMoveStartMs + travelDurationMs
+  const secondMoveStartMs = firstMoveEndMs + MARQUEE_EDGE_PAUSE_MS
+  const secondMoveEndMs = totalDurationMs
+
+  const metadata = {
+    marqueeEl,
+    trackEl,
+    animation,
+    rafId: 0
+  }
+
+  const updateMovingState = () => {
+    if (!trackEl.isConnected || !marqueeEl.isConnected) {
+      stopSpotifyCardMarquee(trackEl)
+      return
+    }
+
+    const rawCurrentTime = Number(animation.currentTime || 0)
+    const cycleTime = ((rawCurrentTime % totalDurationMs) + totalDurationMs) % totalDurationMs
+    const isMoving =
+      (cycleTime > firstMoveStartMs && cycleTime < firstMoveEndMs) ||
+      (cycleTime > secondMoveStartMs && cycleTime < secondMoveEndMs)
+
+    marqueeEl.classList.toggle('is-moving', isMoving)
+    metadata.rafId = window.requestAnimationFrame(updateMovingState)
+  }
+
+  marqueeAnimations.set(trackEl, metadata)
+  activeMarqueeAnimations.add(metadata)
+  updateMovingState()
+  return true
+}
+
+function stopSpotifyCardMarquee(trackEl) {
+  const metadata = marqueeAnimations.get(trackEl)
+  if (!metadata) return
+  stopSpotifyCardMarqueeByMetadata(metadata)
+}
+
+function stopAllSpotifyCardMarquees() {
+  if (!activeMarqueeAnimations.size) return
+  const items = [...activeMarqueeAnimations]
+  items.forEach((metadata) => {
+    stopSpotifyCardMarqueeByMetadata(metadata)
+  })
+}
+
+function stopSpotifyCardMarqueeByMetadata(metadata) {
+  if (!metadata) return
+
+  if (metadata.rafId) {
+    window.cancelAnimationFrame(metadata.rafId)
+    metadata.rafId = 0
+  }
+
+  metadata.animation?.cancel()
+  metadata.marqueeEl?.classList.remove('is-moving')
+  metadata.trackEl.style.transform = ''
+
+  marqueeAnimations.delete(metadata.trackEl)
+  activeMarqueeAnimations.delete(metadata)
 }
 
 async function toggleTrackPreview(button) {

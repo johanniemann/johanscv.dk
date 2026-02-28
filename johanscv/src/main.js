@@ -43,6 +43,7 @@ const WELCOME_EXIT_MS = 500
 const REVEAL_THRESHOLD = 0.2
 const FOOTER_SHIFT_ANIMATION_MS = 340
 const FOOTER_SHIFT_MAX_DELTA_PX = 120
+const FOOTER_VIEWPORT_RESIZE_SETTLE_MS = 140
 const welcomeRoot = document.querySelector('#welcome-root')
 const navRoot = document.querySelector('#nav-root')
 const pageRoot = document.querySelector('#page-root')
@@ -57,7 +58,10 @@ let scrollHintBound = false
 let footerPositionObserver = null
 let footerPositionAnimationFrame = 0
 let footerTransitionResetTimer = null
+let footerResizeSettleTimer = null
 let lastFooterTop = null
+let lastViewportWidth = window.innerWidth
+let isViewportResizing = false
 
 void initAccessGate()
 
@@ -342,12 +346,33 @@ function initFooterPositionSmoothing() {
   if (footerPositionObserver || typeof ResizeObserver === 'undefined') return
 
   lastFooterTop = footerRoot.getBoundingClientRect().top
+  lastViewportWidth = window.innerWidth
   footerPositionObserver = new ResizeObserver(() => {
     scheduleFooterPositionAnimation()
   })
 
   footerPositionObserver.observe(pageRoot)
-  window.addEventListener('resize', scheduleFooterPositionAnimation, { passive: true })
+  window.addEventListener('resize', handleFooterViewportResize, { passive: true })
+}
+
+function handleFooterViewportResize() {
+  isViewportResizing = true
+  window.clearTimeout(footerResizeSettleTimer)
+  resetFooterMotionStyles()
+
+  lastViewportWidth = window.innerWidth
+  const currentTop = footerRoot.getBoundingClientRect().top
+  if (Number.isFinite(currentTop)) {
+    lastFooterTop = currentTop
+  }
+
+  footerResizeSettleTimer = window.setTimeout(() => {
+    isViewportResizing = false
+    const settledTop = footerRoot.getBoundingClientRect().top
+    if (Number.isFinite(settledTop)) {
+      lastFooterTop = settledTop
+    }
+  }, FOOTER_VIEWPORT_RESIZE_SETTLE_MS)
 }
 
 function scheduleFooterPositionAnimation() {
@@ -364,6 +389,12 @@ function scheduleFooterPositionAnimation() {
 function animateFooterPositionIfMoved() {
   const nextTop = footerRoot.getBoundingClientRect().top
   if (!Number.isFinite(nextTop)) return
+  if (window.innerWidth !== lastViewportWidth || isViewportResizing) {
+    lastViewportWidth = window.innerWidth
+    lastFooterTop = nextTop
+    resetFooterMotionStyles()
+    return
+  }
 
   if (lastFooterTop === null) {
     lastFooterTop = nextTop

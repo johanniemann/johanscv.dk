@@ -1360,11 +1360,61 @@ body.welcome-active #site-shell {
   margin: 0;
   margin-top: 0.28rem;
   line-height: 1.2;
+  width: 100%;
+  min-width: 0;
 }
 
 .spotify-dashboard-card .spotify-dashboard-card-subtitle {
   margin: 0;
   line-height: 1.2;
+  width: 100%;
+  min-width: 0;
+}
+
+.spotify-dashboard-marquee {
+  --spotify-marquee-edge-fade: 10px;
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.spotify-dashboard-marquee::before,
+.spotify-dashboard-marquee::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: calc(var(--spotify-marquee-edge-fade) + 6px);
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 160ms var(--ease-standard);
+}
+
+.spotify-dashboard-marquee::before {
+  left: -1px;
+  background: linear-gradient(to right, var(--surface-inner-bg), transparent);
+  filter: blur(1px);
+}
+
+.spotify-dashboard-marquee::after {
+  right: -1px;
+  background: linear-gradient(to left, var(--surface-inner-bg), transparent);
+  filter: blur(1px);
+}
+
+.spotify-dashboard-marquee.is-overflowing.is-moving::before,
+.spotify-dashboard-marquee.is-overflowing.is-moving::after {
+  opacity: 1;
+}
+
+.spotify-dashboard-marquee-track {
+  display: inline-block;
+  min-width: max-content;
+  will-change: transform;
 }
 
 .spotify-dashboard-rank-line {
@@ -2651,6 +2701,10 @@ body.welcome-active #site-shell {
 }
 
 @media (max-width: 620px) {
+  .spotify-dashboard-marquee {
+    --spotify-marquee-edge-fade: 8px;
+  }
+
   .site-shell {
     width: min(1120px, calc(100% - 0.8rem));
     padding: 0.7rem 0 1.2rem;

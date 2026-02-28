@@ -84,7 +84,7 @@
     },
     "playground": {
       "title": "Playground",
-      "intro": "Get to know Johan through interactive services: Ask Johan, GeoJohan, and a live Spotify dashboard.",
+      "intro": "Get to know Johan better through interactive services: Ask Johan, GeoJohan, and SpotiJohan.",
       "quizHubTitle": "Service Hub",
       "quizHubIntro": "Choose an experience. GeoJohan is a 3-round location guessing mini game.",
       "cards": {
@@ -203,14 +203,14 @@
       "infoButtonAria": "Open website build information",
       "infoKicker": "Behind the build",
       "infoTitle": "How this site is built",
-      "infoIntro": "A quick overview of the main tools and architecture choices used to build and run this website.",
+      "infoIntro": "A quick overview of the live architecture powering johanscv.dk today.",
       "infoPoints": [
-        "Frontend: A Vite-powered SPA built with Vanilla JavaScript modules and custom styling with Tailwind tooling. No frontend templates used. Everything is build from scratch.",
-        "Routing and UX: Client-side routing with smooth page transitions and state-driven theme/language toggles.",
-        "Backend: Node.js + Express API on Render that powers Ask Johan and GeoJohan.",
-        "AI and data: Ask Johan uses OpenAI' API with guarded context handling. GeoJohan uses Google Maps' API for interactive streetview and map. Both is request limited and usage capped for stability.",
-        "Hosting and deploy: The frontend is hosted on GitHub Pages, while the API is deployed separately on Render.",
-        "Security baseline: Access-code login, JWT bearer auth, strict origin checks, and throttling on protected endpoints."
+        "Frontend: Single-page app built with Vite and modular Vanilla JavaScript, styled with Tailwind + custom CSS.",
+        "Core UX: Client-side routing, animated page transitions, and global theme/language state shared across pages.",
+        "Feature modules: Ask Johan (AI chat), GeoJohan (Street View game), and SpotiJohan (music dashboard) are isolated in dedicated frontend modules.",
+        "Backend: Node.js + Express API on Render with layered modules for auth, Ask Johan, GeoJohan, and Spotify handlers.",
+        "Data + AI flow: Ask Johan calls OpenAI on the server (model via env), while GeoJohan Maps keys and Spotify snapshot data are served from protected API endpoints.",
+        "Security baseline: Access-code login -> JWT bearer token, strict CORS allowlist, JSON/body limits, per-IP rate limits, and daily usage caps."
       ],
       "infoClose": "Back to site"
     }
@@ -300,7 +300,7 @@
     },
     "playground": {
       "title": "Playground",
-      "intro": "Lær Johan bedre at kende gennem interaktive services: Spørg Johan, GeoJohan og et live Spotify-dashboard.",
+      "intro": "Lær Johan bedre at kende gennem interaktive services: Spørg Johan, GeoJohan og SpotiJohan.",
       "quizHubTitle": "Servicehub",
       "quizHubIntro": "Vælg en oplevelse. GeoJohan er et 3-runders locationspil.",
       "cards": {
@@ -419,14 +419,14 @@
       "infoButtonAria": "Åbn information om hvordan websitet er bygget",
       "infoKicker": "Bag kulissen",
       "infoTitle": "Sådan er sitet bygget",
-      "infoIntro": "Et hurtigt overblik over de vigtigste værktøjer og arkitekturvalg bag websitet.",
+      "infoIntro": "Et hurtigt overblik over den live arkitektur, der driver johanscv.dk i dag.",
       "infoPoints": [
-        "Frontend: En Vite-baseret SPA bygget med Vanilla JavaScript-moduler og custom styling med Tailwind-tooling. Ingen frontend templates er brugt. Alt er bygget fra bunden.",
-        "Routing og UX: Client-side routing med glidende sideovergange og state-styrede toggles til tema og sprog.",
-        "Backend: Node.js + Express API på Render, som driver Ask Johan og GeoJohan.",
-        "AI og data: Ask Johan bruger OpenAI's API med beskyttet konteksthåndtering. GeoJohan bruger Google Maps' API til interaktiv streetview og kort. Begge har request-limits og usage caps for stabilitet.",
-        "Hosting og deploy: Frontend hostes på GitHub Pages, mens API'et deployes separat på Render.",
-        "Sikkerhedsgrundlag: Access-code login, JWT bearer auth, stram origin-kontrol og throttling på beskyttede endpoints."
+        "Frontend: Single-page app bygget med Vite og modulær Vanilla JavaScript, stylet med Tailwind + custom CSS.",
+        "Kerne-UX: Client-side routing, animerede sideovergange og global theme/language-state på tværs af sider.",
+        "Feature-moduler: Ask Johan (AI-chat), GeoJohan (Street View-spil) og SpotiJohan (musikdashboard) ligger i adskilte frontend-moduler.",
+        "Backend: Node.js + Express API på Render med lagdelte moduler til auth, Ask Johan, GeoJohan og Spotify-handlers.",
+        "Data + AI-flow: Ask Johan kalder OpenAI på serveren (model styres via env), mens GeoJohan Maps-nøgle og Spotify snapshot-data leveres fra beskyttede API-endpoints.",
+        "Sikkerhedsgrundlag: Access-code login -> JWT bearer-token, stram CORS-allowlist, JSON/body-grænser, per-IP rate limits og daglige usage caps."
       ],
       "infoClose": "Tilbage til sitet"
     }
