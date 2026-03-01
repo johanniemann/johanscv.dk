@@ -41,9 +41,28 @@ const API_WAKEUP_MAX_WAIT_MS = 25000
 const API_WAKEUP_RETRY_DELAY_MS = 1200
 const WELCOME_EXIT_MS = 500
 const REVEAL_THRESHOLD = 0.2
+const NAV_WORDMARK_MOBILE_MAX_WIDTH = 620
+const NAV_WORDMARK_MIN_GAP_PX = 10
 const FOOTER_SHIFT_ANIMATION_MS = 340
 const FOOTER_SHIFT_MAX_DELTA_PX = 120
 const FOOTER_VIEWPORT_RESIZE_SETTLE_MS = 140
+const BUTTON_LIGHT_HIDE_DELAY_MS = 0
+const BUTTON_LIGHT_HOST_CLASS = 'button-light-host'
+const BUTTON_LIGHT_ACTIVE_CLASS = 'is-button-lit'
+const HOVER_LIGHT_TARGET_SELECTOR = [
+  '.welcome-button',
+  '.scroll-hint',
+  '.nav-link',
+  '.toggle-pill',
+  '.lang-pill',
+  '.footer-links a',
+  '.footer-playground-link',
+  '.footer-info-button',
+  '.spotify-dashboard-preview-button',
+  '.projects-cta',
+  '.ask-button',
+  '.file-action'
+].join(', ')
 const welcomeRoot = document.querySelector('#welcome-root')
 const navRoot = document.querySelector('#nav-root')
 const pageRoot = document.querySelector('#page-root')
@@ -52,6 +71,7 @@ const overlayRoot = document.querySelector('#overlay-root')
 const scrollHintRoot = document.querySelector('#scroll-hint-root')
 let navHidden = false
 let navScrollInitialized = false
+let navWordmarkVisibilityBound = false
 let siteBootstrapped = false
 let router = null
 let scrollHintBound = false
@@ -62,7 +82,11 @@ let footerResizeSettleTimer = null
 let lastFooterTop = null
 let lastViewportWidth = window.innerWidth
 let isViewportResizing = false
+let buttonLightInitialized = false
+let buttonLightActiveTarget = null
+let buttonLightHideTimer = 0
 
+initCursorLightEffect()
 void initAccessGate()
 
 async function initAccessGate() {
@@ -201,6 +225,7 @@ function bootstrapSite() {
   })
 
   renderNav()
+  initNavWordmarkVisibility()
   renderFooter()
   initFooterPositionSmoothing()
   renderScrollHint()
@@ -219,6 +244,7 @@ function renderNav() {
   })
 
   syncNavbarVisibility()
+  syncNavWordmarkVisibility()
 }
 
 function renderFooter() {
@@ -326,6 +352,42 @@ function syncNavbarVisibility() {
   const navbar = document.querySelector('#navbar')
   if (!navbar) return
   navbar.classList.toggle('nav-hidden', navHidden)
+}
+
+function initNavWordmarkVisibility() {
+  if (navWordmarkVisibilityBound) return
+  navWordmarkVisibilityBound = true
+
+  window.addEventListener(
+    'resize',
+    () => {
+      window.requestAnimationFrame(syncNavWordmarkVisibility)
+    },
+    { passive: true }
+  )
+}
+
+function syncNavWordmarkVisibility() {
+  const navMain = document.querySelector('#navbar .nav-main')
+  const navLinks = navMain?.querySelector('.nav-links-primary')
+  const wordmark = navMain?.querySelector('.nav-wordmark')
+  if (!(navLinks instanceof HTMLElement) || !(wordmark instanceof HTMLElement)) return
+
+  wordmark.classList.remove('is-hidden')
+  if (window.innerWidth <= NAV_WORDMARK_MOBILE_MAX_WIDTH) {
+    wordmark.classList.add('is-hidden')
+    return
+  }
+
+  const linkItems = navLinks.querySelectorAll('.nav-link')
+  const firstTop = linkItems.length ? linkItems[0].offsetTop : navLinks.offsetTop
+  const hasWrap = Array.from(linkItems).some((item) => item.offsetTop > firstTop + 1)
+
+  const linksRect = navLinks.getBoundingClientRect()
+  const wordmarkRect = wordmark.getBoundingClientRect()
+  const collides = hasWrap || linksRect.right + NAV_WORDMARK_MIN_GAP_PX >= wordmarkRect.left
+
+  wordmark.classList.toggle('is-hidden', collides)
 }
 
 function updateActiveNav(route) {
@@ -548,6 +610,169 @@ function shouldHideScrollHint() {
   const canScroll = maxScroll > 24
   const nearBottom = window.scrollY >= maxScroll - 28
   return !siteBootstrapped || !canScroll || nearBottom
+}
+
+function initCursorLightEffect() {
+  if (buttonLightInitialized) return
+  buttonLightInitialized = true
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+  const finePointer = window.matchMedia('(pointer: fine)')
+  const hoverCapable = window.matchMedia('(hover: hover)')
+  let effectEnabled = false
+  let pointerX = window.innerWidth / 2
+  let pointerY = window.innerHeight / 2
+
+  const clearButtonLightHideTimer = () => {
+    if (!buttonLightHideTimer) return
+    window.clearTimeout(buttonLightHideTimer)
+    buttonLightHideTimer = 0
+  }
+
+  const hideButtonLight = ({ immediate = false } = {}) => {
+    clearButtonLightHideTimer()
+
+    const hideNow = () => {
+      buttonLightHideTimer = 0
+      if (buttonLightActiveTarget instanceof HTMLElement) {
+        buttonLightActiveTarget.classList.remove(BUTTON_LIGHT_ACTIVE_CLASS)
+      }
+      buttonLightActiveTarget = null
+    }
+
+    if (immediate || BUTTON_LIGHT_HIDE_DELAY_MS <= 0) {
+      hideNow()
+      return
+    }
+
+    buttonLightHideTimer = window.setTimeout(hideNow, BUTTON_LIGHT_HIDE_DELAY_MS)
+  }
+
+  const updateButtonLightPosition = (target, x, y) => {
+    if (!(target instanceof HTMLElement)) return false
+    if (!document.documentElement.contains(target)) return false
+
+    const rect = target.getBoundingClientRect()
+    if (!Number.isFinite(rect.width) || !Number.isFinite(rect.height) || rect.width < 2 || rect.height < 2) {
+      return false
+    }
+
+    const localX = Math.min(Math.max(x - rect.left, 0), rect.width)
+    const localY = Math.min(Math.max(y - rect.top, 0), rect.height)
+    const nx = rect.width > 0 ? localX / rect.width : 0.5
+    const ny = rect.height > 0 ? localY / rect.height : 0.5
+    const edgeDistance = Math.min(localX, rect.width - localX, localY, rect.height - localY)
+    const edgeRatio = Math.max(0, Math.min(1, edgeDistance / Math.max(Math.min(rect.width, rect.height) * 0.5, 1)))
+    const intensity = 0.56 + edgeRatio * 0.44
+
+    target.style.setProperty('--button-light-x', `${localX}px`)
+    target.style.setProperty('--button-light-y', `${localY}px`)
+    target.style.setProperty('--button-light-tilt-x', `${((0.5 - ny) * 6).toFixed(2)}deg`)
+    target.style.setProperty('--button-light-tilt-y', `${((nx - 0.5) * 6).toFixed(2)}deg`)
+    target.style.setProperty('--button-light-intensity', intensity.toFixed(3))
+
+    return true
+  }
+
+  const activateButtonLight = (target) => {
+    if (!(target instanceof HTMLElement)) return
+    if (buttonLightActiveTarget === target) return
+
+    if (buttonLightActiveTarget instanceof HTMLElement) {
+      buttonLightActiveTarget.classList.remove(BUTTON_LIGHT_ACTIVE_CLASS)
+    }
+
+    buttonLightActiveTarget = target
+    buttonLightActiveTarget.classList.add(BUTTON_LIGHT_HOST_CLASS)
+    buttonLightActiveTarget.classList.add(BUTTON_LIGHT_ACTIVE_CLASS)
+  }
+
+  const syncButtonLightAvailability = () => {
+    effectEnabled = !prefersReducedMotion.matches && finePointer.matches && hoverCapable.matches
+    if (!effectEnabled) {
+      hideButtonLight({ immediate: true })
+    }
+  }
+
+  const onPointerMove = (event) => {
+    if (!effectEnabled) return
+    pointerX = event.clientX
+    pointerY = event.clientY
+
+    const target = resolveButtonLightTarget(event.target)
+    if (!(target instanceof HTMLElement)) {
+      hideButtonLight({ immediate: true })
+      return
+    }
+
+    clearButtonLightHideTimer()
+    activateButtonLight(target)
+    if (!updateButtonLightPosition(target, pointerX, pointerY)) {
+      hideButtonLight({ immediate: true })
+    }
+  }
+
+  const onViewportChange = () => {
+    if (!effectEnabled) return
+    if (!(buttonLightActiveTarget instanceof HTMLElement)) return
+    if (!updateButtonLightPosition(buttonLightActiveTarget, pointerX, pointerY)) {
+      hideButtonLight({ immediate: true })
+    }
+  }
+
+  const onPointerOut = (event) => {
+    if (!effectEnabled) return
+    if (!(buttonLightActiveTarget instanceof HTMLElement)) return
+    if (!(event.target instanceof Element)) return
+    if (!buttonLightActiveTarget.contains(event.target)) return
+
+    const nextTarget = resolveButtonLightTarget(event.relatedTarget)
+    if (nextTarget === buttonLightActiveTarget) return
+
+    if (nextTarget instanceof HTMLElement) {
+      pointerX = event.clientX
+      pointerY = event.clientY
+      clearButtonLightHideTimer()
+      activateButtonLight(nextTarget)
+      if (!updateButtonLightPosition(nextTarget, pointerX, pointerY)) {
+        hideButtonLight({ immediate: true })
+      }
+      return
+    }
+
+    hideButtonLight({ immediate: true })
+  }
+
+  window.addEventListener('pointermove', onPointerMove, { passive: true })
+  window.addEventListener('pointerout', onPointerOut, true)
+  window.addEventListener('scroll', onViewportChange, { passive: true })
+  window.addEventListener('resize', onViewportChange)
+  document.documentElement.addEventListener('mouseleave', () => hideButtonLight({ immediate: true }))
+  window.addEventListener('blur', () => hideButtonLight({ immediate: true }))
+
+  bindMediaQueryChange(prefersReducedMotion, syncButtonLightAvailability)
+  bindMediaQueryChange(finePointer, syncButtonLightAvailability)
+  bindMediaQueryChange(hoverCapable, syncButtonLightAvailability)
+
+  syncButtonLightAvailability()
+}
+
+function bindMediaQueryChange(mediaQuery, callback) {
+  if (typeof mediaQuery.addEventListener === 'function') {
+    mediaQuery.addEventListener('change', callback)
+    return
+  }
+  if (typeof mediaQuery.addListener === 'function') {
+    mediaQuery.addListener(callback)
+  }
+}
+
+function resolveButtonLightTarget(candidate) {
+  if (!(candidate instanceof Element)) return null
+  const match = candidate.closest(HOVER_LIGHT_TARGET_SELECTOR)
+  if (!(match instanceof HTMLElement)) return null
+  if (match.matches(':disabled') || match.getAttribute('aria-disabled') === 'true') return null
+  return match
 }
 
 async function validateAccessCodeWithApi(accessCode) {

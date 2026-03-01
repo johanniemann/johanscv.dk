@@ -12,6 +12,7 @@ export function Navbar({ route, t }) {
         <nav class="nav-links nav-links-primary" aria-label="Primary navigation">
           ${links.map((link) => navLink(link.path, link.label, route, link.extraClass || '')).join('')}
         </nav>
+        <span class="nav-wordmark" aria-hidden="true">JOHANSCV.DK</span>
       </div>
     </header>
   `
