@@ -91,13 +91,17 @@ function voluntaryItem(item, t) {
   const certificateFile = String(item.certificateFile ?? '').trim()
   const certificateUrl = certificateFile ? `${import.meta.env.BASE_URL}${certificateFile}` : ''
   const hasCertificate = Boolean(certificateUrl)
+  const type = String(item.type ?? '').trim()
+  const periodLine = type
+    ? `<span class="resume-item-type">${type}</span>: ${item.period}`
+    : item.period
 
   return `
     <article class="resume-item${hasCertificate ? ' resume-item-with-action' : ''}">
       <div class="resume-item-content">
         <h4 class="resume-item-title">${item.role}</h4>
         <p class="resume-item-body">${item.description}</p>
-        <p class="resume-item-period">${item.period}</p>
+        <p class="resume-item-period">${periodLine}</p>
       </div>
       ${
         hasCertificate

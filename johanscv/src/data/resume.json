@@ -50,6 +50,7 @@
       {
         "role": "Studentermiljørepræsentant (SMR) for IT-arkitekturuddannelsen på EK",
         "description": "Repræsenterer de studerendes interesser i forhold til trivsel og studiemiljø. Indsamler input fra medstuderende og deltager i dialog med undervisere og ledelse om forbedringer af studiehverdagen.",
+        "type": "Deltid",
         "period": "September 2024 - d.d.",
         "certificateFile": "files/smr-frivilligcertifikat-kea.pdf"
       }
@@ -129,6 +130,7 @@
       {
         "role": "Student Environment Representative (SMR) for IT Architecture at EK",
         "description": "Represent students in matters related to well-being and study environment. Collect input from students and participate in dialogue with lecturers and management to improve the study experience.",
+        "type": "Part-time",
         "period": "September 2024 - Present",
         "certificateFile": "files/smr-frivilligcertifikat-kea.pdf"
       }

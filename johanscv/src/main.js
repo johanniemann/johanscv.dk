@@ -58,6 +58,7 @@ const HOVER_LIGHT_TARGET_SELECTOR = [
   '.footer-links a',
   '.footer-playground-link',
   '.footer-info-button',
+  '.spotify-dashboard-view-toggle',
   '.spotify-dashboard-preview-button',
   '.projects-cta',
   '.ask-button',
