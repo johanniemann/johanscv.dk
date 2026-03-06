@@ -3,9 +3,9 @@
 ## Development Workflow
 
 1. Make focused changes in the relevant app folder (`johanscv/` or `johanscv.dk-api/`).
-2. Align local runtime to Node 20 before release verification:
-   - `nvm use 20`
-   - or run `./scripts/verify-node20.sh` (uses Node 20 when available and then runs full verify)
+2. Align local runtime to Node 24 before release verification:
+   - `nvm use 24`
+   - or run `./scripts/verify-node24.sh` (uses Node 24 when available and then runs full verify)
 3. Verify locally before opening a PR:
    - Fast path: `./scripts/verify.sh`
    - Manual split:
@@ -17,7 +17,7 @@
      - `./scripts/scan-secrets.sh`
 4. Keep secrets out of Git:
    - Use `.env` files locally
-   - Use Render/GitHub secret settings for hosted values
+   - Use Azure App Service app settings and GitHub Pages settings for hosted values
    - Exception: `johanscv/.env.production` is tracked and must contain only non-secret public frontend values
 
 ## Commit Scope

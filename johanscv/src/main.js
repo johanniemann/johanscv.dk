@@ -3,7 +3,7 @@ import './styles/animations.css'
 import translations from './data/translations.json'
 import { Navbar } from './components/Navbar.js'
 import { Footer, bindFooterInfoPopup } from './components/Footer.js'
-import { WelcomeGate, WelcomeWarmupGate, bindWelcomeGate } from './components/WelcomeGate.js'
+import { WelcomeGate, bindWelcomeGate } from './components/WelcomeGate.js'
 import { bindThemeToggle } from './components/ThemeToggle.js'
 import { bindLanguageToggle } from './components/LanguageToggle.js'
 import { warmUpAskJohanApi } from './features/ask-johan/AskJohanWidget.js'
@@ -36,9 +36,6 @@ const API_LOGIN_PATH = '/auth/login'
 const API_AUTH_TIMEOUT_MS = 10000
 const API_AUTH_MAX_WAIT_MS = 75000
 const API_AUTH_RETRY_DELAY_MS = 1200
-const API_WAKEUP_TIMEOUT_MS = 9000
-const API_WAKEUP_MAX_WAIT_MS = 25000
-const API_WAKEUP_RETRY_DELAY_MS = 1200
 const WELCOME_EXIT_MS = 500
 const REVEAL_THRESHOLD = 0.2
 const NAV_WORDMARK_MOBILE_MAX_WIDTH = 620
@@ -98,33 +95,12 @@ async function initAccessGate() {
     return
   }
 
-  const startupWarmupScreen = API_MODE && API_BASE ? renderWelcomeWarmupGate() : null
-
   if (await hasValidSiteAccess()) {
     bootstrapSite()
-    dismissWelcomeGate(startupWarmupScreen)
     return
   }
 
-  if (startupWarmupScreen) {
-    await waitForApiWakeupIfNeeded()
-  }
-
   renderWelcomeGate()
-}
-
-function renderWelcomeWarmupGate() {
-  const state = getState()
-  const t = getTranslations(state.language)
-  welcomeRoot.innerHTML = WelcomeWarmupGate({ t })
-  document.body.classList.add('welcome-active')
-
-  const screen = welcomeRoot.querySelector('.welcome-screen')
-  window.requestAnimationFrame(() => {
-    screen?.classList.add('is-visible')
-  })
-
-  return screen
 }
 
 function dismissWelcomeGate(screen = welcomeRoot.querySelector('.welcome-screen')) {
@@ -141,59 +117,6 @@ function dismissWelcomeGate(screen = welcomeRoot.querySelector('.welcome-screen'
 function clearWelcomeGate() {
   welcomeRoot.innerHTML = ''
   document.body.classList.remove('welcome-active')
-}
-
-async function waitForApiWakeupIfNeeded() {
-  if (hasStoredSiteAccess()) return
-  await waitForApiWakeup()
-}
-
-async function waitForApiWakeup() {
-  const startedAt = Date.now()
-  let lastResult = null
-
-  while (Date.now() - startedAt < API_WAKEUP_MAX_WAIT_MS) {
-    const result = await checkApiHealth()
-    if (isApiReady(result)) {
-      return result
-    }
-
-    lastResult = result
-    const elapsedMs = Date.now() - startedAt
-    const remainingMs = API_WAKEUP_MAX_WAIT_MS - elapsedMs
-    if (remainingMs <= 0) break
-    await delay(Math.min(API_WAKEUP_RETRY_DELAY_MS, remainingMs))
-  }
-
-  return lastResult || { ok: false, status: 0, reason: 'timeout' }
-}
-
-function isApiReady(result) {
-  const status = Number(result?.status || 0)
-  return Boolean(result?.ok) || (status > 0 && status < 500)
-}
-
-async function checkApiHealth() {
-  try {
-    const response = await fetchWithTimeout(
-      `${API_BASE}/health`,
-      {
-        method: 'GET'
-      },
-      API_WAKEUP_TIMEOUT_MS
-    )
-
-    return {
-      ok: response.ok,
-      status: response.status
-    }
-  } catch (error) {
-    return {
-      ok: false,
-      status: 0,
-      reason: error?.name === 'AbortError' ? 'timeout' : 'network'
-    }
-  }
 }
 
 function bootstrapSite() {

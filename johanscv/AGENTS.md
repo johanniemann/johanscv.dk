@@ -23,7 +23,8 @@
 - Resume page module: `src/pages/Resume.js`.
 - Styling is custom CSS with Tailwind/PostCSS tooling; avoid introducing new UI frameworks.
 - Theme/language are state-driven via localStorage and UI toggles.
-- Runtime expectation is Node 20 (`../.nvmrc`, CI, and hosted environment assumptions).
+- Runtime expectation is Node 24 (`../.nvmrc`, CI, and Azure App Service-aligned package engines).
+- Production API base is configured via `.env.production` and currently points at Azure App Service.
 
 ## Security & Privacy Guardrails
 - Never commit `.env.local` or secrets.

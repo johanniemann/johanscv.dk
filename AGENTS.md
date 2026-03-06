@@ -4,7 +4,7 @@
 - Keep production stable while making small, verifiable improvements.
 - Current active production architecture:
   - Frontend SPA in `johanscv/` (GitHub Pages).
-  - Backend API in `johanscv.dk-api/` (Render web service).
+  - Backend API in `johanscv.dk-api/` (Azure App Service).
   - Legacy references in `archive/legacy-frontend-prototype/` and `archive/root-public-placeholders/` are not part of active CI/deploy/runtime.
 
 ## Active Code Organization
@@ -50,8 +50,8 @@
 ## Deployment Assumptions
 - Frontend deploy path is GitHub Pages via `johanscv` scripts.
 - Frontend local dev entry uses `johanscv/scripts/dev-fixed.sh` (host `127.0.0.1`, port `5173`, `CUSTOM_DOMAIN=true` default).
-- API deploy path is Render via `render.yaml` (`rootDir: johanscv.dk-api`).
-- Runtime expectation is Node 20 (see `.nvmrc`, CI `node-version`, and `render.yaml` `NODE_VERSION`).
+- API deploy path is Azure App Service via the workflow in `johanscv.dk-api/DEPLOY_AZURE.md`.
+- Runtime expectation is Node 24 (see `.nvmrc`, CI `node-version`, and package `engines.node`).
 - Protected API routes include:
   - `POST /api/ask-johan`
   - `GET /api/geojohan/maps-key`
@@ -88,7 +88,7 @@
   - `./scripts/scan-secrets.sh`
 - For repo-wide verification, prefer:
   - `./scripts/verify.sh`
-  - Node 20 convenience wrapper: `./scripts/verify-node20.sh`
+  - Node 24 convenience wrapper: `./scripts/verify-node24.sh`
 - In final report include:
   - files changed,
   - commands run,

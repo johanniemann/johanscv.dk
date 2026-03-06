@@ -8,7 +8,7 @@ const ACCESS_CODE_KEY = 'johanscv.askJohanAccessCode'
 const DEV_ACCESS_CODE = import.meta.env.DEV ? String(import.meta.env.VITE_DEV_ACCESS_CODE || '').trim() : ''
 const ACCESS_CODE_REQUIRED_MESSAGE = 'Access code is required to use Ask Johan.'
 const API_TEMPORARY_UNAVAILABLE_MESSAGE =
-  'Ask Johan is waking up on Render free hosting. Please try again in 10-20 seconds.'
+  'Ask Johan is temporarily unavailable. Please try again in a few seconds.'
 const API_REQUEST_TIMEOUT_MS = 25000
 const API_MAX_ATTEMPTS = 2
 const API_RETRY_DELAY_MS = 2200

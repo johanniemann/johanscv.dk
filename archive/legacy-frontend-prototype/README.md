@@ -1,15 +1,13 @@
-# Legacy Notes
+# Legacy Frontend Prototype
 
-This repository keeps an older prototype frontend in:
+This folder contains the older frontend prototype source kept for reference only.
 
-- `archive/legacy-frontend-prototype/root-src/`
-- `archive/root-public-placeholders/`
+Status:
+- Not used by the active site
+- Not part of active CI or deployment
+- Current production frontend lives in `../../johanscv/`
+- Current production backend lives in `../../johanscv.dk-api/` on Azure App Service
 
-These folders are currently retained for reference only.
-
-They are **not** part of active build/deploy pipelines:
-
-- CI builds `johanscv/` (`.github/workflows/ci.yml`)
-- Render deploy uses `johanscv.dk-api/` (`render.yaml`)
-
-If you plan cleanup, move legacy code incrementally and verify active app behavior after each step.
+Historical note:
+- Earlier hosting/deployment experiments used an older backend setup.
+- Those instructions are no longer the active production path.

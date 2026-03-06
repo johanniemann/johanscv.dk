@@ -7,7 +7,7 @@ Single source of truth for AI agents working in this repo. Keep this file concis
 
 Services:
 1. Frontend SPA in `johanscv/` (Vite + Vanilla JS + Tailwind tooling), deployed to GitHub Pages.
-2. Backend API in `johanscv.dk-api/` (Node + Express + OpenAI), deployed to Render.
+2. Backend API in `johanscv.dk-api/` (Node + Express + OpenAI), deployed to Azure App Service.
 
 Legacy (not in active CI/deploy):
 1. `archive/legacy-frontend-prototype/root-src/`
@@ -43,13 +43,14 @@ API:
 9. Shared HTTP/timeout helpers:
    - `johanscv.dk-api/src/shared/http.js`
    - `johanscv.dk-api/src/shared/with-timeout.js`
+   - `johanscv.dk-api/src/shared/cookies.js`
 10. Tests: `johanscv.dk-api/test/api.test.js`
 
 Deploy/CI:
-1. Render blueprint: `render.yaml`
+1. Azure deployment doc: `johanscv.dk-api/DEPLOY_AZURE.md`
 2. CI gate: `.github/workflows/ci.yml`
 3. Repo verification: `scripts/verify.sh`
-4. Runtime target version: Node 20 (`.nvmrc`, CI, Render).
+4. Runtime target version: Node 24 (`.nvmrc`, CI, package engines, Azure App Service runtime).
 
 ## Data Flow And Contracts
 
@@ -108,7 +109,7 @@ Frontend (`johanscv/.env.local`):
 4. Optional `VITE_GEOJOHAN_ROUND{N}_*` and `VITE_GEOJOHAN_ROUND{N}_SUMMARY_*`
 5. Production build env file: `johanscv/.env.production` (`VITE_ASK_JOHAN_MODE`, `VITE_API_BASE_URL`) and this file is intentionally tracked (non-secret only).
 
-Backend (`johanscv.dk-api/.env` or Render env):
+Backend (`johanscv.dk-api/.env` or Azure App Service env):
 1. `OPENAI_API_KEY`, `OPENAI_MODEL`, `PORT`
 2. `JOHANSCV_ACCESS_CODE` (primary), `ASK_JOHAN_ACCESS_CODE` (deprecated fallback)
 3. `JWT_SECRET`, `SESSION_SECRET`, `ASK_JOHAN_JWT_TTL`, `ASK_JOHAN_AUTH_COMPAT_MODE` (default/recommended `false`)
@@ -121,7 +122,7 @@ Backend (`johanscv.dk-api/.env` or Render env):
 10. Spotify dashboard:
    - `SPOTIFY_CLIENT_ID`
    - `SPOTIFY_OWNER_REFRESH_TOKEN`
-   - `SPOTIFY_CLIENT_SECRET` (optional, recommended for artist image fallback lookups)
+   - `SPOTIFY_CLIENT_SECRET`
    - optional legacy OAuth settings: `APP_BASE_URL`, `SPOTIFY_REDIRECT_URI`, `SPOTIFY_SCOPES`, `SPOTIFY_SESSION_COOKIE_NAME`, `SPOTIFY_SESSION_TTL_MS`, `SPOTIFY_PKCE_TTL_MS`
    - `SPOTIFY_SNAPSHOT_CACHE_TTL_MS`
    - `SPOTIFY_REQUEST_TIMEOUT_MS`
@@ -144,7 +145,7 @@ Backend (`johanscv.dk-api/.env` or Render env):
 6. Never expose Spotify access/refresh tokens to frontend payloads, URLs, or logs.
 
 Operational docs:
-1. Deploy/API setup: `johanscv.dk-api/DEPLOY_RENDER.md`
+1. Deploy/API setup: `johanscv.dk-api/DEPLOY_AZURE.md`
 2. Incident/runbook/key rotation/rate-limit tuning: `docs/ask-johan-operations-runbook.md`
 
 ## Local Run Checklist
@@ -190,13 +191,13 @@ Operational docs:
 
 5. Repo gate:
    - `./scripts/verify.sh`
-   - `./scripts/verify-node20.sh` (convenience wrapper for Node 20 local verification)
+   - `./scripts/verify-node24.sh` (convenience wrapper for Node 24 local verification)
 
 ## Common Pitfalls
 
 1. Base path mismatch:
-   - Production GitHub Pages uses `/johanscv.dk/`.
-   - Local default should be `/` via `npm run dev`.
+   - Production custom domain uses `/assets/...`.
+   - GitHub Pages subpath build uses `/johanscv.dk/`.
 2. CORS mismatch:
    - `ALLOWED_ORIGINS` must include exact production origins.
 3. Env precedence confusion:
@@ -206,7 +207,7 @@ Operational docs:
 5. Legacy confusion:
    - do not treat `archive/` contents as active runtime code.
 6. Node version drift:
-   - local Node major should match `20` before running release verification.
+   - local Node major should match `24` before running release verification.
 7. Mode confusion:
    - `johanscv/.env.example` defaults Ask Johan to `mock`.
    - `johanscv/.env.local.example` and `johanscv/.env.production` use `api`.

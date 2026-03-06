@@ -1,6 +1,6 @@
 # Deployment Notes
 
-## GitHub Pages (active)
+## GitHub Pages (active frontend)
 
 Site URL:
 - `https://johanscv.dk/`
@@ -40,11 +40,17 @@ Mode notes:
   - `POST /auth/login`
   - `POST /api/ask-johan`
   - `GET /api/geojohan/maps-key`
+  - `GET /api/music-dashboard/snapshot`
 
 ## Environment Safety (production vs local)
 
 - Local dev should use `.env.local` (example in `.env.local.example`), usually:
   - `VITE_API_BASE_URL=http://127.0.0.1:8787`
-- Production build now uses `.env.production`:
-  - `VITE_API_BASE_URL=https://ask-johan-api.onrender.com`
+- Production build uses `.env.production`:
+  - `VITE_API_BASE_URL=https://johanscv-api-johu0002-no.azurewebsites.net`
 - This prevents accidental deploys that point production to `127.0.0.1`.
+
+## Backend Deployment
+
+- The active backend deploy path is Azure App Service.
+- Use `../johanscv.dk-api/DEPLOY_AZURE.md` for the API deployment workflow, required app settings, and post-deploy checks.

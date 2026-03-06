@@ -2,7 +2,7 @@
 
 Personal website stack with two active production services:
 - frontend SPA in `johanscv/` (GitHub Pages),
-- backend API in `johanscv.dk-api/` (Render).
+- backend API in `johanscv.dk-api/` (Azure App Service).
 
 ## Repository Structure
 
@@ -10,12 +10,12 @@ Personal website stack with two active production services:
 | --- | --- | --- |
 | `johanscv/` | Frontend SPA (Vite + Vanilla JS + Tailwind tooling) | Active |
 | `johanscv.dk-api/` | Ask Johan + GeoJohan API (Node/Express/OpenAI) | Active |
+| `johanscv.dk-api/DEPLOY_AZURE.md` | Azure App Service deployment guide for the API | Active |
 | `.github/workflows/ci.yml` | CI quality gate (repo guardrails + frontend lint/smoke/build/budget + API tests + dependency audit) | Active |
-| `render.yaml` | Render blueprint (`rootDir: johanscv.dk-api`) | Active |
-| `archive/legacy-frontend-prototype/root-src/` | Previous frontend prototype source | Archived legacy |
-| `archive/root-public-placeholders/` | Previous root-level static placeholders | Archived legacy |
-| `docs/` | Operational docs/runbooks | Active |
-| `scripts/verify.sh` | Repo-level verify script | Active |
+| `docs/` | Operational docs and incident runbooks | Active |
+| `scripts/verify.sh` | Repo-level verification | Active |
+| `archive/legacy-frontend-prototype/` | Previous frontend prototype source | Archived legacy |
+| `archive/root-public-placeholders/` | Previous root-level static placeholder folders | Archived legacy |
 
 `archive/` is not in active deploy paths; it only stores legacy reference material.
 
@@ -40,10 +40,10 @@ API (`johanscv.dk-api/src/`):
 
 Active production architecture:
 1. `johanscv/` deploys to GitHub Pages.
-2. `johanscv.dk-api/` deploys to Render.
+2. `johanscv.dk-api/` deploys to Azure App Service.
 
 Legacy references:
-1. `archive/legacy-frontend-prototype/root-src/`
+1. `archive/legacy-frontend-prototype/`
 2. `archive/root-public-placeholders/`
 
 ## Runtime Model
@@ -86,18 +86,18 @@ Spotify dashboard flow:
 
 ## Local Development
 
-Expected Node version: `20.x` (CI + Render use Node 20).
+Expected Node version: `24.x` (CI + Azure App Service target use Node 24).
 
 If your local machine is on a different major version, switch before verification:
 
 ```bash
-nvm use 20
+nvm use 24
 ```
 
-Or run the Node-20 wrapper verification directly:
+Or run the Node-24 wrapper verification directly:
 
 ```bash
-./scripts/verify-node20.sh
+./scripts/verify-node24.sh
 ```
 
 ### Frontend (`johanscv/`)
@@ -178,7 +178,7 @@ Frontend (`johanscv/.env.local`):
   - `johanscv/.env.example` uses `VITE_ASK_JOHAN_MODE=mock`
   - `johanscv/.env.local.example` and `johanscv/.env.production` use `VITE_ASK_JOHAN_MODE=api`
 
-API (`johanscv.dk-api/.env`):
+API (`johanscv.dk-api/.env` or Azure App Service app settings):
 - `OPENAI_API_KEY`, `OPENAI_MODEL`, `PORT`
 - `JOHANSCV_ACCESS_CODE` (primary), `ASK_JOHAN_ACCESS_CODE` (deprecated fallback)
 - `JWT_SECRET`, `SESSION_SECRET`, `ASK_JOHAN_JWT_TTL`, `ASK_JOHAN_AUTH_COMPAT_MODE` (recommended/default: `false`)
@@ -191,10 +191,10 @@ API (`johanscv.dk-api/.env`):
 - Spotify dashboard:
   - `SPOTIFY_CLIENT_ID`
   - `SPOTIFY_OWNER_REFRESH_TOKEN`
-  - `SPOTIFY_CLIENT_SECRET` (recommended backend-only fallback for artist/genre lookups)
-  - `APP_BASE_URL` (used for optional legacy OAuth callback handling)
-  - `SPOTIFY_REDIRECT_URI` (used for optional legacy OAuth callback handling)
-  - `SPOTIFY_SCOPES` (default: `user-read-recently-played`, optional legacy OAuth scope control)
+  - `SPOTIFY_CLIENT_SECRET`
+  - `APP_BASE_URL`
+  - `SPOTIFY_REDIRECT_URI`
+  - `SPOTIFY_SCOPES`
   - `SPOTIFY_SNAPSHOT_CACHE_TTL_MS`
   - `SPOTIFY_REQUEST_TIMEOUT_MS`
   - `SPOTIFY_RATE_LIMIT_WINDOW_MS`, `SPOTIFY_RATE_LIMIT_MAX`
@@ -214,34 +214,6 @@ Frontend production build config (`johanscv/.env.production`):
 - Treat all `VITE_*` variables as public in browser bundles.
 - Keep API controls enabled: strict CORS allowlist, `/auth/login` + Bearer auth, failed-auth throttling, request rate limit, daily cap, and context-exfiltration refusal.
 - Keep Spotify dashboard protections enabled: server-side token handling, per-IP rate limits, and snapshot caching.
-
-## Spotify Dashboard Setup (Owner Account, No User Connect)
-
-1. Create a Spotify Developer app:
-   - open <https://developer.spotify.com/dashboard/>
-   - create an app (Web API)
-   - copy the app `Client ID` into API env `SPOTIFY_CLIENT_ID`
-   - copy the app `Client Secret` into API env `SPOTIFY_CLIENT_SECRET` (backend only; never in frontend env)
-2. Generate and store a refresh token for Johan's Spotify account once:
-   - put that token in API env `SPOTIFY_OWNER_REFRESH_TOKEN`
-   - this token stays server-side only and is used to refresh access tokens for dashboard reads
-3. Set API env values (local `johanscv.dk-api/.env` and production secrets):
-   - required:
-     - `SPOTIFY_CLIENT_ID`
-     - `SPOTIFY_OWNER_REFRESH_TOKEN`
-   - recommended:
-     - `SPOTIFY_CLIENT_SECRET` (for robust artist portrait lookups)
-   - optional legacy OAuth helpers:
-     - `APP_BASE_URL`
-     - `SPOTIFY_REDIRECT_URI`
-     - `SPOTIFY_SCOPES=user-read-recently-played`
-4. Start local services:
-   - API: `cd johanscv.dk-api && npm run dev`
-   - frontend: `cd johanscv && npm run dev`
-5. Verify:
-   - open `http://localhost:5173/playground`
-   - confirm dashboard tabs render top tracks, albums, and artists
-   - confirm there is no Spotify connect/disconnect requirement
 
 ## Verification
 
@@ -277,28 +249,5 @@ Repo-level:
 ./scripts/check-doc-sync.sh
 ./scripts/scan-secrets.sh
 ./scripts/verify.sh
+./scripts/verify-node24.sh
 ```
-
-## Secret Scan Before Push
-
-Preferred:
-
-```bash
-gitleaks detect --no-git --source . --redact
-```
-
-Note:
-- local `.env` files can appear as findings when scanning the whole working tree.
-- do not commit `.env` files; scan staged files before push when in doubt.
-
-Fallback:
-
-```bash
-rg --hidden --glob '!.git' --files-with-matches '(?i)(api[_-]?key|secret|token|password|sk-[A-Za-z0-9]{20,}|-----BEGIN (RSA|EC|OPENSSH) PRIVATE KEY-----)' .
-```
-
-## Deployment Docs
-
-- Frontend: `johanscv/DEPLOYMENT.md`
-- API: `johanscv.dk-api/DEPLOY_RENDER.md`
-- Operations runbook: `docs/ask-johan-operations-runbook.md`

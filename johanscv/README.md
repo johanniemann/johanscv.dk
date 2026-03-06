@@ -6,6 +6,7 @@ Personal CV website built with Vite, Vanilla JS, and Tailwind CSS.
 
 - Frontend app (this folder): `johanscv/`
 - Backend API (separate folder): `../johanscv.dk-api/`
+- Production backend hosting: Azure App Service
 - Legacy prototype code exists in `../archive/legacy-frontend-prototype/root-src/` and `../archive/root-public-placeholders/` but is not used by this app's scripts.
 - Frontend feature modules:
   - Ask Johan client: `src/features/ask-johan/AskJohanWidget.js`
@@ -45,11 +46,11 @@ cp .env.local.example .env.local
 - In API mode, the site gate validates access code server-side via `POST /auth/login`
 - Ask Johan then uses JWT Bearer auth for `POST /api/ask-johan`
 - Restrict Google Maps key by HTTP referrer domains in Google Cloud Console.
-- Note: `VITE_*` variables are not stored in git if kept in `.env.local`, but they are compiled into client JS and are visible in the browser.
+- Note: `VITE_*` variables are compiled into client JS and are visible in the browser.
 
 Production safety:
 - Production values are defined in `.env.production`.
-- Current production API base is `https://ask-johan-api.onrender.com`.
+- Current production API base is `https://johanscv-api-johu0002-no.azurewebsites.net`.
 - This ensures `npm run deploy` does not use your local `http://127.0.0.1:8787` value.
 
 4. Start frontend:
@@ -80,8 +81,9 @@ Fill `.env`:
 - `JOHANSCV_ACCESS_CODE` (primary)
 - `ASK_JOHAN_ACCESS_CODE` (deprecated fallback)
 - `JWT_SECRET`
+- `SESSION_SECRET`
 - `ASK_JOHAN_JWT_TTL` (default `7d`)
-- `ASK_JOHAN_AUTH_COMPAT_MODE` (set explicitly per environment; this repo's `.env.example`/`render.yaml` use `false`)
+- `ASK_JOHAN_AUTH_COMPAT_MODE` (set explicitly per environment; this repo's `.env.example` and Azure App Service settings should use `false`)
 - `ASK_JOHAN_DAILY_CAP` (default `100`)
 - `MAX_QUESTION_CHARS` (default `800`)
 - `GEOJOHAN_MAPS_API_KEY` (required for GeoJohan Street View + map)
@@ -110,11 +112,11 @@ npm run check:bundle
 ```
 
 Node runtime alignment:
-- expected major: `20` (`../.nvmrc`, CI, Render).
+- expected major: `24` (`../.nvmrc`, CI, Azure App Service).
 - if needed, run:
 
 ```bash
-nvm use 20
+nvm use 24
 ```
 
 Optional local preview:

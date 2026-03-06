@@ -3,7 +3,6 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CI_FILE="$ROOT_DIR/.github/workflows/ci.yml"
-RENDER_FILE="$ROOT_DIR/render.yaml"
 
 failures=0
 
@@ -30,17 +29,6 @@ else
       failures=$((failures + 1))
     fi
   done
-fi
-
-render_node_version="$(
-  sed -n '/key:[[:space:]]*NODE_VERSION/{n;s/.*value:[[:space:]]*//;s/"//g;p;q;}' "$RENDER_FILE"
-)"
-if [[ -z "$render_node_version" ]]; then
-  echo "[node-alignment] Could not find NODE_VERSION value in $RENDER_FILE"
-  failures=$((failures + 1))
-elif [[ "$render_node_version" != "$expected_major" ]]; then
-  echo "[node-alignment] Render NODE_VERSION mismatch: found $render_node_version, expected $expected_major"
-  failures=$((failures + 1))
 fi
 
 for package_file in "$ROOT_DIR/johanscv/package.json" "$ROOT_DIR/johanscv.dk-api/package.json"; do

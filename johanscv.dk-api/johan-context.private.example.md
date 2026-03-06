@@ -10,7 +10,7 @@ Recommended local file:
 - `johanscv.dk-api/johan-context.private.md` (gitignored)
 
 Recommended hosted option:
-- Render secret env var `JOHAN_CONTEXT_B64`
+- Azure App Service application setting `JOHAN_CONTEXT_B64`
 
 Include only information you want Ask Johan to use.
 

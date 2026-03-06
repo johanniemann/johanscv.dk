@@ -19,15 +19,14 @@
       "point3": "Use Ask Johan for quick context.",
       "continue": "Continue",
       "loggingIn": "Signing you in...",
-      "warmingUp": "Please wait while Johan is waking up. Give him ~ 20 seconds.",
-      "warmingUpAutoContinue": "Pro-tip: you can change between EN/DK mode at the bottom of the site",
+      "warmingUp": "Preparing secure access. Please wait a moment.",
       "passwordLabel": "Site access code",
       "passwordPlaceholder": "Enter site code",
       "passwordError": "Invalid access code. Please try again.",
       "passwordRateLimited": "Too many login attempts. Please wait a few minutes and try again.",
       "passwordForbidden": "This site origin is not allowed right now. Please contact Johan.",
       "passwordUnavailable": "Authentication service is temporarily unavailable. Please try again shortly.",
-      "passwordColdStart": "The service may still be waking up. Please wait a little and try again.",
+      "passwordColdStart": "Authentication took too long to respond. Please try again.",
       "passwordNetwork": "Could not reach authentication service. Check your connection and try again."
     },
     "ask": {
@@ -208,7 +207,7 @@
         "Frontend: Single-page app built with Vite and modular Vanilla JavaScript, styled with Tailwind + custom CSS.",
         "Core UX: Client-side routing, animated page transitions, and global theme/language state shared across pages.",
         "Feature modules: Ask Johan (AI chat), GeoJohan (Street View game), and SpotiJohan (music dashboard) are isolated in dedicated frontend modules.",
-        "Backend: Node.js + Express API on Render with layered modules for auth, Ask Johan, GeoJohan, and Spotify handlers.",
+        "Backend: Node.js + Express API on Azure App Service with layered modules for auth, Ask Johan, GeoJohan, and Spotify handlers.",
         "Data + AI flow: Ask Johan calls OpenAI on the server (model via env), while GeoJohan Maps keys and Spotify snapshot data are served from protected API endpoints.",
         "Security baseline: Access-code login -> JWT bearer token, strict CORS allowlist, JSON/body limits, per-IP rate limits, and daily usage caps."
       ],
@@ -235,15 +234,14 @@
       "point3": "Brug Ask Johan for hurtig kontekst.",
       "continue": "Fortsæt",
       "loggingIn": "Logger ind...",
-      "warmingUp": "Vent mens Johan vågner op. Giv ham ~ 20 sekunder.",
-      "warmingUpAutoContinue": "Pro-tip: du kan skifte mellem EN/DK mode nederst på siden",
+      "warmingUp": "Forbereder sikker adgang. Vent et øjeblik.",
       "passwordLabel": "Adgangskode til siden",
       "passwordPlaceholder": "Indtast adgangskode",
       "passwordError": "Ugyldig adgangskode. Prøv igen.",
       "passwordRateLimited": "For mange loginforsøg. Vent et par minutter og prøv igen.",
       "passwordForbidden": "Dette domæne er ikke tilladt lige nu. Kontakt Johan.",
       "passwordUnavailable": "Login-servicen er midlertidigt utilgængelig. Prøv igen om lidt.",
-      "passwordColdStart": "Servicen kan stadig være ved at vågne. Vent lidt og prøv igen.",
+      "passwordColdStart": "Autentificeringen svarede for langsomt. Prøv igen.",
       "passwordNetwork": "Kunne ikke nå login-servicen. Tjek din forbindelse og prøv igen."
     },
     "ask": {
@@ -424,7 +422,7 @@
         "Frontend: Single-page app bygget med Vite og modulær Vanilla JavaScript, stylet med Tailwind + custom CSS.",
         "Kerne-UX: Client-side routing, animerede sideovergange og global theme/language-state på tværs af sider.",
         "Feature-moduler: Ask Johan (AI-chat), GeoJohan (Street View-spil) og SpotiJohan (musikdashboard) ligger i adskilte frontend-moduler.",
-        "Backend: Node.js + Express API på Render med lagdelte moduler til auth, Ask Johan, GeoJohan og Spotify-handlers.",
+        "Backend: Node.js + Express API på Azure App Service med lagdelte moduler til auth, Ask Johan, GeoJohan og Spotify-handlers.",
         "Data + AI-flow: Ask Johan kalder OpenAI på serveren (model styres via env), mens GeoJohan Maps-nøgle og Spotify snapshot-data leveres fra beskyttede API-endpoints.",
         "Sikkerhedsgrundlag: Access-code login -> JWT bearer-token, stram CORS-allowlist, JSON/body-grænser, per-IP rate limits og daglige usage caps."
       ],

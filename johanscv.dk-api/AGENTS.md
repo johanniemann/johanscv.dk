@@ -1,7 +1,7 @@
 # AGENTS.md (API: johanscv.dk-api)
 
 ## Mission
-- Keep Ask Johan API stable, secure, and Render-compatible while making minimal, testable changes.
+- Keep Ask Johan API stable, secure, and Azure App Service-compatible while making minimal, testable changes.
 
 ## Discovery Rule (Mandatory)
 - Do not assume endpoints or env wiring from memory.
@@ -14,7 +14,7 @@
 
 ## Active API Facts
 - Runtime: Node + Express + OpenAI Responses API.
-- Runtime expectation is Node 20 (`../.nvmrc`, CI, Render `NODE_VERSION`).
+- Runtime expectation is Node 24 (`../.nvmrc`, CI, package engines, Azure App Service runtime).
 - Entrypoint: `index.js` -> `src/server/start-server.js`.
 - Core wiring:
   - app + middleware: `src/app/create-app.js`

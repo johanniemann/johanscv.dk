@@ -1,6 +1,11 @@
 # Ask Johan Operations Runbook
 
-Use this when Ask Johan fails in production (`johanscv.dk` + Render API).
+Use this when Ask Johan fails in production (`johanscv.dk` + Azure App Service API).
+
+Current production backend:
+- Resource group: `johanscv-rg-no`
+- Web App: `johanscv-api-johu0002-no`
+- Health URL: `https://johanscv-api-johu0002-no.azurewebsites.net/health`
 
 Current API structure (for navigation during incidents):
 - Entrypoint: `johanscv.dk-api/index.js` -> `johanscv.dk-api/src/server/start-server.js`
@@ -15,7 +20,7 @@ Checks:
 - Confirm API runtime access code is set:
   - `JOHANSCV_ACCESS_CODE` (primary)
   - `ASK_JOHAN_ACCESS_CODE` (deprecated fallback)
-- If access code is missing, `/auth/login` now fails closed with a server configuration error.
+- If access code is missing, `/auth/login` fails closed with a server configuration error.
 - In API mode, site access is validated server-side via `POST /auth/login`.
 - Confirm latest frontend is deployed to GitHub Pages.
 - Confirm browser local storage is refreshed:
@@ -24,18 +29,28 @@ Checks:
   - hard refresh page
 
 GeoJohan note:
-- GeoJohan maps key now comes from API endpoint `GET /api/geojohan/maps-key` (authenticated).
-- Confirm `GEOJOHAN_MAPS_API_KEY` is set in Render Environment Variables.
+- GeoJohan maps key comes from authenticated API endpoint `GET /api/geojohan/maps-key`.
+- Confirm `GEOJOHAN_MAPS_API_KEY` is set in Azure App Service application settings.
 - Legacy fallback env names are supported for recovery (`GOOGLE_MAPS_API_KEY`, `ASK_JOHAN_MAPS_API_KEY`), but migrate back to `GEOJOHAN_MAPS_API_KEY`.
 
-## 2) Repeated `401` in Render logs
+## 2) Repeated `401` in Azure logs
 
 Checks:
-- Confirm `JWT_SECRET` exists in Render Environment Variables.
+- Confirm `JWT_SECRET` exists in Azure App Service application settings.
 - Confirm frontend is using `/auth/login` and `Authorization: Bearer <token>`.
 - If you recently changed access code, expect users with stale local storage to fail until re-login.
 
-## 3) Repeated `429` in Render logs
+Azure views to use:
+- Portal: `Web App -> Monitoring -> Log stream`
+- CLI:
+
+```bash
+az webapp log tail \
+  --resource-group johanscv-rg-no \
+  --name johanscv-api-johu0002-no
+```
+
+## 3) Repeated `429` in Azure logs
 
 Checks:
 - Request rate cap: `ASK_JOHAN_RATE_LIMIT_MAX` / `ASK_JOHAN_RATE_LIMIT_WINDOW_MS`
@@ -57,7 +72,29 @@ Expected production origins:
 - `https://johanscv.dk`
 - `https://www.johanscv.dk`
 
-## 5) Quick local verification before deploy
+## 5) Azure App Service startup problems
+
+Checks:
+- `Always On` must be `On`.
+- `Health check path` must be `/health`.
+- Runtime must be `NODE|24-lts`.
+- `appCommandLine` / startup command should be blank.
+- `SCM_DO_BUILD_DURING_DEPLOYMENT` should stay `false` for the current self-contained zip deploy flow.
+
+Useful commands:
+
+```bash
+az webapp show \
+  --resource-group johanscv-rg-no \
+  --name johanscv-api-johu0002-no \
+  --query '{state:state, hostNames:hostNames}'
+
+az webapp restart \
+  --resource-group johanscv-rg-no \
+  --name johanscv-api-johu0002-no
+```
+
+## 6) Quick local verification before deploy
 
 From repo root:
 
@@ -67,17 +104,17 @@ From repo root:
 
 This runs frontend build, API tests, and an API smoke flow (`/health` + `/auth/login` + protected ask).
 
-## 6) Secret rotation playbook (high level)
+## 7) Secret rotation playbook (high level)
 
 Use this whenever a key/code may have leaked.
 
 1. Rotate secrets in providers first:
 - OpenAI API key (OpenAI dashboard).
 - Google Maps browser key (Google Cloud Console).
-- Render env vars: `JOHANSCV_ACCESS_CODE` (and remove `ASK_JOHAN_ACCESS_CODE` after migration), `JWT_SECRET`, and any context/env secrets.
+- Azure App Service application settings: `JOHANSCV_ACCESS_CODE` (and remove `ASK_JOHAN_ACCESS_CODE` after migration), `JWT_SECRET`, and any context/env secrets.
 
 2. Update runtime config:
-- Render: set new values in Environment Variables and redeploy.
+- Azure App Service: set new values in Application Settings and restart or redeploy.
 - Local dev: update `.env` / `.env.local` (never commit these files).
 
 3. Invalidate stale sessions:

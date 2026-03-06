@@ -8,13 +8,13 @@ SMOKE_PORT="${ASK_JOHAN_VERIFY_PORT:-8788}"
 HEALTH_URL="http://127.0.0.1:${SMOKE_PORT}/health"
 LOGIN_URL="http://127.0.0.1:${SMOKE_PORT}/auth/login"
 ASK_URL="http://127.0.0.1:${SMOKE_PORT}/api/ask-johan"
-EXPECTED_NODE_MAJOR=20
+EXPECTED_NODE_MAJOR=24
 
 NODE_VERSION_RAW="$(node -v 2>/dev/null || true)"
 if [[ "$NODE_VERSION_RAW" =~ ^v([0-9]+)\. ]]; then
   NODE_MAJOR="${BASH_REMATCH[1]}"
   if [[ "$NODE_MAJOR" != "$EXPECTED_NODE_MAJOR" ]]; then
-    echo "[verify] Warning: running Node ${NODE_VERSION_RAW}. Expected major ${EXPECTED_NODE_MAJOR} (see .nvmrc/CI/Render)."
+    echo "[verify] Warning: running Node ${NODE_VERSION_RAW}. Expected major ${EXPECTED_NODE_MAJOR} (see .nvmrc/CI/Azure deployment target)."
   fi
 else
   echo "[verify] Warning: unable to detect Node version."
