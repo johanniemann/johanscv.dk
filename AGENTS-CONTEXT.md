@@ -21,6 +21,7 @@ Frontend:
 3. Ask Johan feature: `johanscv/src/features/ask-johan/AskJohanWidget.js`
 4. GeoJohan feature: `johanscv/src/features/geojohan/GeoJohanPage.js`
 5. Spotify dashboard feature: `johanscv/src/features/spotify-dashboard/SpotifyDashboardSection.js`
+6. Updates signup feature: `johanscv/src/features/updates-signup/UpdatesSignupSection.js`
 6. GeoJohan config: `johanscv/src/features/geojohan/geojohanEnv.js`, `johanscv/src/features/geojohan/geojohanRounds.js`
 7. Resume page: `johanscv/src/pages/Resume.js`
 8. Base path behavior: `johanscv/vite.config.js`
@@ -38,7 +39,10 @@ API:
    - `johanscv.dk-api/src/features/ask-johan.js`
    - `johanscv.dk-api/src/features/geojohan.js`
    - `johanscv.dk-api/src/features/music-dashboard.js`
-7. Usage/rate-limit store: `johanscv.dk-api/src/server/usage-store.js`
+   - `johanscv.dk-api/src/features/updates-signup.js`
+   - `johanscv.dk-api/src/features/updates-broadcast.js`
+   - `johanscv.dk-api/src/features/resend-client.js`
+7. Usage/rate-limit/broadcast stores: `johanscv.dk-api/src/server/usage-store.js`, `johanscv.dk-api/src/server/updates-broadcast-store.js`
 8. Optional Spotify OAuth/session helpers: `johanscv.dk-api/src/features/spotify-auth.js`, `johanscv.dk-api/src/server/spotify-session-store.js`
 9. Shared HTTP/timeout helpers:
    - `johanscv.dk-api/src/shared/http.js`
@@ -49,8 +53,10 @@ API:
 Deploy/CI:
 1. Azure deployment doc: `johanscv.dk-api/DEPLOY_AZURE.md`
 2. CI gate: `.github/workflows/ci.yml`
-3. Repo verification: `scripts/verify.sh`
-4. Runtime target version: Node 24 (`.nvmrc`, CI, package engines, Azure App Service runtime).
+3. Frontend deploy workflow: `.github/workflows/deploy-frontend.yml`
+4. API deploy workflow: `.github/workflows/deploy-api.yml`
+5. Repo verification: `scripts/verify.sh`
+6. Runtime target version: Node 24 (`.nvmrc`, CI, package engines, Azure App Service runtime).
 
 ## Data Flow And Contracts
 
@@ -69,6 +75,16 @@ Spotify Dashboard flow:
 3. API returns top 4 tracks (past week), top 4 albums, and top 4 artists (past week).
 4. Frontend renders the dashboard with no user Spotify connect step.
 
+Updates signup flow:
+1. Frontend contact page posts `POST /api/updates-signup`.
+2. API syncs the email + topic preferences to Resend Contacts.
+3. First-time signups trigger a transactional welcome email.
+4. Unsubscribe links point to `GET /api/updates-signup/unsubscribe?token=...`.
+5. Protected deploy/workflow triggers post commit/diff metadata to `POST /api/updates-signup/auto-broadcast`.
+6. The API centrally generates, dedupes, logs, and sends update broadcasts via Resend.
+7. Frontend deploys via `cd johanscv && npm run deploy`, API deploys via `cd johanscv.dk-api && npm run deploy:azure`, and GitHub deploy workflows all reuse that same endpoint.
+8. Manual fallback still exists via `cd johanscv.dk-api && npm run updates:broadcast -- ...`.
+
 Quick contract reference:
 1. `POST /auth/login`
    - request: `{ "accessCode": "..." }`
@@ -86,6 +102,15 @@ Quick contract reference:
    - success: `{ "snapshotTimestamp": "...", "weeklyWindowStartTimestamp": "...", "periodFallbackUsed": boolean, "lists": { "tracks": [...], "albums": [...], "artists": [...] } }`
    - misconfigured source account: `{ "message": "..." }` with `503`
    - sparse data: `{ "message": "..." }` with `422`
+5. `POST /api/updates-signup`
+   - request: `{ "email": "...", "topics": ["projects" | "resume" | "interactive_services"], "locale": "en" | "dk", "source": "contact-page" }`
+   - success: `{ "ok": true, "message": "...", "subscribedTopics": [...] }`
+6. `GET /api/updates-signup/unsubscribe`
+   - request: signed `token` query parameter
+   - success: HTML confirmation page
+7. Internal updates automation:
+   - `POST /api/updates-signup/auto-broadcast` with automation token header
+   - `GET /api/updates-signup/broadcast-log` with automation token header
 
 Security controls in API:
 1. Strict CORS allowlist (`ALLOWED_ORIGINS`) plus localhost dev origin support.
@@ -128,7 +153,21 @@ Backend (`johanscv.dk-api/.env` or Azure App Service env):
    - `SPOTIFY_REQUEST_TIMEOUT_MS`
    - `SPOTIFY_RATE_LIMIT_WINDOW_MS`, `SPOTIFY_RATE_LIMIT_MAX`
    - `SPOTIFY_DAILY_CAP`
-11. Context source priority:
+11. Updates signup / Resend:
+   - `RESEND_API_KEY`
+   - `RESEND_UPDATES_FROM_EMAIL`
+   - optional `RESEND_UPDATES_REPLY_TO_EMAIL`
+   - `RESEND_UPDATES_SEGMENT_ID`
+   - `RESEND_TOPIC_PROJECTS_ID`
+   - `RESEND_TOPIC_RESUME_ID`
+   - `RESEND_TOPIC_INTERACTIVE_SERVICES_ID`
+   - `UPDATES_SIGNUP_RATE_LIMIT_WINDOW_MS`, `UPDATES_SIGNUP_RATE_LIMIT_MAX`, `UPDATES_SIGNUP_DAILY_CAP`
+   - deploy automation:
+     - `UPDATES_AUTOMATION_TOKEN`
+     - optional `UPDATES_AUTOMATION_ENDPOINT`
+     - optional `UPDATES_BROADCAST_LOCALE`, `UPDATES_BROADCAST_SITE_BASE_URL`
+     - optional `UPDATES_BROADCAST_STORE`, `UPDATES_BROADCAST_STATE_FILE`, `UPDATES_BROADCAST_LOG_LIMIT`
+12. Context source priority:
    - `JOHAN_CONTEXT_B64`
    - `JOHAN_CONTEXT`
    - `JOHAN_CONTEXT_FILE`

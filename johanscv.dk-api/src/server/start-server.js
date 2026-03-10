@@ -3,6 +3,7 @@ import { createApp } from '../app/create-app.js'
 import { readRuntimeConfig } from '../config/runtime-config.js'
 import { createUsageStore } from './usage-store.js'
 import { createSpotifySessionStore } from './spotify-session-store.js'
+import { createUpdatesBroadcastStore } from './updates-broadcast-store.js'
 
 export function startServer(env = process.env) {
   const config = readRuntimeConfig(env)
@@ -15,6 +16,14 @@ export function startServer(env = process.env) {
   })
   const spotifySessionStore = createSpotifySessionStore({
     sessionTtlMs: config.spotify.sessionTtlMs
+  })
+  const updatesBroadcastStore = createUpdatesBroadcastStore({
+    mode: config.updatesBroadcast.storeMode,
+    redisUrl: config.redisUrl,
+    redisKeyPrefix: config.redisKeyPrefix,
+    filePath: config.updatesBroadcast.stateFile,
+    logLimit: config.updatesBroadcast.logLimit,
+    logger: console
   })
 
   const app = createApp({
@@ -35,9 +44,12 @@ export function startServer(env = process.env) {
     rateLimitWindowMs: config.rateLimitWindowMs,
     requestTimeoutMs: config.requestTimeoutMs,
     usageStore,
+    updatesSignup: config.updatesSignup,
+    updatesBroadcast: config.updatesBroadcast,
     spotify: config.spotify,
     sessionSecret: config.sessionSecret,
-    spotifySessionStore
+    spotifySessionStore,
+    updatesBroadcastStore
   })
 
   const port = config.port
@@ -69,6 +81,15 @@ export function startServer(env = process.env) {
     if (config.geoJohanMapsApiKey) {
       console.log(`GeoJohan maps key source: ${config.geoJohanMapsApiKeySource}`)
     }
+    console.log(`Updates signup: ${config.updatesSignup.isConfigured ? 'configured' : 'not configured'}`)
+    console.log(`Updates welcome email: ${config.updatesSignup.welcomeEmailEnabled ? 'configured' : 'not configured'}`)
+    console.log(`Updates broadcast sending: ${config.updatesSignup.broadcastEnabled ? 'configured' : 'not configured'}`)
+    console.log(`Updates automation endpoint: ${config.updatesBroadcast.automationEnabled ? 'configured' : 'not configured'}`)
+    console.log(`Updates broadcast store: ${updatesBroadcastStore.mode}`)
+    console.log(
+      `Updates signup rate limit: ${config.updatesSignup.rateLimitMax} requests / ${config.updatesSignup.rateLimitWindowMs}ms`
+    )
+    console.log(`Updates signup daily cap: ${config.updatesSignup.dailyCapMax} requests/day/IP`)
     if (config.sessionSecretSource !== 'SESSION_SECRET') {
       console.warn(
         `SESSION_SECRET is not set. Using ${config.sessionSecretSource} as temporary session signing secret. Set SESSION_SECRET in production.`

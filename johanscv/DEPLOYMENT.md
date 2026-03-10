@@ -11,8 +11,10 @@ Deploy command:
 
 Build behavior:
 - Deploy flow enforces `CUSTOM_DOMAIN=true` and verifies `dist/index.html` uses `/assets/...`.
+- After a successful deploy, the active flow triggers the central API auto-broadcast endpoint for changed `projects`, `resume`, and `interactive services` topics when configured.
 - Vite base defaults to `/johanscv.dk/` for non-custom-domain builds.
 - `public/404.html` handles SPA refresh/deep-link fallback for GitHub Pages.
+- GitHub Actions can now publish the same `gh-pages` deploy path via `.github/workflows/deploy-frontend.yml`.
 
 ## Publish Steps
 
@@ -20,6 +22,7 @@ Build behavior:
 2. Run deploy from `johanscv/`:
    - `cd johanscv`
    - `npm run deploy`
+   - note: deploy auto-broadcast expects a clean `main` branch worktree if update mails should be generated from commit + diff
 3. For GitHub Pages base-path testing build (non-custom-domain):
    - `CUSTOM_DOMAIN=false npm run build`
 4. In GitHub repo settings:
@@ -30,6 +33,14 @@ Build behavior:
 5. Open:
    - `https://johanscv.dk/`
    - `https://johanniemann.github.io/johanscv.dk/`
+
+## GitHub Actions Deploy
+
+If you want deploys to run without a local machine:
+1. Keep the GitHub Pages source on the `gh-pages` branch.
+2. Add repo secret `UPDATES_AUTOMATION_TOKEN`.
+3. Push to `main`.
+4. `.github/workflows/deploy-frontend.yml` will build, publish `gh-pages`, and notify the API-side mail service.
 
 ## Ask Johan Mode
 

@@ -1,0 +1,65 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches: ['main']
+    paths:
+      - 'johanscv/**'
+      - '.github/workflows/deploy-frontend.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: deploy-frontend
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy GitHub Pages
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            johanscv/package-lock.json
+            johanscv.dk-api/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: johanscv
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: johanscv
+        run: npm run predeploy
+
+      - name: Publish gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./johanscv/dist
+          publish_branch: gh-pages
+          force_orphan: true
+
+      - name: Install API dependencies for updates notifier
+        if: ${{ secrets.UPDATES_AUTOMATION_TOKEN != '' }}
+        working-directory: johanscv.dk-api
+        run: npm ci
+
+      - name: Notify central updates service
+        if: ${{ secrets.UPDATES_AUTOMATION_TOKEN != '' }}
+        working-directory: johanscv.dk-api
+        env:
+          UPDATES_AUTOMATION_ENDPOINT: https://johanscv-api-johu0002-no.azurewebsites.net
+          UPDATES_AUTOMATION_TOKEN: ${{ secrets.UPDATES_AUTOMATION_TOKEN }}
+        run: npm run updates:auto-broadcast -- --source github-pages-workflow --site-base-url https://johanscv.dk

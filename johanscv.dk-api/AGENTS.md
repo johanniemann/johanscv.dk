@@ -24,6 +24,9 @@
   - auth: `src/features/auth.js`
   - ask-johan: `src/features/ask-johan.js`
   - geojohan maps-key: `src/features/geojohan.js`
+  - updates signup + unsubscribe: `src/features/updates-signup.js`
+  - central updates auto-broadcast + log handlers: `src/features/updates-broadcast.js`
+  - Resend contact/email/broadcast client: `src/features/resend-client.js`
   - optional spotify oauth helpers: `src/features/spotify-auth.js`
   - spotify music dashboard: `src/features/music-dashboard.js`
 - Public endpoints:
@@ -32,7 +35,12 @@
   - `POST /auth/login`
   - `GET /api/geojohan/maps-key`
   - `POST /api/ask-johan`
+  - `POST /api/updates-signup`
+  - `GET /api/updates-signup/unsubscribe`
   - `GET /api/music-dashboard/snapshot`
+- Internal protected endpoints:
+  - `POST /api/updates-signup/auto-broadcast`
+  - `GET /api/updates-signup/broadcast-log`
   - optional legacy helpers (not required by frontend dashboard UX):
     - `GET /api/spotify/login`
     - `GET /api/spotify/callback`
@@ -87,6 +95,20 @@
   - `SPOTIFY_REQUEST_TIMEOUT_MS`
   - `SPOTIFY_RATE_LIMIT_WINDOW_MS`, `SPOTIFY_RATE_LIMIT_MAX`
   - `SPOTIFY_DAILY_CAP`
+- Updates signup / Resend:
+  - `RESEND_API_KEY`
+  - `RESEND_UPDATES_FROM_EMAIL`
+  - optional `RESEND_UPDATES_REPLY_TO_EMAIL`
+  - `RESEND_UPDATES_SEGMENT_ID`
+  - `RESEND_TOPIC_PROJECTS_ID`
+  - `RESEND_TOPIC_RESUME_ID`
+  - `RESEND_TOPIC_INTERACTIVE_SERVICES_ID`
+  - `UPDATES_SIGNUP_RATE_LIMIT_WINDOW_MS`, `UPDATES_SIGNUP_RATE_LIMIT_MAX`, `UPDATES_SIGNUP_DAILY_CAP`
+  - central deploy automation:
+    - `UPDATES_AUTOMATION_TOKEN`
+    - optional `UPDATES_AUTOMATION_ENDPOINT`
+    - optional `UPDATES_BROADCAST_LOCALE`, `UPDATES_BROADCAST_SITE_BASE_URL`
+    - optional `UPDATES_BROADCAST_STORE`, `UPDATES_BROADCAST_STATE_FILE`, `UPDATES_BROADCAST_LOG_LIMIT`
 - Context source priority:
   - `JOHAN_CONTEXT_B64`
   - `JOHAN_CONTEXT`
@@ -97,6 +119,9 @@
 - Run from `johanscv.dk-api/`:
   - `npm test`
   - `npm audit --omit=dev`
+  - auto-generated post-deploy updates mail: `npm run updates:auto-broadcast`
+  - local Azure deploy helper + notifier: `npm run deploy:azure`
+  - optional manual override: `npm run updates:broadcast -- --topic ... --subject ... --what ... --why ... --link ...`
 - For runtime-sensitive changes, also run `npm run start` smoke checks for:
   - `/health`
   - `/auth/login`

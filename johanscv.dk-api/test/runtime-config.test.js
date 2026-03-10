@@ -110,3 +110,68 @@ test('readRuntimeConfig disables spotify dashboard when owner refresh token is m
   assert.equal(config.spotify.isConfigured, true)
   assert.equal(config.spotify.dashboardEnabled, false)
 })
+
+test('readRuntimeConfig parses updates signup config', () => {
+  const config = readRuntimeConfig(
+    buildEnv({
+      APP_BASE_URL: 'https://johanscv.dk',
+      REDIS_URL: 'redis://localhost:6379',
+      SESSION_SECRET: 'session-secret',
+      RESEND_API_KEY: 'resend-api-key',
+      RESEND_UPDATES_FROM_EMAIL: 'Johan <updates@johanscv.dk>',
+      RESEND_UPDATES_REPLY_TO_EMAIL: 'johan.niemann.husbjerg@gmail.com',
+      RESEND_UPDATES_SEGMENT_ID: 'segment-website-updates',
+      RESEND_TOPIC_PROJECTS_ID: 'topic-projects',
+      RESEND_TOPIC_RESUME_ID: 'topic-resume',
+      RESEND_TOPIC_INTERACTIVE_SERVICES_ID: 'topic-interactive',
+      UPDATES_AUTOMATION_TOKEN: 'updates-automation-secret',
+      UPDATES_BROADCAST_LOCALE: 'en',
+      UPDATES_BROADCAST_SITE_BASE_URL: 'https://www.johanscv.dk',
+      UPDATES_BROADCAST_LOG_LIMIT: '25',
+      UPDATES_SIGNUP_RATE_LIMIT_WINDOW_MS: '45000',
+      UPDATES_SIGNUP_RATE_LIMIT_MAX: '5',
+      UPDATES_SIGNUP_DAILY_CAP: '12'
+    })
+  )
+
+  assert.equal(config.updatesSignup.isConfigured, true)
+  assert.equal(config.updatesSignup.apiKey, 'resend-api-key')
+  assert.equal(config.updatesSignup.fromEmail, 'Johan <updates@johanscv.dk>')
+  assert.equal(config.updatesSignup.replyToEmail, 'johan.niemann.husbjerg@gmail.com')
+  assert.equal(config.updatesSignup.segmentId, 'segment-website-updates')
+  assert.equal(config.updatesSignup.siteBaseUrl, 'https://johanscv.dk')
+  assert.equal(config.updatesSignup.unsubscribeSecret, 'session-secret')
+  assert.equal(config.updatesSignup.welcomeEmailEnabled, true)
+  assert.equal(config.updatesSignup.broadcastEnabled, true)
+  assert.equal(config.updatesSignup.topicIds.projects, 'topic-projects')
+  assert.equal(config.updatesSignup.topicIds.resume, 'topic-resume')
+  assert.equal(config.updatesSignup.topicIds.interactive_services, 'topic-interactive')
+  assert.equal(config.updatesSignup.rateLimitWindowMs, 45000)
+  assert.equal(config.updatesSignup.rateLimitMax, 5)
+  assert.equal(config.updatesSignup.dailyCapMax, 12)
+  assert.equal(config.updatesBroadcast.automationEnabled, true)
+  assert.equal(config.updatesBroadcast.automationToken, 'updates-automation-secret')
+  assert.equal(config.updatesBroadcast.locale, 'en')
+  assert.equal(config.updatesBroadcast.siteBaseUrl, 'https://www.johanscv.dk')
+  assert.equal(config.updatesBroadcast.storeMode, 'redis')
+  assert.match(config.updatesBroadcast.stateFile, /\.updates-broadcast-state\.json$/)
+  assert.equal(config.updatesBroadcast.logLimit, 25)
+})
+
+test('readRuntimeConfig marks updates signup unconfigured when topic ids are incomplete', () => {
+  const config = readRuntimeConfig(
+    buildEnv({
+      RESEND_API_KEY: 'resend-api-key',
+      RESEND_UPDATES_FROM_EMAIL: 'Johan <updates@johanscv.dk>',
+      RESEND_TOPIC_PROJECTS_ID: 'topic-projects',
+      RESEND_TOPIC_RESUME_ID: '',
+      RESEND_TOPIC_INTERACTIVE_SERVICES_ID: 'topic-interactive'
+    })
+  )
+
+  assert.equal(config.updatesSignup.isConfigured, false)
+  assert.equal(config.updatesSignup.welcomeEmailEnabled, false)
+  assert.equal(config.updatesSignup.broadcastEnabled, false)
+  assert.equal(config.updatesBroadcast.storeMode, 'file')
+  assert.equal(config.updatesBroadcast.automationEnabled, false)
+})

@@ -30,6 +30,9 @@ Required application settings:
 - `ASK_JOHAN_TIMEOUT_MS=15000`
 - `ASK_JOHAN_RATE_LIMIT_WINDOW_MS=60000`
 - `ASK_JOHAN_RATE_LIMIT_MAX=30`
+- `UPDATES_SIGNUP_RATE_LIMIT_WINDOW_MS=60000`
+- `UPDATES_SIGNUP_RATE_LIMIT_MAX=8`
+- `UPDATES_SIGNUP_DAILY_CAP=20`
 - `APP_BASE_URL=https://johanscv.dk`
 - `SPOTIFY_SCOPES=user-read-recently-played`
 - `SPOTIFY_SESSION_COOKIE_NAME=johanscv_spotify_sid`
@@ -45,6 +48,7 @@ Required application settings:
 - `ASK_JOHAN_USAGE_STORE=memory`
 - `ASK_JOHAN_AUTH_COMPAT_MODE=false`
 - `ASK_JOHAN_JWT_TTL=7d`
+- `UPDATES_AUTOMATION_TOKEN=<shared-secret-for-deploy-triggers>`
 
 Secret application settings that must remain configured in Azure only:
 - `OPENAI_API_KEY`
@@ -53,10 +57,34 @@ Secret application settings that must remain configured in Azure only:
 - `SESSION_SECRET`
 - `GEOJOHAN_MAPS_API_KEY`
 - `JOHAN_CONTEXT_B64`
+- `RESEND_API_KEY`
+- `RESEND_UPDATES_FROM_EMAIL`
+- optional: `RESEND_UPDATES_REPLY_TO_EMAIL`
+- `RESEND_UPDATES_SEGMENT_ID`
+- `RESEND_TOPIC_PROJECTS_ID`
+- `RESEND_TOPIC_RESUME_ID`
+- `RESEND_TOPIC_INTERACTIVE_SERVICES_ID`
+- optional but recommended for shared broadcast state/logging: `REDIS_URL`
 - `SPOTIFY_CLIENT_ID`
 - `SPOTIFY_CLIENT_SECRET`
 - `SPOTIFY_OWNER_REFRESH_TOKEN`
 - optional: `SPOTIFY_REDIRECT_URI`, `REDIS_URL`
+
+Resend setup required for updates signup:
+- create the three Topics in Resend as `opt_out`
+- create one Segment for all website-update subscribers and store its ID in `RESEND_UPDATES_SEGMENT_ID`
+- wire the matching topic IDs into the Azure application settings above
+- configure `RESEND_UPDATES_FROM_EMAIL` with a verified sender address/domain
+- verify the sender domain in Resend before sending broadcasts from production
+- keep `UPDATES_AUTOMATION_TOKEN` identical across Azure App Service and the GitHub repo secret of the same name
+
+Mail behavior:
+- first-time signup sends a welcome email automatically from the API
+- protected deploy/workflow triggers call `POST /api/updates-signup/auto-broadcast` on the API
+- the API centrally generates the update mail from commit/diff metadata, dedupes by commit/topic, logs the result, and sends via Resend
+- frontend deploys via `cd johanscv && npm run deploy` automatically try to notify that endpoint from the latest commit/diff
+- API deploys via `cd johanscv.dk-api && npm run deploy:azure` deploy and then notify that same endpoint
+- manual fallback still exists with `npm run updates:broadcast -- ...` from `johanscv.dk-api/`
 
 Do not set `PORT` in Azure App Service.
 
@@ -114,6 +142,7 @@ curl -i https://johanscv-api-johu0002-no.azurewebsites.net/
 Expected:
 - `/health` returns `200` with `{"ok":true}`
 - `/` returns the endpoint listing JSON
+- `POST /api/updates-signup/auto-broadcast` is available when `UPDATES_AUTOMATION_TOKEN` is configured
 
 For live App Service logs:
 
@@ -139,3 +168,38 @@ Redeploy frontend after API changes:
 cd /Users/johanniemannhusbjerg/Desktop/johanscv.dk/WEBSITE/johanscv
 CUSTOM_DOMAIN=true npm run deploy
 ```
+
+## Local One-Command Deploy Helper
+
+For the existing local Azure CLI path, use:
+
+```bash
+cd /Users/johanniemannhusbjerg/Desktop/johanscv.dk/WEBSITE/johanscv.dk-api
+npm run deploy:azure
+```
+
+It will:
+1. run `npm ci`
+2. build the deployment zip
+3. deploy Azure App Service
+4. notify the central updates mail endpoint
+
+Optional local env overrides:
+- `AZURE_RESOURCE_GROUP`
+- `AZURE_WEBAPP_NAME`
+- `AZURE_DEPLOY_ZIP_PATH`
+- `UPDATES_AUTO_BROADCAST=false` to skip mail notification
+
+## GitHub Actions Deploy
+
+The repo now also contains `.github/workflows/deploy-api.yml`.
+
+Required GitHub secrets:
+- `AZURE_WEBAPP_PUBLISH_PROFILE`
+- `UPDATES_AUTOMATION_TOKEN`
+
+Behavior:
+1. Push to `main`
+2. Workflow packages `johanscv.dk-api/`
+3. Workflow deploys Azure App Service
+4. Workflow notifies the same central updates mail endpoint

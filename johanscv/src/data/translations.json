@@ -79,7 +79,35 @@
       "copyPhone": "Copy phonenumber",
       "connectLinkedin": "Connect on LinkedIn",
       "connectedLinkedin": "Connected",
-      "copied": "Copied"
+      "copied": "Copied",
+      "updates": {
+        "title": "Signup for updates",
+        "intro": "Get a short email when I publish a new project, update my Resume, or improve an interactive service.",
+        "promiseLabel": "Each email includes",
+        "promiseItems": ["What changed", "Why it matters", "Direct link"],
+        "cadence": "Only when something changes. No weekly filler.",
+        "topicsLabel": "Choose updates",
+        "emailAriaLabel": "Email address",
+        "placeholder": "email@example.com",
+        "button": "Sign up",
+        "note": "Unsubscribe any time.",
+        "success": "You're signed up for updates.",
+        "topics": {
+          "projects": "Projects",
+          "resume": "Resume",
+          "interactive_services": "Interactive services"
+        },
+        "topicDescriptions": {
+          "projects": "New case study, launch, or major iteration",
+          "resume": "New role, skill, certification, or experience",
+          "interactive_services": "New Ask Johan, GeoJohan, or SpotiJohan improvements"
+        },
+        "errors": {
+          "invalidEmail": "Enter a valid email address.",
+          "noTopics": "Select at least one update type.",
+          "generic": "Unable to sign you up right now. Please try again shortly."
+        }
+      }
     },
     "playground": {
       "title": "Playground",
@@ -294,7 +322,35 @@
       "copyPhone": "Kopiér telefonnummer",
       "connectLinkedin": "Forbind på LinkedIn",
       "connectedLinkedin": "Forbundet",
-      "copied": "Kopieret"
+      "copied": "Kopieret",
+      "updates": {
+        "title": "Tilmeld dig opdateringer",
+        "intro": "Få en kort e-mail, når jeg udgiver et nyt projekt, opdaterer mit CV eller forbedrer en interaktiv service.",
+        "promiseLabel": "Hver mail indeholder",
+        "promiseItems": ["Hvad der er ændret", "Hvorfor det er relevant", "Direkte link"],
+        "cadence": "Kun når noget faktisk ændrer sig. Ingen fyld.",
+        "topicsLabel": "Vælg opdateringer",
+        "emailAriaLabel": "E-mailadresse",
+        "placeholder": "email@example.com",
+        "button": "Tilmeld",
+        "note": "Du kan altid afmelde dig igen.",
+        "success": "Du er nu tilmeldt opdateringer.",
+        "topics": {
+          "projects": "Projekter",
+          "resume": "Resume",
+          "interactive_services": "Interaktive services"
+        },
+        "topicDescriptions": {
+          "projects": "Nyt case study, lancering eller større iteration",
+          "resume": "Ny rolle, kompetence, certificering eller erfaring",
+          "interactive_services": "Nye forbedringer i Ask Johan, GeoJohan eller SpotiJohan"
+        },
+        "errors": {
+          "invalidEmail": "Indtast en gyldig e-mailadresse.",
+          "noTopics": "Vælg mindst én type opdatering.",
+          "generic": "Det var ikke muligt at tilmelde dig lige nu. Prøv igen om lidt."
+        }
+      }
     },
     "playground": {
       "title": "Playground",

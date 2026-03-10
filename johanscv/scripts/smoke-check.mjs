@@ -35,6 +35,22 @@ const checks = [
     ]
   },
   {
+    file: 'src/pages/Contact.js',
+    contains: [
+      "import { UpdatesSignupSection, bindUpdatesSignup } from '../features/updates-signup/UpdatesSignupSection.js'",
+      '${UpdatesSignupSection({ t })}',
+      'bindUpdatesSignup({ t, language })'
+    ]
+  },
+  {
+    file: 'src/features/updates-signup/UpdatesSignupSection.js',
+    contains: [
+      "const API_SIGNUP_PATH = '/api/updates-signup'",
+      "name=\"updates-signup-topic\"",
+      "source: 'contact-page'"
+    ]
+  },
+  {
     file: 'src/features/geojohan/GeoJohanPage.js',
     contains: ['new maps.StreetViewPanorama', "document.querySelector('#geojohan-map')", 'scoreDistance(']
   },

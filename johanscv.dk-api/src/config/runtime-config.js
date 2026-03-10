@@ -21,11 +21,30 @@ export function readRuntimeConfig(env = process.env) {
   const authFailureMax = parsePositiveInt(env.ASK_JOHAN_AUTH_FAIL_MAX, 10)
   const authCompatMode = parseBoolean(env.ASK_JOHAN_AUTH_COMPAT_MODE, false)
   const jwtTtl = (env.ASK_JOHAN_JWT_TTL || '7d').trim() || '7d'
+  const updatesSignupRateLimitWindowMs = parsePositiveInt(env.UPDATES_SIGNUP_RATE_LIMIT_WINDOW_MS, 60000)
+  const updatesSignupRateLimitMax = parsePositiveInt(env.UPDATES_SIGNUP_RATE_LIMIT_MAX, 8)
+  const updatesSignupDailyCapMax = parsePositiveInt(env.UPDATES_SIGNUP_DAILY_CAP, 20)
+  const resendApiKey = String(env.RESEND_API_KEY || '').trim()
+  const resendUpdatesFromEmail = String(env.RESEND_UPDATES_FROM_EMAIL || '').trim()
+  const resendUpdatesReplyToEmail = String(env.RESEND_UPDATES_REPLY_TO_EMAIL || '').trim()
+  const resendUpdatesSegmentId = String(env.RESEND_UPDATES_SEGMENT_ID || '').trim()
+  const resendTopicProjectsId = String(env.RESEND_TOPIC_PROJECTS_ID || '').trim()
+  const resendTopicResumeId = String(env.RESEND_TOPIC_RESUME_ID || '').trim()
+  const resendTopicInteractiveServicesId = String(env.RESEND_TOPIC_INTERACTIVE_SERVICES_ID || '').trim()
   const { geoJohanMapsApiKey, geoJohanMapsApiKeySource } = resolveGeoJohanMapsApiKey(env)
   const usageStoreMode = String(env.ASK_JOHAN_USAGE_STORE || 'memory').trim().toLowerCase()
   const redisUrl = String(env.REDIS_URL || '').trim()
   const redisKeyPrefix = String(env.ASK_JOHAN_REDIS_KEY_PREFIX || 'ask-johan').trim() || 'ask-johan'
   const isProduction = String(env.NODE_ENV || '').trim().toLowerCase() === 'production'
+  const updatesBroadcastLocale = env.UPDATES_BROADCAST_LOCALE === 'en' ? 'en' : 'dk'
+  const updatesBroadcastSiteBaseUrl = normalizeHttpUrl(env.UPDATES_BROADCAST_SITE_BASE_URL)
+  const updatesAutomationToken = String(env.UPDATES_AUTOMATION_TOKEN || '').trim()
+  const updatesBroadcastStoreMode = resolveUpdatesBroadcastStoreMode(env.UPDATES_BROADCAST_STORE, redisUrl)
+  const updatesBroadcastStateFile = resolveUpdatesBroadcastStateFile(env.UPDATES_BROADCAST_STATE_FILE, env.HOME, {
+    apiRootDir: API_ROOT_DIR,
+    isProduction
+  })
+  const updatesBroadcastLogLimit = parsePositiveInt(env.UPDATES_BROADCAST_LOG_LIMIT, 100)
   const spotifyClientId = String(env.SPOTIFY_CLIENT_ID || '').trim()
   const spotifyClientSecret = String(env.SPOTIFY_CLIENT_SECRET || '').trim()
   const spotifyRedirectUri = normalizeHttpUrl(env.SPOTIFY_REDIRECT_URI)
@@ -54,6 +73,9 @@ export function readRuntimeConfig(env = process.env) {
   const apiKey = env.OPENAI_API_KEY
   const spotifyIsConfigured = Boolean(spotifyClientId && spotifyRedirectUri && appBaseUrl)
   const spotifyDashboardEnabled = Boolean(spotifyClientId && spotifyOwnerRefreshToken)
+  const updatesSignupIsConfigured = Boolean(
+    resendApiKey && resendTopicProjectsId && resendTopicResumeId && resendTopicInteractiveServicesId
+  )
 
   return {
     port: env.PORT || 8787,
@@ -79,6 +101,34 @@ export function readRuntimeConfig(env = process.env) {
     jwtSecretSource,
     sessionSecret,
     sessionSecretSource,
+    updatesSignup: {
+      isConfigured: updatesSignupIsConfigured,
+      apiKey: resendApiKey,
+      fromEmail: resendUpdatesFromEmail,
+      replyToEmail: resendUpdatesReplyToEmail,
+      segmentId: resendUpdatesSegmentId,
+      siteBaseUrl: appBaseUrl,
+      unsubscribeSecret: sessionSecret,
+      welcomeEmailEnabled: Boolean(updatesSignupIsConfigured && resendUpdatesFromEmail),
+      broadcastEnabled: Boolean(updatesSignupIsConfigured && resendUpdatesFromEmail && resendUpdatesSegmentId),
+      topicIds: {
+        projects: resendTopicProjectsId,
+        resume: resendTopicResumeId,
+        interactive_services: resendTopicInteractiveServicesId
+      },
+      rateLimitWindowMs: updatesSignupRateLimitWindowMs,
+      rateLimitMax: updatesSignupRateLimitMax,
+      dailyCapMax: updatesSignupDailyCapMax
+    },
+    updatesBroadcast: {
+      automationEnabled: Boolean(updatesAutomationToken),
+      automationToken: updatesAutomationToken,
+      locale: updatesBroadcastLocale,
+      siteBaseUrl: updatesBroadcastSiteBaseUrl || appBaseUrl || 'https://johanscv.dk',
+      storeMode: updatesBroadcastStoreMode,
+      stateFile: updatesBroadcastStateFile,
+      logLimit: updatesBroadcastLogLimit
+    },
     allowedOrigins,
     apiKey,
     spotify: {
@@ -208,6 +258,28 @@ function parseCookieName(rawValue, fallback) {
   if (!value) return fallback
   if (!/^[A-Za-z0-9._-]+$/.test(value)) return fallback
   return value
+}
+
+function resolveUpdatesBroadcastStoreMode(rawValue, redisUrl) {
+  const normalized = String(rawValue || '').trim().toLowerCase()
+  if (normalized === 'memory' || normalized === 'file' || normalized === 'redis') {
+    return normalized
+  }
+  return redisUrl ? 'redis' : 'file'
+}
+
+function resolveUpdatesBroadcastStateFile(rawValue, homeDir, { apiRootDir, isProduction }) {
+  const explicitPath = String(rawValue || '').trim()
+  if (explicitPath) {
+    return path.isAbsolute(explicitPath) ? explicitPath : path.resolve(apiRootDir, explicitPath)
+  }
+
+  const normalizedHomeDir = String(homeDir || '').trim()
+  if (isProduction && normalizedHomeDir) {
+    return path.resolve(normalizedHomeDir, 'site', 'data', 'updates-broadcast-state.json')
+  }
+
+  return path.resolve(apiRootDir, '.updates-broadcast-state.json')
 }
 
 function resolveGeoJohanMapsApiKey(env = process.env) {

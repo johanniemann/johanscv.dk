@@ -4,9 +4,16 @@ import express from 'express'
 import helmet from 'helmet'
 import { createUsageStore } from '../server/usage-store.js'
 import { createSpotifySessionStore } from '../server/spotify-session-store.js'
+import { createUpdatesBroadcastStore } from '../server/updates-broadcast-store.js'
 import { createAuthLoginHandler, AUTH_FAILURE_MESSAGE } from '../features/auth.js'
 import { createAskJohanHandler, createAskJohanRateLimiter } from '../features/ask-johan.js'
 import { createGeoJohanMapsKeyHandler } from '../features/geojohan.js'
+import {
+  createUpdatesAutoBroadcastHandler,
+  createUpdatesBroadcastLogHandler,
+  createUpdatesBroadcastService
+} from '../features/updates-broadcast.js'
+import { createResendUpdatesSignupService } from '../features/resend-client.js'
 import { createSpotifySessionService } from '../features/spotify-session.js'
 import {
   createSpotifyLoginHandler,
@@ -14,8 +21,14 @@ import {
   createSpotifyLogoutHandler
 } from '../features/spotify-auth.js'
 import { createMusicDashboardSnapshotHandler, createMusicDashboardSnapshotRateLimiter } from '../features/music-dashboard.js'
+import {
+  createUpdatesSignupHandler,
+  createUpdatesSignupRateLimiter,
+  createUpdatesUnsubscribeHandler
+} from '../features/updates-signup.js'
 import { LOCAL_ORIGIN_RE, DEFAULT_ALLOWED_ORIGINS, parseAllowedOrigins } from './origins.js'
 import { sendAnswer } from '../shared/http.js'
+import { withTimeout } from '../shared/with-timeout.js'
 
 const RATE_LIMIT_STORE_UNAVAILABLE_MESSAGE = 'Rate-limit store unavailable. Please try again shortly.'
 
@@ -37,11 +50,14 @@ export function createApp({
   rateLimitMax = 30,
   rateLimitWindowMs = 60_000,
   requestTimeoutMs = 15_000,
+  updatesSignup = {},
   usageStore = createUsageStore(),
   fetchImpl = fetch,
   spotify = {},
   sessionSecret = '',
-  spotifySessionStore = createSpotifySessionStore()
+  spotifySessionStore = createSpotifySessionStore(),
+  updatesBroadcast = {},
+  updatesBroadcastStore = createUpdatesBroadcastStore()
 } = {}) {
   const app = express()
   const allowedOriginSet = new Set(allowedOrigins.filter(Boolean))
@@ -53,6 +69,8 @@ export function createApp({
   const tokenTtl = typeof jwtTtl === 'string' && jwtTtl.trim() ? jwtTtl.trim() : '7d'
   const assistantInstructions = buildAssistantInstructions(johanContext)
   const spotifyConfig = normalizeSpotifyConfig(spotify)
+  const updatesSignupConfig = normalizeUpdatesSignupConfig(updatesSignup)
+  const updatesBroadcastConfig = normalizeUpdatesBroadcastConfig(updatesBroadcast)
   const isProduction = String(process.env.NODE_ENV || '').trim().toLowerCase() === 'production'
   const spotifyCookieSecret = String(sessionSecret || jwtSecret || crypto.randomBytes(32).toString('hex'))
   const spotifySessionService = createSpotifySessionService({
@@ -61,6 +79,26 @@ export function createApp({
     cookieSecret: spotifyCookieSecret,
     sessionTtlMs: spotifyConfig.sessionTtlMs,
     isProduction
+  })
+  const updatesSignupService = createResendUpdatesSignupService({
+    apiKey: updatesSignupConfig.apiKey,
+    fromEmail: updatesSignupConfig.fromEmail,
+    replyToEmail: updatesSignupConfig.replyToEmail,
+    segmentId: updatesSignupConfig.segmentId,
+    siteBaseUrl: updatesSignupConfig.siteBaseUrl,
+    topicIds: updatesSignupConfig.topicIds,
+    fetchImpl
+  })
+  const updatesBroadcastService = createUpdatesBroadcastService({
+    broadcastStore: updatesBroadcastStore,
+    locale: updatesBroadcastConfig.locale,
+    logger,
+    model,
+    openAiClient: client,
+    requestTimeoutMs,
+    siteBaseUrl: updatesBroadcastConfig.siteBaseUrl,
+    updatesSignupService,
+    withTimeout
   })
 
   const usageStoreError = (scope, error, res) => {
@@ -114,6 +152,14 @@ export function createApp({
       return await usageStore.takeDailyQuota(`spotify-dashboard:${requestIp}`, spotifyConfig.dailyCapMax)
     } catch (error) {
       usageStoreError('spotify daily quota', error, res)
+      return null
+    }
+  }
+  const takeUpdatesSignupDailyQuotaOrFail = async (requestIp, res) => {
+    try {
+      return await usageStore.takeDailyQuota(`updates-signup:${requestIp}`, updatesSignupConfig.dailyCapMax)
+    } catch (error) {
+      usageStoreError('updates signup daily quota', error, res)
       return null
     }
   }
@@ -177,6 +223,10 @@ export function createApp({
         '/auth/login',
         '/api/geojohan/maps-key',
         '/api/ask-johan',
+        '/api/updates-signup',
+        '/api/updates-signup/unsubscribe',
+        '/api/updates-signup/auto-broadcast',
+        '/api/updates-signup/broadcast-log',
         '/api/spotify/login',
         '/api/spotify/callback',
         '/api/spotify/logout',
@@ -225,6 +275,58 @@ export function createApp({
       dailyCapMax,
       authSecurity,
       takeDailyQuotaOrFail,
+      logger
+    })
+  )
+
+  const updatesSignupLimiter = createUpdatesSignupRateLimiter({
+    windowMs: updatesSignupConfig.rateLimitWindowMs,
+    max: updatesSignupConfig.rateLimitMax
+  })
+  app.post(
+    '/api/updates-signup',
+    updatesSignupLimiter,
+    createUpdatesSignupHandler({
+      updatesSignupService,
+      dailyCapMax: updatesSignupConfig.dailyCapMax,
+      takeDailyQuotaOrFail: takeUpdatesSignupDailyQuotaOrFail,
+      unsubscribeSecret: updatesSignupConfig.unsubscribeSecret,
+      logger
+    })
+  )
+
+  app.get(
+    '/api/updates-signup/unsubscribe',
+    createUpdatesUnsubscribeHandler({
+      updatesSignupService,
+      unsubscribeSecret: updatesSignupConfig.unsubscribeSecret,
+      logger
+    })
+  )
+
+  app.post(
+    '/api/updates-signup/unsubscribe',
+    createUpdatesUnsubscribeHandler({
+      updatesSignupService,
+      unsubscribeSecret: updatesSignupConfig.unsubscribeSecret,
+      logger
+    })
+  )
+
+  app.post(
+    '/api/updates-signup/auto-broadcast',
+    createUpdatesAutoBroadcastHandler({
+      automationToken: updatesBroadcastConfig.automationToken,
+      updatesBroadcastService,
+      logger
+    })
+  )
+
+  app.get(
+    '/api/updates-signup/broadcast-log',
+    createUpdatesBroadcastLogHandler({
+      automationToken: updatesBroadcastConfig.automationToken,
+      broadcastStore: updatesBroadcastStore,
       logger
     })
   )
@@ -319,5 +421,64 @@ function normalizeSpotifyConfig(rawSpotify) {
 
   normalized.isConfigured = Boolean(normalized.clientId && normalized.redirectUri && normalized.appBaseUrl)
   normalized.dashboardEnabled = Boolean(normalized.clientId && normalized.ownerRefreshToken)
+  return normalized
+}
+
+function normalizeUpdatesSignupConfig(rawUpdatesSignup) {
+  const defaults = {
+    apiKey: '',
+    fromEmail: '',
+    replyToEmail: '',
+    segmentId: '',
+    siteBaseUrl: '',
+    unsubscribeSecret: '',
+    topicIds: {
+      projects: '',
+      resume: '',
+      interactive_services: ''
+    },
+    rateLimitWindowMs: 60_000,
+    rateLimitMax: 8,
+    dailyCapMax: 20
+  }
+
+  const source = rawUpdatesSignup && typeof rawUpdatesSignup === 'object' ? rawUpdatesSignup : {}
+  const topicIds = source.topicIds && typeof source.topicIds === 'object' ? source.topicIds : {}
+  const normalized = {
+    ...defaults,
+    ...source,
+    topicIds: {
+      ...defaults.topicIds,
+      projects: String(topicIds.projects || '').trim(),
+      resume: String(topicIds.resume || '').trim(),
+      interactive_services: String(topicIds.interactive_services || '').trim()
+    }
+  }
+
+  normalized.apiKey = String(normalized.apiKey || '').trim()
+  normalized.fromEmail = String(normalized.fromEmail || '').trim()
+  normalized.replyToEmail = String(normalized.replyToEmail || '').trim()
+  normalized.segmentId = String(normalized.segmentId || '').trim()
+  normalized.siteBaseUrl = String(normalized.siteBaseUrl || '').trim()
+  normalized.unsubscribeSecret = String(normalized.unsubscribeSecret || '').trim()
+
+  return normalized
+}
+
+function normalizeUpdatesBroadcastConfig(rawUpdatesBroadcast) {
+  const defaults = {
+    automationToken: '',
+    locale: 'dk',
+    siteBaseUrl: 'https://johanscv.dk'
+  }
+
+  const normalized = {
+    ...defaults,
+    ...(rawUpdatesBroadcast && typeof rawUpdatesBroadcast === 'object' ? rawUpdatesBroadcast : {})
+  }
+
+  normalized.automationToken = String(normalized.automationToken || '').trim()
+  normalized.locale = normalized.locale === 'en' ? 'en' : 'dk'
+  normalized.siteBaseUrl = String(normalized.siteBaseUrl || '').trim() || defaults.siteBaseUrl
   return normalized
 }

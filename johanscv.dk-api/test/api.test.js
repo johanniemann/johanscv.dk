@@ -24,6 +24,10 @@ test('GET / returns service metadata', async () => {
     '/auth/login',
     '/api/geojohan/maps-key',
     '/api/ask-johan',
+    '/api/updates-signup',
+    '/api/updates-signup/unsubscribe',
+    '/api/updates-signup/auto-broadcast',
+    '/api/updates-signup/broadcast-log',
     '/api/spotify/login',
     '/api/spotify/callback',
     '/api/spotify/logout',
@@ -299,6 +303,354 @@ test('POST /api/ask-johan rejects non-allowlisted origin', async () => {
 
   assert.equal(response.status, 403)
   assert.equal(response.body.answer, 'Origin is not allowed.')
+})
+
+test('POST /api/updates-signup validates content type', async () => {
+  const app = createApp({
+    updatesSignup: updatesSignupConfig(),
+    fetchImpl: createFakeUpdatesSignupFetch({ existingContact: false })
+  })
+  const response = await request(app).post('/api/updates-signup').type('form').send({ email: 'user@example.com' })
+
+  assert.equal(response.status, 415)
+  assert.equal(response.body.answer, 'Unsupported content type.')
+})
+
+test('POST /api/updates-signup rejects invalid email', async () => {
+  const app = createApp({
+    updatesSignup: updatesSignupConfig(),
+    fetchImpl: createFakeUpdatesSignupFetch({ existingContact: false })
+  })
+  const response = await request(app).post('/api/updates-signup').send({
+    email: 'not-an-email',
+    topics: ['projects']
+  })
+
+  assert.equal(response.status, 400)
+  assert.equal(response.body.answer, 'Enter a valid email address.')
+})
+
+test('POST /api/updates-signup rejects empty topic selection', async () => {
+  const app = createApp({
+    updatesSignup: updatesSignupConfig(),
+    fetchImpl: createFakeUpdatesSignupFetch({ existingContact: false })
+  })
+  const response = await request(app).post('/api/updates-signup').send({
+    email: 'user@example.com',
+    topics: []
+  })
+
+  assert.equal(response.status, 400)
+  assert.equal(response.body.answer, 'Select at least one update type.')
+})
+
+test('POST /api/updates-signup rejects invalid topic keys', async () => {
+  const app = createApp({
+    updatesSignup: updatesSignupConfig(),
+    fetchImpl: createFakeUpdatesSignupFetch({ existingContact: false })
+  })
+  const response = await request(app).post('/api/updates-signup').send({
+    email: 'user@example.com',
+    topics: ['projects', 'unknown']
+  })
+
+  assert.equal(response.status, 400)
+  assert.equal(response.body.answer, 'Select valid update types.')
+})
+
+test('POST /api/updates-signup creates a new contact for a new email', async () => {
+  const resendFetch = createFakeUpdatesSignupFetch({ existingContact: false })
+  const app = createApp({
+    updatesSignup: updatesSignupConfig(),
+    fetchImpl: resendFetch,
+    sessionSecret: 'session-secret'
+  })
+
+  const response = await request(app).post('/api/updates-signup').send({
+    email: 'user@example.com',
+    topics: ['projects', 'resume']
+  })
+
+  assert.equal(response.status, 201)
+  assert.equal(response.body.ok, true)
+  assert.deepEqual(response.body.subscribedTopics, ['projects', 'resume'])
+  assert.equal(resendFetch.stats.updateContactCalls, 1)
+  assert.equal(resendFetch.stats.createContactCalls, 1)
+  assert.equal(resendFetch.stats.patchTopicCalls, 0)
+  assert.equal(resendFetch.stats.ensureSegmentCalls, 0)
+  assert.equal(resendFetch.stats.sendWelcomeEmailCalls, 1)
+  assert.match(resendFetch.stats.lastWelcomeEmailBody.subject, /Welcome/i)
+  assert.match(resendFetch.stats.lastWelcomeEmailBody.text, /Direct link:/)
+  assert.match(resendFetch.stats.lastWelcomeEmailBody.headers['List-Unsubscribe'], /\/api\/updates-signup\/unsubscribe\?token=/)
+  assert.deepEqual(resendFetch.stats.lastCreateBody.topics, [
+    { id: 'topic-projects', subscription: 'opt_in' },
+    { id: 'topic-resume', subscription: 'opt_in' },
+    { id: 'topic-interactive', subscription: 'opt_out' }
+  ])
+  assert.deepEqual(resendFetch.stats.lastCreateBody.segments, [{ id: 'segment-updates' }])
+})
+
+test('POST /api/updates-signup updates topic preferences for an existing contact', async () => {
+  const resendFetch = createFakeUpdatesSignupFetch({ existingContact: true })
+  const app = createApp({
+    updatesSignup: updatesSignupConfig(),
+    fetchImpl: resendFetch,
+    sessionSecret: 'session-secret'
+  })
+
+  const response = await request(app).post('/api/updates-signup').send({
+    email: 'user@example.com',
+    topics: ['interactive_services']
+  })
+
+  assert.equal(response.status, 200)
+  assert.equal(response.body.ok, true)
+  assert.deepEqual(response.body.subscribedTopics, ['interactive_services'])
+  assert.equal(resendFetch.stats.updateContactCalls, 1)
+  assert.equal(resendFetch.stats.createContactCalls, 0)
+  assert.equal(resendFetch.stats.patchTopicCalls, 1)
+  assert.equal(resendFetch.stats.ensureSegmentCalls, 1)
+  assert.equal(resendFetch.stats.sendWelcomeEmailCalls, 0)
+  assert.deepEqual(resendFetch.stats.lastPatchTopicsBody, [
+    { id: 'topic-projects', subscription: 'opt_out' },
+    { id: 'topic-resume', subscription: 'opt_out' },
+    { id: 'topic-interactive', subscription: 'opt_in' }
+  ])
+})
+
+test('GET /api/updates-signup/unsubscribe unsubscribes the contact from a welcome email link', async () => {
+  const resendFetch = createFakeUpdatesSignupFetch({ existingContact: false })
+  const app = createApp({
+    updatesSignup: updatesSignupConfig(),
+    fetchImpl: resendFetch,
+    sessionSecret: 'session-secret'
+  })
+
+  const signupResponse = await request(app)
+    .post('/api/updates-signup')
+    .set('Host', 'api.example.test')
+    .send({
+      email: 'user@example.com',
+      topics: ['projects'],
+      locale: 'dk'
+    })
+
+  assert.equal(signupResponse.status, 201)
+
+  const unsubscribeHeader = resendFetch.stats.lastWelcomeEmailBody.headers['List-Unsubscribe']
+  const unsubscribeUrl = unsubscribeHeader.replace(/^<|>$/g, '')
+  const parsed = new URL(unsubscribeUrl)
+  const response = await request(app).get(`${parsed.pathname}${parsed.search}`)
+
+  assert.equal(response.status, 200)
+  assert.match(response.text, /You are unsubscribed/)
+  assert.equal(resendFetch.stats.unsubscribeContactCalls, 1)
+})
+
+test('GET /api/updates-signup/unsubscribe rejects invalid tokens', async () => {
+  const resendFetch = createFakeUpdatesSignupFetch({ existingContact: true })
+  const app = createApp({
+    updatesSignup: updatesSignupConfig(),
+    fetchImpl: resendFetch,
+    sessionSecret: 'session-secret'
+  })
+
+  const response = await request(app).get('/api/updates-signup/unsubscribe?token=invalid-token')
+
+  assert.equal(response.status, 400)
+  assert.match(response.text, /invalid or has expired/i)
+  assert.equal(resendFetch.stats.unsubscribeContactCalls, 0)
+})
+
+test('POST /api/updates-signup/auto-broadcast requires automation token', async () => {
+  const app = createApp({
+    updatesSignup: updatesSignupConfig(),
+    updatesBroadcast: updatesBroadcastConfig(),
+    fetchImpl: createFakeUpdatesSignupFetch({ existingContact: true })
+  })
+
+  const response = await request(app).post('/api/updates-signup/auto-broadcast').send({
+    headCommit: 'abc1234',
+    changedFiles: ['johanscv/src/pages/Resume.js']
+  })
+
+  assert.equal(response.status, 401)
+  assert.equal(response.body.answer, 'Updates automation token is invalid.')
+})
+
+test('POST /api/updates-signup/auto-broadcast sends once and dedupes repeated topic for the same commit', async () => {
+  const resendFetch = createFakeUpdatesSignupFetch({ existingContact: true })
+  const app = createApp({
+    updatesSignup: updatesSignupConfig(),
+    updatesBroadcast: updatesBroadcastConfig(),
+    fetchImpl: resendFetch
+  })
+  const payload = {
+    headCommit: 'abc1234',
+    source: 'frontend-deploy',
+    locale: 'dk',
+    changedFiles: ['johanscv/src/pages/Resume.js'],
+    commitSubjects: ['Update resume with volunteer certificate'],
+    topicDetails: [
+      {
+        topic: 'resume',
+        files: ['johanscv/src/pages/Resume.js'],
+        commitSubjects: ['Update resume with volunteer certificate'],
+        diffText: '@@ -1 +1 @@'
+      }
+    ]
+  }
+
+  const firstResponse = await request(app)
+    .post('/api/updates-signup/auto-broadcast')
+    .set('x-updates-automation-token', 'updates-automation-secret')
+    .send(payload)
+
+  assert.equal(firstResponse.status, 200)
+  assert.equal(firstResponse.body.sent.length, 1)
+  assert.equal(firstResponse.body.sent[0].topic, 'resume')
+  assert.equal(resendFetch.stats.sendBroadcastCalls, 1)
+
+  const secondResponse = await request(app)
+    .post('/api/updates-signup/auto-broadcast')
+    .set('x-updates-automation-token', 'updates-automation-secret')
+    .send(payload)
+
+  assert.equal(secondResponse.status, 200)
+  assert.equal(secondResponse.body.sent.length, 0)
+  assert.equal(secondResponse.body.skipped.length, 1)
+  assert.equal(secondResponse.body.skipped[0].reason, 'already-broadcasted')
+  assert.equal(resendFetch.stats.sendBroadcastCalls, 1)
+})
+
+test('POST /api/updates-signup/auto-broadcast supports dry-run and log retrieval', async () => {
+  const resendFetch = createFakeUpdatesSignupFetch({ existingContact: true })
+  const app = createApp({
+    updatesSignup: updatesSignupConfig(),
+    updatesBroadcast: updatesBroadcastConfig(),
+    fetchImpl: resendFetch
+  })
+  const payload = {
+    dryRun: true,
+    headCommit: 'dryrun123',
+    source: 'github-actions',
+    locale: 'dk',
+    changedFiles: ['johanscv/src/pages/Projects.js'],
+    commitSubjects: ['Add architecture case study to projects'],
+    topicDetails: [
+      {
+        topic: 'projects',
+        files: ['johanscv/src/pages/Projects.js'],
+        commitSubjects: ['Add architecture case study to projects'],
+        diffText: '@@ -1 +1 @@'
+      }
+    ]
+  }
+
+  const previewResponse = await request(app)
+    .post('/api/updates-signup/auto-broadcast')
+    .set('x-updates-automation-token', 'updates-automation-secret')
+    .send(payload)
+
+  assert.equal(previewResponse.status, 200)
+  assert.equal(previewResponse.body.dryRun, true)
+  assert.equal(previewResponse.body.sent.length, 1)
+  assert.match(previewResponse.body.sent[0].subject, /Projekter:/)
+  assert.match(previewResponse.body.sent[0].whatChanged, /Seneste ændring:/)
+  assert.equal(resendFetch.stats.sendBroadcastCalls, 0)
+
+  const logResponse = await request(app)
+    .get('/api/updates-signup/broadcast-log?limit=5')
+    .set('x-updates-automation-token', 'updates-automation-secret')
+
+  assert.equal(logResponse.status, 200)
+  assert.equal(logResponse.body.ok, true)
+  assert.equal(Array.isArray(logResponse.body.entries), true)
+  assert.equal(logResponse.body.entries[0].type, 'preview')
+  assert.equal(logResponse.body.entries[0].topic, 'projects')
+})
+
+test('POST /api/updates-signup returns success without calling provider when honeypot is filled', async () => {
+  const resendFetch = createFakeUpdatesSignupFetch({ existingContact: false })
+  const app = createApp({
+    updatesSignup: updatesSignupConfig(),
+    fetchImpl: resendFetch
+  })
+
+  const response = await request(app).post('/api/updates-signup').send({
+    email: 'user@example.com',
+    topics: ['projects'],
+    company: 'Bot Corp'
+  })
+
+  assert.equal(response.status, 200)
+  assert.equal(response.body.ok, true)
+  assert.equal(resendFetch.stats.updateContactCalls, 0)
+  assert.equal(resendFetch.stats.createContactCalls, 0)
+  assert.equal(resendFetch.stats.patchTopicCalls, 0)
+})
+
+test('POST /api/updates-signup returns 503 when provider config is missing', async () => {
+  const app = createApp({
+    updatesSignup: updatesSignupConfig({
+      apiKey: ''
+    }),
+    fetchImpl: createFakeUpdatesSignupFetch({ existingContact: false })
+  })
+
+  const response = await request(app).post('/api/updates-signup').send({
+    email: 'user@example.com',
+    topics: ['projects']
+  })
+
+  assert.equal(response.status, 503)
+  assert.equal(response.body.answer, 'Updates signup is temporarily unavailable. Please try again later.')
+})
+
+test('POST /api/updates-signup enforces rate limit', async () => {
+  const app = createApp({
+    updatesSignup: updatesSignupConfig({
+      rateLimitMax: 1,
+      rateLimitWindowMs: 60_000
+    }),
+    fetchImpl: createFakeUpdatesSignupFetch({ existingContact: true })
+  })
+
+  const first = await request(app).post('/api/updates-signup').send({
+    email: 'user@example.com',
+    topics: ['projects']
+  })
+  const second = await request(app).post('/api/updates-signup').send({
+    email: 'user@example.com',
+    topics: ['projects']
+  })
+
+  assert.equal(first.status, 200)
+  assert.equal(second.status, 429)
+  assert.equal(second.body.answer, 'Too many signup attempts. Please try again shortly.')
+})
+
+test('POST /api/updates-signup enforces daily cap per IP', async () => {
+  const app = createApp({
+    updatesSignup: updatesSignupConfig({
+      dailyCapMax: 1,
+      rateLimitMax: 10
+    }),
+    fetchImpl: createFakeUpdatesSignupFetch({ existingContact: true })
+  })
+
+  const first = await request(app).post('/api/updates-signup').send({
+    email: 'user@example.com',
+    topics: ['projects']
+  })
+  const second = await request(app).post('/api/updates-signup').send({
+    email: 'user@example.com',
+    topics: ['resume']
+  })
+
+  assert.equal(first.status, 200)
+  assert.equal(second.status, 429)
+  assert.match(second.body.answer, /Daily signup limit reached/)
 })
 
 test('POST /auth/login rejects invalid access code when required', async () => {
@@ -643,6 +995,102 @@ function spotifyConfig(overrides = {}) {
     cookieName: 'spotify_test_sid',
     ...overrides
   }
+}
+
+function updatesSignupConfig(overrides = {}) {
+  return {
+    apiKey: 'resend-api-key',
+    fromEmail: 'Johan <updates@johanscv.dk>',
+    segmentId: 'segment-updates',
+    siteBaseUrl: 'https://johanscv.dk',
+    unsubscribeSecret: 'session-secret',
+    topicIds: {
+      projects: 'topic-projects',
+      resume: 'topic-resume',
+      interactive_services: 'topic-interactive'
+    },
+    rateLimitWindowMs: 60_000,
+    rateLimitMax: 8,
+    dailyCapMax: 20,
+    ...overrides
+  }
+}
+
+function updatesBroadcastConfig(overrides = {}) {
+  return {
+    automationToken: 'updates-automation-secret',
+    locale: 'dk',
+    siteBaseUrl: 'https://johanscv.dk',
+    ...overrides
+  }
+}
+
+function createFakeUpdatesSignupFetch({ existingContact = false } = {}) {
+  let hasContact = existingContact
+  const stats = {
+    updateContactCalls: 0,
+    createContactCalls: 0,
+    patchTopicCalls: 0,
+    ensureSegmentCalls: 0,
+    unsubscribeContactCalls: 0,
+    sendWelcomeEmailCalls: 0,
+    sendBroadcastCalls: 0,
+    lastCreateBody: null,
+    lastPatchTopicsBody: null,
+    lastWelcomeEmailBody: null,
+    lastBroadcastBody: null
+  }
+
+  async function fakeUpdatesSignupFetch(url, options = {}) {
+    const target = typeof url === 'string' ? url : url.toString()
+    if (target === 'https://api.resend.com/emails') {
+      stats.sendWelcomeEmailCalls += 1
+      stats.lastWelcomeEmailBody = JSON.parse(String(options.body || '{}'))
+      return jsonResponse({ id: 'email_123' }, 200)
+    }
+
+    if (target === 'https://api.resend.com/broadcasts') {
+      stats.sendBroadcastCalls += 1
+      stats.lastBroadcastBody = JSON.parse(String(options.body || '{}'))
+      return jsonResponse({ id: 'broadcast_123' }, 200)
+    }
+
+    if (target === 'https://api.resend.com/contacts') {
+      stats.createContactCalls += 1
+      stats.lastCreateBody = JSON.parse(String(options.body || '{}'))
+      hasContact = true
+      return jsonResponse({ id: 'contact_123' }, 201)
+    }
+
+    if (target.includes('/segments/')) {
+      stats.ensureSegmentCalls += 1
+      return jsonResponse({ object: 'contact_segment' }, 200)
+    }
+
+    if (target.endsWith('/topics')) {
+      stats.patchTopicCalls += 1
+      stats.lastPatchTopicsBody = JSON.parse(String(options.body || '{}'))
+      return jsonResponse({ object: 'contact_topic' }, 200)
+    }
+
+    if (target.startsWith('https://api.resend.com/contacts/')) {
+      stats.updateContactCalls += 1
+      const parsedBody = JSON.parse(String(options.body || '{}'))
+      if (parsedBody.unsubscribed === true) {
+        stats.unsubscribeContactCalls += 1
+      }
+      if (!hasContact) {
+        return jsonResponse({ message: 'Contact not found' }, 404)
+      }
+
+      return jsonResponse({ id: 'contact_123' }, 200)
+    }
+
+    return jsonResponse({ error: 'not found' }, 404)
+  }
+
+  fakeUpdatesSignupFetch.stats = stats
+  return fakeUpdatesSignupFetch
 }
 
 function createFakeSpotifyFetch({

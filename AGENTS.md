@@ -11,6 +11,7 @@
 - Frontend feature modules:
   - `johanscv/src/features/ask-johan/`
   - `johanscv/src/features/geojohan/`
+  - `johanscv/src/features/updates-signup/`
   - `johanscv/src/features/spotify-dashboard/`
 - Frontend app shell and shared routing:
   - `johanscv/src/main.js`
@@ -18,8 +19,8 @@
 - API layered modules:
   - `johanscv.dk-api/src/config/` (runtime/env/context loading)
   - `johanscv.dk-api/src/app/` (Express app wiring + middleware)
-  - `johanscv.dk-api/src/features/` (auth, ask-johan, geojohan, spotify auth, music-dashboard handlers)
-  - `johanscv.dk-api/src/server/` (bootstrap + usage store + spotify session store)
+  - `johanscv.dk-api/src/features/` (auth, ask-johan, geojohan, updates-signup, central updates-broadcast, Resend mailers, spotify auth, music-dashboard handlers)
+  - `johanscv.dk-api/src/server/` (bootstrap + usage store + spotify session store + updates broadcast store)
   - `johanscv.dk-api/src/shared/` (shared HTTP/timeout helpers)
 
 ## Discovery Rule (Mandatory)
@@ -49,14 +50,17 @@
 
 ## Deployment Assumptions
 - Frontend deploy path is GitHub Pages via `johanscv` scripts.
+- Automated frontend deploy path also exists in `.github/workflows/deploy-frontend.yml`.
 - Frontend local dev entry uses `johanscv/scripts/dev-fixed.sh` (host `127.0.0.1`, port `5173`, `CUSTOM_DOMAIN=true` default).
 - API deploy path is Azure App Service via the workflow in `johanscv.dk-api/DEPLOY_AZURE.md`.
+- Automated API deploy path also exists in `.github/workflows/deploy-api.yml`.
 - Runtime expectation is Node 24 (see `.nvmrc`, CI `node-version`, and package `engines.node`).
 - Protected API routes include:
   - `POST /api/ask-johan`
   - `GET /api/geojohan/maps-key`
   - `GET /api/music-dashboard/snapshot`
   - Auth bootstrap: `POST /auth/login`
+  - Internal deploy automation: `POST /api/updates-signup/auto-broadcast`
 - CI in `.github/workflows/ci.yml` is the quality gate:
   - repo guardrails (`check-node-alignment`, `check-doc-sync`, `scan-secrets`),
   - frontend lint/smoke/build/bundle-budget,

@@ -59,6 +59,8 @@ const HOVER_LIGHT_TARGET_SELECTOR = [
   '.spotify-dashboard-preview-button',
   '.projects-cta',
   '.ask-button',
+  '.updates-signup-choice',
+  '.updates-signup-button',
   '.file-action'
 ].join(', ')
 const welcomeRoot = document.querySelector('#welcome-root')

@@ -10,7 +10,10 @@
     "dev": "bash ./scripts/dev-fixed.sh",
     "dev:watch": "node --watch index.js",
     "start": "node index.js",
-    "test": "node --test"
+    "test": "node --test",
+    "deploy:azure": "node ./scripts/deploy-azure-with-updates.mjs",
+    "updates:broadcast": "node ./scripts/send-update-broadcast.mjs",
+    "updates:auto-broadcast": "node ./scripts/send-auto-update-broadcast.mjs"
   },
   "dependencies": {
     "cors": "^2.8.5",

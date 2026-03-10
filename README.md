@@ -26,13 +26,14 @@ Frontend (`johanscv/src/`):
 2. `features/ask-johan/AskJohanWidget.js` for Ask Johan client/auth interactions.
 3. `features/geojohan/GeoJohanPage.js` + `features/geojohan/geojohan*.js` for GeoJohan gameplay/config.
 4. `features/spotify-dashboard/SpotifyDashboardSection.js` for Spotify dashboard UX states.
+5. `features/updates-signup/UpdatesSignupSection.js` for email update signup UX on the contact page.
 5. `pages/` for route-level page composition (`Resume.js`, `Home.js`, etc.).
 6. `components/` for shared presentational components.
 
 API (`johanscv.dk-api/src/`):
 1. `config/runtime-config.js` for env parsing + context loading.
 2. `app/create-app.js` + `app/origins.js` for Express wiring and CORS origin rules.
-3. `features/auth.js`, `features/ask-johan.js`, `features/geojohan.js`, `features/spotify-auth.js`, `features/music-dashboard.js` for endpoint behavior.
+3. `features/auth.js`, `features/ask-johan.js`, `features/geojohan.js`, `features/spotify-auth.js`, `features/music-dashboard.js`, `features/updates-signup.js`, `features/resend-client.js` for endpoint and Resend behavior.
 4. `server/start-server.js` + `server/usage-store.js` + `server/spotify-session-store.js` for startup and quota/session storage.
 5. `shared/http.js` + `shared/with-timeout.js` + `shared/cookies.js` for cross-feature helpers.
 
@@ -63,6 +64,15 @@ Spotify dashboard flow:
 3. API builds top-4 tracks (past week), top-4 artists (past week), and top-4 albums from recent listens.
 4. Frontend renders the cards directly; no user Spotify connect step is required.
 
+Updates signup flow:
+1. Frontend contact page posts `POST /api/updates-signup` with `{ email, topics, locale, source }`.
+2. API syncs the contact and topic preferences in Resend.
+3. First-time signups receive a welcome email.
+4. Protected deploy/workflow triggers post commit/diff metadata to `POST /api/updates-signup/auto-broadcast`.
+5. The API centrally generates topic-specific mails, dedupes per commit/topic, logs the result, and sends via Resend.
+6. Frontend deploys (`cd johanscv && npm run deploy`), API deploys (`cd johanscv.dk-api && npm run deploy:azure`), and GitHub deploy workflows all reuse that same central broadcast flow.
+7. Manual override still exists via `npm run updates:broadcast -- ...` from `johanscv.dk-api/`.
+
 ## API Contract Snapshot
 
 1. `POST /auth/login`
@@ -83,6 +93,15 @@ Spotify dashboard flow:
    - success: `{ "snapshotTimestamp": "...", "weeklyWindowStartTimestamp": "...", "periodFallbackUsed": boolean, "lists": { "tracks": [...], "albums": [...], "artists": [...] } }`
    - misconfigured source account: `{ "message": "..." }` with `503`
    - empty data: `{ "message": "..." }` with `422`
+5. `POST /api/updates-signup`
+   - request: `{ "email": "...", "topics": ["projects" | "resume" | "interactive_services"], "locale": "en" | "dk", "source": "contact-page" }`
+   - success: `{ "ok": true, "message": "...", "subscribedTopics": [...] }`
+6. `GET /api/updates-signup/unsubscribe`
+   - request: signed `token` query parameter from welcome email
+   - success: HTML confirmation page
+7. Internal deploy automation endpoints:
+   - `POST /api/updates-signup/auto-broadcast` with automation token header + commit/diff metadata
+   - `GET /api/updates-signup/broadcast-log` with automation token header
 
 ## Local Development
 
@@ -188,6 +207,20 @@ API (`johanscv.dk-api/.env` or Azure App Service app settings):
 - `MAX_QUESTION_CHARS`, `ASK_JOHAN_DAILY_CAP`
 - `ALLOWED_ORIGINS`
 - `ASK_JOHAN_TIMEOUT_MS`, `ASK_JOHAN_RATE_LIMIT_WINDOW_MS`, `ASK_JOHAN_RATE_LIMIT_MAX`
+- updates signup / Resend:
+  - `RESEND_API_KEY`
+  - `RESEND_UPDATES_FROM_EMAIL`
+  - optional `RESEND_UPDATES_REPLY_TO_EMAIL`
+  - `RESEND_UPDATES_SEGMENT_ID`
+  - `RESEND_TOPIC_PROJECTS_ID`
+  - `RESEND_TOPIC_RESUME_ID`
+  - `RESEND_TOPIC_INTERACTIVE_SERVICES_ID`
+  - `UPDATES_SIGNUP_RATE_LIMIT_WINDOW_MS`, `UPDATES_SIGNUP_RATE_LIMIT_MAX`, `UPDATES_SIGNUP_DAILY_CAP`
+  - deploy/broadcast automation:
+    - `UPDATES_AUTOMATION_TOKEN`
+    - optional `UPDATES_AUTOMATION_ENDPOINT` for local deploy wrappers
+    - optional `UPDATES_BROADCAST_LOCALE`, `UPDATES_BROADCAST_SITE_BASE_URL`
+    - optional `UPDATES_BROADCAST_STORE`, `UPDATES_BROADCAST_STATE_FILE`, `UPDATES_BROADCAST_LOG_LIMIT`
 - Spotify dashboard:
   - `SPOTIFY_CLIENT_ID`
   - `SPOTIFY_OWNER_REFRESH_TOKEN`
@@ -251,3 +284,19 @@ Repo-level:
 ./scripts/verify.sh
 ./scripts/verify-node24.sh
 ```
+
+## Deploy Automation
+
+Frontend deploy automation:
+1. `.github/workflows/deploy-frontend.yml` builds `johanscv/`, publishes `gh-pages`, and then notifies the API broadcast endpoint.
+2. It only needs one repo secret for notifications: `UPDATES_AUTOMATION_TOKEN`.
+
+API deploy automation:
+1. `.github/workflows/deploy-api.yml` packages `johanscv.dk-api/`, deploys Azure App Service, and then notifies the same API broadcast endpoint.
+2. It needs:
+   - GitHub secret `AZURE_WEBAPP_PUBLISH_PROFILE`
+   - GitHub secret `UPDATES_AUTOMATION_TOKEN`
+
+Local deploy helpers:
+1. Frontend: `cd johanscv && npm run deploy`
+2. API: `cd johanscv.dk-api && npm run deploy:azure`

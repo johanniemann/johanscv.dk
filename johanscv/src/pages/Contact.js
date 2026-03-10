@@ -1,3 +1,5 @@
+import { UpdatesSignupSection, bindUpdatesSignup } from '../features/updates-signup/UpdatesSignupSection.js'
+
 export function render({ t }) {
   return `
     <main class="page-stack">
@@ -38,11 +40,13 @@ export function render({ t }) {
           })
         })}
       </section>
+
+      ${UpdatesSignupSection({ t })}
     </main>
   `
 }
 
-export function mount({ t }) {
+export function mount({ t, language }) {
   const actionButtons = document.querySelectorAll('.contact-action')
   actionButtons.forEach((button) => {
     button.dataset.defaultLabel = button.querySelector('.file-action-text')?.textContent || ''
@@ -71,6 +75,8 @@ export function mount({ t }) {
       void animateCopyLabel(button, feedbackLabel)
     })
   })
+
+  bindUpdatesSignup({ t, language })
 }
 
 function contactRow({ label, value, action }) {
