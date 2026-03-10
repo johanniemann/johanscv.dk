@@ -67,16 +67,138 @@ test('sendUpdateBroadcast creates a topic-scoped broadcast with send=true', asyn
   assert.match(fetchMock.calls[0].body.text, /RESEND_UNSUBSCRIBE_URL/)
 })
 
-function createResendFetchRecorder() {
+test('upsertSubscription retries without contact properties when Resend rejects them on create', async () => {
+  const fetchMock = createResendFetchRecorder({
+    existingContact: false,
+    rejectPropertiesOnCreate: true
+  })
+  const service = createResendUpdatesSignupService({
+    apiKey: 'resend-api-key',
+    fromEmail: 'Johan <updates@johanscv.dk>',
+    segmentId: 'segment-updates',
+    siteBaseUrl: 'https://johanscv.dk',
+    topicIds: {
+      projects: 'topic-projects',
+      resume: 'topic-resume',
+      interactive_services: 'topic-interactive'
+    },
+    fetchImpl: fetchMock
+  })
+
+  const result = await service.upsertSubscription({
+    email: 'user@example.com',
+    topics: ['resume'],
+    locale: 'dk',
+    source: 'contact-page'
+  })
+
+  assert.equal(result.created, true)
+  const createCalls = fetchMock.calls.filter((entry) => entry.url === 'https://api.resend.com/contacts')
+  assert.equal(createCalls.length, 2)
+  assert.deepEqual(createCalls[0].body.properties, {
+    locale: 'dk',
+    signup_source: 'contact-page'
+  })
+  assert.equal(Object.hasOwn(createCalls[1].body, 'properties'), false)
+})
+
+test('upsertSubscription retries without contact properties when Resend rejects them on update', async () => {
+  const fetchMock = createResendFetchRecorder({
+    existingContact: true,
+    rejectPropertiesOnUpdate: true
+  })
+  const service = createResendUpdatesSignupService({
+    apiKey: 'resend-api-key',
+    fromEmail: 'Johan <updates@johanscv.dk>',
+    segmentId: 'segment-updates',
+    siteBaseUrl: 'https://johanscv.dk',
+    topicIds: {
+      projects: 'topic-projects',
+      resume: 'topic-resume',
+      interactive_services: 'topic-interactive'
+    },
+    fetchImpl: fetchMock
+  })
+
+  const result = await service.upsertSubscription({
+    email: 'user@example.com',
+    topics: ['projects'],
+    locale: 'en',
+    source: 'contact-page'
+  })
+
+  assert.equal(result.created, false)
+  const updateCalls = fetchMock.calls.filter((entry) => entry.url === 'https://api.resend.com/contacts/user%40example.com')
+  assert.equal(updateCalls.length, 2)
+  assert.deepEqual(updateCalls[0].body.properties, {
+    locale: 'en',
+    signup_source: 'contact-page'
+  })
+  assert.equal(Object.hasOwn(updateCalls[1].body, 'properties'), false)
+})
+
+function createResendFetchRecorder({
+  existingContact = true,
+  rejectPropertiesOnCreate = false,
+  rejectPropertiesOnUpdate = false
+} = {}) {
   const calls = []
+  let hasContact = existingContact
 
   async function fetchRecorder(url, options = {}) {
-    calls.push({
+    const request = {
       url: typeof url === 'string' ? url : url.toString(),
       body: JSON.parse(String(options.body || '{}'))
-    })
+    }
+    calls.push(request)
 
-    const isBroadcast = String(url).endsWith('/broadcasts')
+    if (request.url === 'https://api.resend.com/contacts') {
+      if (rejectPropertiesOnCreate && request.body.properties) {
+        return new Response(JSON.stringify({ message: 'One or more properties do not exist' }), {
+          status: 422,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+      }
+
+      hasContact = true
+      return new Response(JSON.stringify({ id: 'contact_123' }), {
+        status: 201,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+    }
+
+    if (request.url.startsWith('https://api.resend.com/contacts/')) {
+      if (!hasContact) {
+        return new Response(JSON.stringify({ message: 'Contact not found' }), {
+          status: 404,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+      }
+
+      if (rejectPropertiesOnUpdate && request.body.properties) {
+        return new Response(JSON.stringify({ message: 'One or more properties do not exist' }), {
+          status: 422,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+      }
+
+      return new Response(JSON.stringify({ id: 'contact_123' }), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+    }
+
+    const isBroadcast = request.url.endsWith('/broadcasts')
     return new Response(JSON.stringify({ id: isBroadcast ? 'broadcast_123' : 'email_123' }), {
       status: 200,
       headers: {

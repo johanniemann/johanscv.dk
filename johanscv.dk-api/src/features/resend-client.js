@@ -47,19 +47,17 @@ export function createResendUpdatesSignupService({
 
       const topicSubscriptions = buildTopicSubscriptions(normalizedTopicIds, topics)
       const contactPath = `/contacts/${encodeURIComponent(email)}`
+      const contactProperties = buildContactProperties({ locale, source })
       const contactPayload = {
         unsubscribed: false,
         audienceId: undefined,
         firstName: undefined,
         lastName: undefined,
         tags: undefined,
-        properties: {
-          locale,
-          signup_source: source
-        }
+        properties: contactProperties
       }
 
-      const updateContactResponse = await resendRequest({
+      const updateContactResponse = await resendContactMutation({
         fetchImpl,
         apiKey: normalizedApiKey,
         path: contactPath,
@@ -68,7 +66,7 @@ export function createResendUpdatesSignupService({
       })
 
       if (updateContactResponse.status === 404) {
-        const createContactResponse = await resendRequest({
+        const createContactResponse = await resendContactMutation({
           fetchImpl,
           apiKey: normalizedApiKey,
           path: '/contacts',
@@ -78,10 +76,7 @@ export function createResendUpdatesSignupService({
             unsubscribed: false,
             topics: topicSubscriptions,
             segments: normalizedSegmentId ? [{ id: normalizedSegmentId }] : undefined,
-            properties: {
-              locale,
-              signup_source: source
-            }
+            properties: contactProperties
           }
         })
 
@@ -285,6 +280,34 @@ async function ensureContactSegment({ fetchImpl, apiKey, contactPath, segmentId 
   await assertOk(response)
 }
 
+async function resendContactMutation({ fetchImpl, apiKey, path, method, body }) {
+  const normalizedBody = stripUndefined(body)
+  let response = await resendRequest({
+    fetchImpl,
+    apiKey,
+    path,
+    method,
+    body: normalizedBody
+  })
+
+  if (!(await shouldRetryWithoutContactProperties(response, normalizedBody))) {
+    return response
+  }
+
+  const fallbackBody = {
+    ...normalizedBody
+  }
+  delete fallbackBody.properties
+
+  return resendRequest({
+    fetchImpl,
+    apiKey,
+    path,
+    method,
+    body: fallbackBody
+  })
+}
+
 async function resendRequest({ fetchImpl, apiKey, path, method, body }) {
   return fetchImpl(`${RESEND_API_BASE_URL}${path}`, {
     method,
@@ -333,6 +356,19 @@ async function assertOk(response) {
   })
 }
 
+async function shouldRetryWithoutContactProperties(response, body) {
+  if (!hasDefinedProperties(body?.properties)) {
+    return false
+  }
+
+  if (response.ok || (response.status !== 400 && response.status !== 422)) {
+    return false
+  }
+
+  const providerMessage = await readProviderMessage(response)
+  return isMissingContactPropertyMessage(providerMessage)
+}
+
 async function readProviderMessage(response) {
   try {
     const payload = await response.clone().json()
@@ -379,10 +415,28 @@ function buildTopicSubscriptions(topicIds, selectedTopics) {
   }))
 }
 
+function buildContactProperties({ locale, source }) {
+  return stripUndefined({
+    locale,
+    signup_source: source
+  })
+}
+
 function buildBroadcastName(topic, subject) {
   const datePrefix = new Date().toISOString().slice(0, 10)
   const safeSubject = String(subject || '').trim().replace(/\s+/g, ' ').slice(0, 80)
   return `${datePrefix} ${topic} ${safeSubject}`.trim()
+}
+
+function hasDefinedProperties(value) {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length)
+}
+
+function isMissingContactPropertyMessage(message) {
+  const normalizedMessage = String(message || '').trim().toLowerCase()
+  if (!normalizedMessage) return false
+
+  return /propert(?:y|ies).*(?:do(?:es)? not exist|not exist)/i.test(normalizedMessage)
 }
 
 function stripUndefined(value) {
