@@ -8,6 +8,10 @@ on:
       - '.github/workflows/deploy-api.yml'
   workflow_dispatch:
 
+env:
+  AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+  UPDATES_AUTOMATION_TOKEN: ${{ secrets.UPDATES_AUTOMATION_TOKEN }}
+
 concurrency:
   group: deploy-api
   cancel-in-progress: true
@@ -15,7 +19,7 @@ concurrency:
 jobs:
   deploy:
     name: Deploy Azure App Service
-    if: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE != '' }}
+    if: ${{ env.AZURE_WEBAPP_PUBLISH_PROFILE != '' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -46,13 +50,12 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: johanscv-api-johu0002-no
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          publish-profile: ${{ env.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: /tmp/ask-johan-api-with-modules.zip
 
       - name: Notify central updates service
-        if: ${{ secrets.UPDATES_AUTOMATION_TOKEN != '' }}
+        if: ${{ env.UPDATES_AUTOMATION_TOKEN != '' }}
         working-directory: johanscv.dk-api
         env:
           UPDATES_AUTOMATION_ENDPOINT: https://johanscv-api-johu0002-no.azurewebsites.net
-          UPDATES_AUTOMATION_TOKEN: ${{ secrets.UPDATES_AUTOMATION_TOKEN }}
         run: npm run updates:auto-broadcast -- --source azure-api-workflow --site-base-url https://johanscv.dk
