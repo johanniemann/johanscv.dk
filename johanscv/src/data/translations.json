@@ -83,9 +83,17 @@
       "updates": {
         "title": "Signup for updates",
         "intro": "Get a short email when I publish a new project, update my Resume, or improve an interactive service.",
-        "promiseLabel": "Each email includes",
-        "promiseItems": ["What changed", "Why it matters", "Direct link"],
-        "cadence": "Only when something changes. No weekly filler.",
+        "infoButtonAria": "Open update signup details",
+        "infoKicker": "What you'll get",
+        "infoTitle": "Choose the updates you want",
+        "infoIntro": "Pick one or more topics. I only send an email when something relevant changes on the site.",
+        "infoPoints": [
+          "Projects: new launches, case studies, or major iterations on the projects page.",
+          "Resume: new role, new experience, certifications, or meaningful profile updates.",
+          "Interactive services: new features or clear improvements in Ask Johan, GeoJohan, or SpotiJohan.",
+          "Your first signup also triggers a short welcome email with a direct unsubscribe link."
+        ],
+        "infoClose": "Back to site",
         "topicsLabel": "Choose updates",
         "emailAriaLabel": "Email address",
         "placeholder": "email@example.com",
@@ -326,9 +334,17 @@
       "updates": {
         "title": "Tilmeld dig opdateringer",
         "intro": "Få en kort e-mail, når jeg udgiver et nyt projekt, opdaterer mit CV eller forbedrer en interaktiv service.",
-        "promiseLabel": "Hver mail indeholder",
-        "promiseItems": ["Hvad der er ændret", "Hvorfor det er relevant", "Direkte link"],
-        "cadence": "Kun når noget faktisk ændrer sig. Ingen fyld.",
+        "infoButtonAria": "Åbn detaljer om update signup",
+        "infoKicker": "Hvad du får",
+        "infoTitle": "Vælg de updates du vil have",
+        "infoIntro": "Vælg et eller flere emner. Jeg sender kun en mail, når der er en reel ændring på sitet.",
+        "infoPoints": [
+          "Projects: nye lanceringer, case studies eller større iterationer på projects-siden.",
+          "Resume: ny rolle, ny erfaring, certificeringer eller andre væsentlige profilopdateringer.",
+          "Interactive services: nye features eller tydelige forbedringer i Ask Johan, GeoJohan eller SpotiJohan.",
+          "Første gang du tilmelder dig, får du også en kort velkomstmail med direkte unsubscribe-link."
+        ],
+        "infoClose": "Tilbage til sitet",
         "topicsLabel": "Vælg opdateringer",
         "emailAriaLabel": "E-mailadresse",
         "placeholder": "email@example.com",
@@ -336,9 +352,9 @@
         "note": "Du kan altid afmelde dig igen.",
         "success": "Du er nu tilmeldt opdateringer.",
         "topics": {
-          "projects": "Projekter",
+          "projects": "Projects",
           "resume": "Resume",
-          "interactive_services": "Interaktive services"
+          "interactive_services": "Interactive services"
         },
         "topicDescriptions": {
           "projects": "Nyt case study, lancering eller større iteration",

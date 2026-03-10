@@ -2480,7 +2480,7 @@ body.welcome-active #site-shell {
   border: 0;
   min-inline-size: 0;
   display: grid;
-  gap: 0.62rem;
+  gap: 0.7rem;
 }
 
 .updates-signup-legend {
@@ -2491,53 +2491,11 @@ body.welcome-active #site-shell {
   font-weight: 600;
 }
 
-.updates-signup-choice {
-  position: relative;
-  display: block;
-  cursor: pointer;
-}
-
 .updates-signup-choice-input {
   position: absolute;
   inset: 0;
   opacity: 0;
   pointer-events: none;
-}
-
-.updates-signup-choice-visual {
-  width: 100%;
-  pointer-events: none;
-}
-
-.updates-signup-choice-input:focus-visible + .updates-signup-choice-visual {
-  outline: none;
-  border-color: var(--surface-inner-hover-border);
-  box-shadow: 0 0 0 3px rgba(126, 140, 246, 0.16);
-}
-
-.updates-signup-choice-input:checked + .updates-signup-choice-visual {
-  border-color: rgba(235, 177, 127, 0.62);
-  background: rgba(255, 248, 238, 0.72);
-}
-
-.updates-signup-choice-indicator {
-  width: 1.15rem;
-  height: 1.15rem;
-  min-width: 1.15rem;
-  min-height: 1.15rem;
-}
-
-.updates-signup-choice-input:checked + .updates-signup-choice-visual .updates-signup-choice-indicator {
-  border-color: transparent;
-  background: linear-gradient(120deg, #f3b885, #f9e3b9, #ebb17f, #f3b885);
-}
-
-.updates-signup-choice-label {
-  white-space: normal;
-}
-
-.updates-signup-choice-note {
-  color: var(--text-soft);
 }
 
 .updates-signup-input-wrap {

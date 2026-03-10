@@ -22,7 +22,8 @@ export function createResendUpdatesSignupService({
   segmentId = '',
   siteBaseUrl = '',
   topicIds = {},
-  fetchImpl = fetch
+  fetchImpl = fetch,
+  sleepImpl = defaultSleep
 } = {}) {
   const normalizedApiKey = String(apiKey || '').trim()
   const normalizedFromEmail = String(fromEmail || '').trim()
@@ -62,7 +63,8 @@ export function createResendUpdatesSignupService({
         apiKey: normalizedApiKey,
         path: contactPath,
         method: 'PATCH',
-        body: contactPayload
+        body: contactPayload,
+        sleepImpl
       })
 
       if (updateContactResponse.status === 404) {
@@ -77,7 +79,8 @@ export function createResendUpdatesSignupService({
             topics: topicSubscriptions,
             segments: normalizedSegmentId ? [{ id: normalizedSegmentId }] : undefined,
             properties: contactProperties
-          }
+          },
+          sleepImpl
         })
 
         if (createContactResponse.status === 409) {
@@ -86,7 +89,8 @@ export function createResendUpdatesSignupService({
             apiKey: normalizedApiKey,
             contactPath,
             topicSubscriptions,
-            segmentId: normalizedSegmentId
+            segmentId: normalizedSegmentId,
+            sleepImpl
           })
 
           return {
@@ -108,7 +112,8 @@ export function createResendUpdatesSignupService({
         apiKey: normalizedApiKey,
         contactPath,
         topicSubscriptions,
-        segmentId: normalizedSegmentId
+        segmentId: normalizedSegmentId,
+        sleepImpl
       })
 
       return {
@@ -146,7 +151,8 @@ export function createResendUpdatesSignupService({
             'List-Unsubscribe': `<${unsubscribeUrl}>`,
             'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
           }
-        }
+        },
+        sleepImpl
       })
 
       await assertOk(response)
@@ -168,7 +174,8 @@ export function createResendUpdatesSignupService({
         method: 'PATCH',
         body: {
           unsubscribed: true
-        }
+        },
+        sleepImpl
       })
 
       if (response.status === 404) {
@@ -223,7 +230,8 @@ export function createResendUpdatesSignupService({
           segmentId: normalizedSegmentId,
           topicId: normalizedTopicIds[normalizedTopic],
           send: true
-        }
+        },
+        sleepImpl
       })
 
       await assertOk(response)
@@ -234,12 +242,13 @@ export function createResendUpdatesSignupService({
   }
 }
 
-async function updateExistingContact({ fetchImpl, apiKey, contactPath, topicSubscriptions, segmentId }) {
+async function updateExistingContact({ fetchImpl, apiKey, contactPath, topicSubscriptions, segmentId, sleepImpl }) {
   await updateExistingContactTopics({
     fetchImpl,
     apiKey,
     contactPath,
-    topicSubscriptions
+    topicSubscriptions,
+    sleepImpl
   })
 
   if (segmentId) {
@@ -247,30 +256,33 @@ async function updateExistingContact({ fetchImpl, apiKey, contactPath, topicSubs
       fetchImpl,
       apiKey,
       contactPath,
-      segmentId
+      segmentId,
+      sleepImpl
     })
   }
 }
 
-async function updateExistingContactTopics({ fetchImpl, apiKey, contactPath, topicSubscriptions }) {
+async function updateExistingContactTopics({ fetchImpl, apiKey, contactPath, topicSubscriptions, sleepImpl }) {
   const response = await resendRequest({
     fetchImpl,
     apiKey,
     path: `${contactPath}/topics`,
     method: 'PATCH',
-    body: topicSubscriptions
+    body: topicSubscriptions,
+    sleepImpl
   })
 
   await assertOk(response)
 }
 
-async function ensureContactSegment({ fetchImpl, apiKey, contactPath, segmentId }) {
+async function ensureContactSegment({ fetchImpl, apiKey, contactPath, segmentId, sleepImpl }) {
   const response = await resendRequest({
     fetchImpl,
     apiKey,
     path: `${contactPath}/segments/${encodeURIComponent(segmentId)}`,
     method: 'POST',
-    body: {}
+    body: {},
+    sleepImpl
   })
 
   if (response.status === 409) {
@@ -280,14 +292,15 @@ async function ensureContactSegment({ fetchImpl, apiKey, contactPath, segmentId 
   await assertOk(response)
 }
 
-async function resendContactMutation({ fetchImpl, apiKey, path, method, body }) {
+async function resendContactMutation({ fetchImpl, apiKey, path, method, body, sleepImpl }) {
   const normalizedBody = stripUndefined(body)
   let response = await resendRequest({
     fetchImpl,
     apiKey,
     path,
     method,
-    body: normalizedBody
+    body: normalizedBody,
+    sleepImpl
   })
 
   if (!(await shouldRetryWithoutContactProperties(response, normalizedBody))) {
@@ -304,18 +317,33 @@ async function resendContactMutation({ fetchImpl, apiKey, path, method, body }) 
     apiKey,
     path,
     method,
-    body: fallbackBody
+    body: fallbackBody,
+    sleepImpl
   })
 }
 
-async function resendRequest({ fetchImpl, apiKey, path, method, body }) {
-  return fetchImpl(`${RESEND_API_BASE_URL}${path}`, {
-    method,
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json'
-    },
-    body: method === 'GET' ? undefined : JSON.stringify(stripUndefined(body))
+async function resendRequest({ fetchImpl, apiKey, path, method, body, sleepImpl = defaultSleep }) {
+  const maxAttempts = 3
+
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const response = await fetchImpl(`${RESEND_API_BASE_URL}${path}`, {
+      method,
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: method === 'GET' ? undefined : JSON.stringify(stripUndefined(body))
+    })
+
+    if (!shouldRetryProviderResponse(response, attempt, maxAttempts)) {
+      return response
+    }
+
+    await sleepImpl(resolveRetryDelayMs(response, attempt))
+  }
+
+  throw new UpdatesSignupServiceError('Updates signup is temporarily unavailable. Please try again later.', {
+    status: 503
   })
 }
 
@@ -353,6 +381,30 @@ async function assertOk(response) {
 
   throw new UpdatesSignupServiceError(providerMessage || 'Updates signup is temporarily unavailable. Please try again later.', {
     status: 503
+  })
+}
+
+function shouldRetryProviderResponse(response, attempt, maxAttempts) {
+  if (attempt >= maxAttempts - 1) {
+    return false
+  }
+
+  return response.status === 429 || response.status === 500 || response.status === 502 || response.status === 503 || response.status === 504
+}
+
+function resolveRetryDelayMs(response, attempt) {
+  const retryAfterHeader = response.headers?.get?.('retry-after')
+  const retryAfterSeconds = Number.parseInt(String(retryAfterHeader || '').trim(), 10)
+  if (Number.isFinite(retryAfterSeconds) && retryAfterSeconds >= 0) {
+    return retryAfterSeconds * 1000
+  }
+
+  return Math.min(1000 * 2 ** attempt, 4000)
+}
+
+function defaultSleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms)
   })
 }
 

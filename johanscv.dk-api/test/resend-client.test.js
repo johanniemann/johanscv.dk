@@ -32,6 +32,54 @@ test('sendWelcomeEmail sends a localized welcome email with unsubscribe headers'
   assert.equal(fetchMock.calls[0].body.headers['List-Unsubscribe-Post'], 'List-Unsubscribe=One-Click')
 })
 
+test('sendWelcomeEmail retries transient Resend throttling before succeeding', async () => {
+  const delays = []
+  let attempts = 0
+  const service = createResendUpdatesSignupService({
+    apiKey: 'resend-api-key',
+    fromEmail: 'Johan <updates@johanscv.dk>',
+    siteBaseUrl: 'https://johanscv.dk',
+    topicIds: {
+      projects: 'topic-projects',
+      resume: 'topic-resume',
+      interactive_services: 'topic-interactive'
+    },
+    sleepImpl: async (ms) => {
+      delays.push(ms)
+    },
+    fetchImpl: async () => {
+      attempts += 1
+      if (attempts === 1) {
+        return new Response(JSON.stringify({ message: 'Rate limit' }), {
+          status: 429,
+          headers: {
+            'Content-Type': 'application/json',
+            'Retry-After': '2'
+          }
+        })
+      }
+
+      return new Response(JSON.stringify({ id: 'email_retry_ok' }), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+    }
+  })
+
+  const result = await service.sendWelcomeEmail({
+    email: 'user@example.com',
+    topics: ['resume'],
+    locale: 'dk',
+    unsubscribeUrl: 'https://api.example.com/api/updates-signup/unsubscribe?token=abc'
+  })
+
+  assert.equal(result.id, 'email_retry_ok')
+  assert.equal(attempts, 2)
+  assert.deepEqual(delays, [2000])
+})
+
 test('sendUpdateBroadcast creates a topic-scoped broadcast with send=true', async () => {
   const fetchMock = createResendFetchRecorder()
   const service = createResendUpdatesSignupService({
@@ -100,6 +148,69 @@ test('upsertSubscription retries without contact properties when Resend rejects 
     signup_source: 'contact-page'
   })
   assert.equal(Object.hasOwn(createCalls[1].body, 'properties'), false)
+})
+
+test('upsertSubscription retries transient Resend throttling before creating the contact', async () => {
+  const delays = []
+  let createAttempts = 0
+  const service = createResendUpdatesSignupService({
+    apiKey: 'resend-api-key',
+    fromEmail: 'Johan <updates@johanscv.dk>',
+    segmentId: 'segment-updates',
+    siteBaseUrl: 'https://johanscv.dk',
+    topicIds: {
+      projects: 'topic-projects',
+      resume: 'topic-resume',
+      interactive_services: 'topic-interactive'
+    },
+    sleepImpl: async (ms) => {
+      delays.push(ms)
+    },
+    fetchImpl: async (url, options = {}) => {
+      const requestUrl = typeof url === 'string' ? url : url.toString()
+
+      if (requestUrl === 'https://api.resend.com/contacts/user%40example.com') {
+        return new Response(JSON.stringify({ message: 'Contact not found' }), {
+          status: 404,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+      }
+
+      if (requestUrl === 'https://api.resend.com/contacts') {
+        createAttempts += 1
+        if (createAttempts === 1) {
+          return new Response(JSON.stringify({ message: 'Rate limit' }), {
+            status: 429,
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          })
+        }
+
+        return new Response(JSON.stringify({ id: 'contact_retry_ok' }), {
+          status: 201,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+      }
+
+      throw new Error(`Unexpected fetch URL in retry test: ${requestUrl} with body ${String(options.body || '')}`)
+    }
+  })
+
+  const result = await service.upsertSubscription({
+    email: 'user@example.com',
+    topics: ['resume'],
+    locale: 'dk',
+    source: 'contact-page'
+  })
+
+  assert.equal(result.created, true)
+  assert.equal(createAttempts, 2)
+  assert.deepEqual(delays, [1000])
 })
 
 test('upsertSubscription retries without contact properties when Resend rejects them on update', async () => {
