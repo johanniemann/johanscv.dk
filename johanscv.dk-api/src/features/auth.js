@@ -14,6 +14,7 @@ export function createAuthLoginHandler({
   hasJwtSecret,
   jwtSecret,
   tokenTtl,
+  publicSiteAccessEnabled = false,
   authCompatMode,
   authSecurity
 }) {
@@ -24,7 +25,7 @@ export function createAuthLoginHandler({
       return
     }
 
-    if (!hasAccessCode) {
+    if (!publicSiteAccessEnabled && !hasAccessCode) {
       return sendAnswer(res, 500, AUTH_ACCESS_CODE_MISSING_MESSAGE)
     }
 
@@ -33,7 +34,9 @@ export function createAuthLoginHandler({
     }
 
     const providedCode = typeof req.body?.accessCode === 'string' ? req.body.accessCode.trim() : ''
-    if (hasAccessCode && !safeEqual(providedCode, normalizedAccessCode)) {
+    // Temporary public-site mode keeps Bearer-token auth for protected routes,
+    // but skips the access-code check at login until the gate is restored.
+    if (!publicSiteAccessEnabled && hasAccessCode && !safeEqual(providedCode, normalizedAccessCode)) {
       await authSecurity.recordFailure('auth login failure record', requestIp)
       return sendAnswer(res, 401, 'Access denied. Invalid access code.')
     }

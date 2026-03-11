@@ -14,6 +14,7 @@
 
 ## Active Frontend Facts
 - Entry/bootstrap is in `src/main.js`.
+- Site access gate toggle memory lives in `../SITE_ACCESS_GATE.md`.
 - SPA routing is handled client-side (`src/router.js`), including `/playground`, `/quiz`, and `/quiz/geojohan`.
 - Feature modules:
   - Ask Johan: `src/features/ask-johan/AskJohanWidget.js`
@@ -45,6 +46,7 @@
 - Core vars:
   - `VITE_ASK_JOHAN_MODE`
   - `VITE_API_BASE_URL`
+  - `VITE_SITE_GATE_BYPASS` (`true` = temporary public mode, `false` or missing = show welcome password gate)
 - Optional GeoJohan vars:
   - `VITE_GEOJOHAN_ROUND{N}_TITLE`
   - `VITE_GEOJOHAN_ROUND{N}_PANO_LAT`, `_PANO_LNG`, `_PANO_ID`
@@ -61,6 +63,7 @@
   - `npm run smoke`
   - `npm run build`
 - If runtime behavior changed, also run `npm run dev` smoke and report local URL.
+- If the password gate was toggled, keep frontend and API in sync per `../SITE_ACCESS_GATE.md`.
 - Never commit/push without explicit Johan approval.
 - Final summary must list:
   - changed files,

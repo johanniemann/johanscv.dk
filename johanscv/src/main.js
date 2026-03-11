@@ -1,6 +1,7 @@
 import './styles/globals.css'
 import './styles/animations.css'
 import translations from './data/translations.json'
+import { SITE_ACCESS_GATE_DISABLED } from './config/site-access.js'
 import { Navbar } from './components/Navbar.js'
 import { Footer, bindFooterInfoPopup } from './components/Footer.js'
 import { WelcomeGate, bindWelcomeGate } from './components/WelcomeGate.js'
@@ -90,6 +91,14 @@ initCursorLightEffect()
 void initAccessGate()
 
 async function initAccessGate() {
+  if (SITE_ACCESS_GATE_DISABLED) {
+    // Temporary public-site mode: keep the site reachable without the welcome gate
+    // until we are ready to switch the access-code screen back on.
+    localStorage.setItem(SITE_ACCESS_KEY, 'true')
+    bootstrapSite()
+    return
+  }
+
   if (DEV_AUTO_LOGIN) {
     localStorage.setItem(ACCESS_CODE_KEY, DEV_ACCESS_CODE)
     localStorage.setItem(SITE_ACCESS_KEY, 'true')

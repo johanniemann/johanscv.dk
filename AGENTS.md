@@ -67,6 +67,14 @@
   - API tests,
   - dependency audit (`npm audit --omit=dev`).
 
+## Site Gate Memory (Mandatory)
+- The current production intent is temporary public-site mode.
+- Source of truth for restoring or disabling the password gate is `SITE_ACCESS_GATE.md`.
+- If asked to restore the password gate, do not redesign the auth flow:
+  - frontend toggle: `johanscv/.env.production` -> `VITE_SITE_GATE_BYPASS`
+  - API toggle: `johanscv.dk-api/src/server/start-server.js` -> `publicSiteAccessEnabled`
+- Restore or disable the gate on both frontend and API together, then redeploy both sides.
+
 ## Working Style
 - Prefer minimal, reversible, low-risk changes.
 - Preserve API contracts and route behavior unless explicitly requested.

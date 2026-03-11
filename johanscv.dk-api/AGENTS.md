@@ -16,6 +16,7 @@
 - Runtime: Node + Express + OpenAI Responses API.
 - Runtime expectation is Node 24 (`../.nvmrc`, CI, package engines, Azure App Service runtime).
 - Entrypoint: `index.js` -> `src/server/start-server.js`.
+- Site access gate toggle memory lives in `../SITE_ACCESS_GATE.md`.
 - Core wiring:
   - app + middleware: `src/app/create-app.js`
   - runtime/env/context config: `src/config/runtime-config.js`
@@ -48,6 +49,7 @@
 - Auth model:
   - primary: JWT Bearer (token from `/auth/login`),
   - optional temporary compatibility: `x-access-code` controlled by `ASK_JOHAN_AUTH_COMPAT_MODE`.
+  - temporary public-mode toggle: `src/server/start-server.js` -> `publicSiteAccessEnabled`
 
 ## Security Guardrails (Mandatory)
 - Never commit/log secrets.
@@ -126,6 +128,7 @@
   - `/health`
   - `/auth/login`
   - protected `POST /api/ask-johan`
+- If the password gate was toggled, keep API and frontend in sync per `../SITE_ACCESS_GATE.md`.
 - Never commit/push without explicit Johan approval.
 - Final summary must include:
   - changed files,

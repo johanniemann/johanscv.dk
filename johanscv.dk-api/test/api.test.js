@@ -688,6 +688,20 @@ test('POST /auth/login returns bearer token on success', async () => {
   assert.equal(response.headers['cache-control'], 'no-store')
 })
 
+test('POST /auth/login returns bearer token when temporary public-site access is enabled', async () => {
+  const app = createApp({
+    accessCode: 'secret',
+    jwtSecret: 'jwt-secret',
+    publicSiteAccessEnabled: true
+  })
+  const response = await request(app).post('/auth/login').send({ accessCode: '' })
+
+  assert.equal(response.status, 200)
+  assert.equal(typeof response.body.token, 'string')
+  assert.equal(response.body.tokenType, 'Bearer')
+  assert.equal(response.headers['cache-control'], 'no-store')
+})
+
 test('POST /auth/login returns 500 when JWT secret is missing', async () => {
   const app = createApp({
     accessCode: 'secret',

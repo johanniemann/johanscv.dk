@@ -8,6 +8,9 @@ import { createUpdatesBroadcastStore } from './updates-broadcast-store.js'
 export function startServer(env = process.env) {
   const config = readRuntimeConfig(env)
   const client = config.apiKey ? new OpenAI({ apiKey: config.apiKey }) : null
+  // Temporary public-site mode. See ../../SITE_ACCESS_GATE.md for the
+  // exact frontend + API steps required to restore the welcome access-code gate.
+  const publicSiteAccessEnabled = true
   const usageStore = createUsageStore({
     mode: config.usageStoreMode,
     redisUrl: config.redisUrl,
@@ -40,6 +43,7 @@ export function startServer(env = process.env) {
     jwtTtl: config.jwtTtl,
     maxQuestionChars: config.maxQuestionChars,
     model: config.model,
+    publicSiteAccessEnabled,
     rateLimitMax: config.rateLimitMax,
     rateLimitWindowMs: config.rateLimitWindowMs,
     requestTimeoutMs: config.requestTimeoutMs,
@@ -54,6 +58,11 @@ export function startServer(env = process.env) {
 
   const port = config.port
   app.listen(port, () => {
+    if (publicSiteAccessEnabled) {
+      console.warn(
+        'Temporary public-site access is enabled. /auth/login is currently bypassing access-code verification.'
+      )
+    }
     if (config.jwtSecretSource !== 'JWT_SECRET') {
       console.warn(
         `JWT_SECRET is not set. Using ${config.jwtSecretSource} as temporary JWT signing secret. Set JWT_SECRET in production.`

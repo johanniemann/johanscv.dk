@@ -1,4 +1,5 @@
 import mockAnswers from '../../data/mockAnswers.json'
+import { SITE_ACCESS_GATE_DISABLED } from '../../config/site-access.js'
 
 const API_MODE = import.meta.env.VITE_ASK_JOHAN_MODE === 'api'
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
@@ -169,7 +170,7 @@ export async function getApiBearerToken() {
   }
 
   const accessCode = getAccessCode()
-  if (!accessCode) {
+  if (!accessCode && !SITE_ACCESS_GATE_DISABLED) {
     throw new Error(ACCESS_CODE_REQUIRED_MESSAGE)
   }
 
@@ -182,7 +183,7 @@ async function getApiAnswer(question) {
   }
 
   const accessCode = getAccessCode()
-  if (!accessCode) return ACCESS_CODE_REQUIRED_MESSAGE
+  if (!accessCode && !SITE_ACCESS_GATE_DISABLED) return ACCESS_CODE_REQUIRED_MESSAGE
 
   let lastError = null
   let forceTokenRefresh = false
@@ -242,9 +243,13 @@ async function ensureApiToken(accessCode, forceRefresh = false) {
 
   const response = await postLogin(accessCode)
   if (response.status === 401) {
-    localStorage.removeItem(ACCESS_CODE_KEY)
     clearApiToken()
-    throw new Error(ACCESS_CODE_REQUIRED_MESSAGE)
+    if (!SITE_ACCESS_GATE_DISABLED) {
+      localStorage.removeItem(ACCESS_CODE_KEY)
+      throw new Error(ACCESS_CODE_REQUIRED_MESSAGE)
+    }
+
+    throw new Error('Temporary public-site login is enabled in the frontend, but not in the API.')
   }
   if (!response.ok) {
     const message = await getApiErrorMessage(response, 'Authentication failed.')
@@ -339,7 +344,7 @@ function isRetryableError(error) {
 
 export function warmUpAskJohanApi() {
   if (!API_MODE || !API_BASE || apiWarmupStarted) return Promise.resolve()
-  if (!getAccessCode()) return Promise.resolve()
+  if (!getAccessCode() && !SITE_ACCESS_GATE_DISABLED) return Promise.resolve()
   apiWarmupStarted = true
 
   const controller = new AbortController()

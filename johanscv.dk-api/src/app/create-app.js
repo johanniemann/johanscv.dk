@@ -47,6 +47,7 @@ export function createApp({
   logger = console,
   maxQuestionChars = 800,
   model = 'gpt-4.1-mini',
+  publicSiteAccessEnabled = false,
   rateLimitMax = 30,
   rateLimitWindowMs = 60_000,
   requestTimeoutMs = 15_000,
@@ -252,6 +253,7 @@ export function createApp({
       hasJwtSecret,
       jwtSecret,
       tokenTtl,
+      publicSiteAccessEnabled,
       authCompatMode,
       authSecurity
     })
